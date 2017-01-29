@@ -39,9 +39,9 @@ public class zip {
     	while(ze!=null){
 
     	   String fileName = ze.getName();
-           File newFile = new File(outputFolder + File.separator + fileName);
+           File newFile = new File(outputFolder + fileName);
 
-           System.out.println("file unzip : "+ newFile.getAbsoluteFile());
+//           System.out.println("file unzip : "+ newFile.getAbsoluteFile());
            fileList.add(ze.getName());
             //create all non exists folders
             //else you will hit FileNotFoundException for compressed folder
@@ -61,7 +61,7 @@ public class zip {
         zis.closeEntry();
     	zis.close();
 
-    	System.out.println("Done");
+//    	System.out.println("Done");
 
     }catch(IOException ex){
        ex.printStackTrace();
@@ -83,11 +83,10 @@ public class zip {
     	FileOutputStream fos = new FileOutputStream(zipFile);
     	ZipOutputStream zos = new ZipOutputStream(fos);
 
-    	System.out.println("Output to Zip : " + zipFile);
+//    	System.out.println("Output to Zip : " + zipFile);
 
     	for(String file : fileList){
-
-    		System.out.println("File Added : " + file);
+//    		System.out.println("File Added : " + file);
     		ZipEntry ze= new ZipEntry(file);
         	zos.putNextEntry(ze);
 
@@ -106,7 +105,7 @@ public class zip {
     	//remember close it
     	zos.close();
 
-    	System.out.println("Done");
+//    	System.out.println("Done");
     }catch(IOException ex){
        ex.printStackTrace();
     }
