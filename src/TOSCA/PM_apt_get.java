@@ -8,7 +8,8 @@ import java.io.IOException;
 
 public final class PM_apt_get extends PacketManager {
 	
-	public PM_apt_get(){
+	public PM_apt_get(String architecture){
+		this.architecture = architecture;
 		Name = "apt-get";
 	}
 	
@@ -28,7 +29,7 @@ public final class PM_apt_get extends PacketManager {
 				String[] parts = line.replaceAll("[;&]","").split(" ");
 				for(int packet = 2; packet < parts.length; packet++) {
 					System.out.println("packet: " + parts[packet]);
-					newFile+=Bash.getScriptPath() + " apt-get \"" + parts[packet]+ " " + getPacket(parts[packet],cr) +"\"\n";
+					newFile+="dpkg -i "+ getPacket(parts[packet],cr) +"\n";
 				}
 			}
 			else
@@ -48,29 +49,27 @@ public final class PM_apt_get extends PacketManager {
 	}
 	private String getPacket(String packet, Control_references cr)
 	{
-		String dependency = "";
+		String packets = "References_resolver/Bash/"+packet+"/"+packet+".deb" + " " ;
 		File folder = new File("./");
-		for(String arch:Resolver.getArchitectures())
-		{
-			Process proc;
-			try {
-				System.out.println("apt-get download "  + packet+":"+arch);
-				proc = Runtime.getRuntime().exec("apt-get download "  + packet+":"+arch);
-				proc.waitFor();
-				for(File entry:folder.listFiles())
-					if(entry.getName().endsWith(arch+".deb") && entry.getName().startsWith(packet))
-					{
-						proc = Runtime.getRuntime().exec("mv "+entry.getName()+" "+cr.getFolder()+"References_resolver/Bash/"+arch+"/"+packet+"_"+arch+".deb");
-						proc.waitFor();
-					}
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}    
-		}
-		return dependency;
+		Process proc;
+		try {
+			System.out.println("apt-get download "  + packet+":"+architecture);
+			proc = Runtime.getRuntime().exec("apt-get download "  + packet+":"+architecture);
+			proc.waitFor();
+			for(File entry:folder.listFiles())
+				if(entry.getName().endsWith(architecture+".deb") && entry.getName().startsWith(packet))
+				{
+					File dir = new File(cr.getFolder() + "References_resolver/Bash/"+packet+"/");
+					dir.mkdirs();
+					entry.renameTo(new File(cr.getFolder()+"References_resolver/Bash/"+packet+"/"+packet+".deb"));
+				}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}  
+		return packets;
 	}
 }

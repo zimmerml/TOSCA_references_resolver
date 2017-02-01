@@ -8,7 +8,16 @@ public abstract class Language {
 	protected List <PacketManager> packetManagers;
 	protected List <String> extensions;
 	protected String Name;
-	protected abstract void Init(Control_references cr) throws IOException;
+
+	protected String architecture;
+	public String getArchitecture() {
+		return architecture;
+	}
+	public void setArchitecture(String architecture) {
+		this.architecture = architecture;
+		for(PacketManager pm:packetManagers)
+			pm.setArchitecture(architecture);
+	}
 	public String getName(){
 		return Name;
 	}
@@ -17,7 +26,6 @@ public abstract class Language {
 	}
 	public void proceed(Control_references cr) throws FileNotFoundException, IOException
 	{
-		Init(cr);
 		if(cr == null)
 			throw new NullPointerException();
 		for(String f:cr.getFiles())

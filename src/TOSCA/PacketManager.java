@@ -5,6 +5,10 @@ import java.io.IOException;
 
 public abstract class PacketManager {
 	protected String Name;
+	protected String architecture;
+	public void setArchitecture(String architecture) {
+		this.architecture = architecture;
+	}
 	public String getName(){
 		return Name;
 	}

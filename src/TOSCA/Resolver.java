@@ -1,15 +1,22 @@
 package TOSCA;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
 public class Resolver {
+	static public String folder = "References_resolver";
 
 	
 	List <Language> languages;
-	public static void main(String[] args) {
-		Bash bash = new Bash();
+	public static void main(String[] args) throws IOException {
+		String architecture = getArchitecture();
+		Bash bash = new Bash(architecture);
 		Resolver resolver = new Resolver(bash);
 		resolver.proceedCSAR("example.csar");
 	}
@@ -50,11 +57,40 @@ public class Resolver {
 		languages.add(newLanguage);
 		System.out.println("Language " + newLanguage.getName() + " added to resolver");
 	}
-	public static List<String> getArchitectures(){
-		List<String> architectures = new LinkedList<String>();
-		architectures.add("amd64");
-		architectures.add("armel");
-		architectures.add("i386");
-		return architectures;
+	
+	public static String getArchitecture()throws IOException{ 
+		String architecture = "i386";
+		File arch = new File(folder+"/arch");
+		BufferedReader br;
+		try {
+			br = new BufferedReader(new FileReader(arch));
+			String line = br.readLine();
+			br.close();
+			if(!line.equals(""))
+				return line;
+			else
+			{
+				new File(folder+"/arch").delete();
+				throw new FileNotFoundException();
+			}
+				
+		} catch (FileNotFoundException e) {
+			new File(folder).mkdir();
+				FileWriter bw = new FileWriter(arch);
+				bw.write(architecture);
+				bw.close();
+			return architecture;
+		}
+	}
+	public void setArchitecture(String arch) throws IOException
+	{
+		if(arch == null)
+			throw new NullPointerException();
+		File fArch = new File(folder+"/arch");
+		fArch.delete();
+
+		FileWriter bw = new FileWriter(fArch);
+		bw.write(arch);
+		bw.close();
 	}
 }
