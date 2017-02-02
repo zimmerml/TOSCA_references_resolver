@@ -2,6 +2,7 @@ package TOSCA;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.LinkedList;
@@ -12,104 +13,119 @@ import java.util.zip.ZipOutputStream;
 
 public class zip {
 
-    /**
-     * Unzip it
-     * @param zipFile input zip file
-     * @param output zip file output folder
-     */
-    static public List<String> unZipIt(String zipFile, String outputFolder){
-     List<String> fileList = new LinkedList<String>();
+	/**
+	 * Unzip it
+	 * @param zipFile input zip file
+	 * @param outputFolder unpacked files output folder
+	 * @throws FileNotFoundException, IOException 
+	 */
+	static public List<String> unZipIt(String zipFile, String outputFolder) throws FileNotFoundException, IOException{
+		//unpacked files
+		List<String> fileList = new LinkedList<String>();
+		//buffer
+		byte[] buffer = new byte[1024];
 
-     byte[] buffer = new byte[1024];
+		//create output directory if not exists
+		File folder = new File(outputFolder);
+		if(!folder.exists()){
+			folder.mkdir();
+		}
 
-     try{
+		//get the zip file content
+		ZipInputStream zis = new ZipInputStream(new FileInputStream(zipFile));
 
-    	//create output directory is not exists
-    	File folder = new File(outputFolder);
-    	if(!folder.exists()){
-    		folder.mkdir();
-    	}
+		//get the zipped file list entry
+		ZipEntry ze;
+		ze = zis.getNextEntry();
 
-    	//get the zip file content
-    	ZipInputStream zis =
-    		new ZipInputStream(new FileInputStream(zipFile));
-    	//get the zipped file list entry
-    	ZipEntry ze = zis.getNextEntry();
+		while(ze!=null){
 
-    	while(ze!=null){
+			String fileName = ze.getName();
+			File newFile = new File(outputFolder + fileName);
+			fileList.add(ze.getName());
 
-    	   String fileName = ze.getName();
-           File newFile = new File(outputFolder + fileName);
+			//create all non exists folders
+			new File(newFile.getParent()).mkdirs();
 
-//           System.out.println("file unzip : "+ newFile.getAbsoluteFile());
-           fileList.add(ze.getName());
-            //create all non exists folders
-            //else you will hit FileNotFoundException for compressed folder
-            new File(newFile.getParent()).mkdirs();
+			//fill file
+			FileOutputStream fos = new FileOutputStream(newFile);
 
-            FileOutputStream fos = new FileOutputStream(newFile);
+			int len;
+			while ((len = zis.read(buffer)) > 0) {
+				fos.write(buffer, 0, len);
+			}
 
-            int len;
-            while ((len = zis.read(buffer)) > 0) {
-       		fos.write(buffer, 0, len);
-            }
+			fos.close();
+			ze = zis.getNextEntry();
+		}
 
-            fos.close();
-            ze = zis.getNextEntry();
-    	}
+		zis.closeEntry();
+		zis.close();
 
-        zis.closeEntry();
-    	zis.close();
+		return fileList;
+	}
 
-//    	System.out.println("Done");
+	/** Generate list with every file in the folder recursively
+	 * @param node current folder
+	 * @param fileList list of files in folder
+	 * @param folder original folder 
+	 * @return
+	 */
+	public static List<String> generateFileList(File node, List<String> fileList, String folder)
+	{
 
-    }catch(IOException ex){
-       ex.printStackTrace();
-    }
- 	return fileList;
-   }
+		// add file only
+		if (node.isFile())
+		{
+			String file = node.toString();
+			fileList.add(file.substring(folder.length(), file.length()));
 
+		}
 
-    /**
-     * Zip it
-     * @param zipFile output ZIP file location
-     */
-    static public void zipIt(String zipFile, String folder, List<String> fileList){
+		//recursive call
+		if (node.isDirectory())
+		{
+			String[] subNote = node.list();
+			for (String filename : subNote)
+			{
+				fileList = generateFileList(new File(node, filename),fileList,folder);
+			}
+		}
+		return fileList;
+	}
 
-     byte[] buffer = new byte[1024];
+	/**
+	 * Zip all files in folder
+	 * @param zipFile output ZIP file location
+	 * @param folder, containing files to zip
+	 * @throws FileNotFoundException, IOException
+	 */
+	static public void zipIt(String zipFile, String folder) throws FileNotFoundException, IOException{
+		
+		List<String> fileList = new LinkedList<String>();
+		fileList = generateFileList(new File(folder),fileList,folder);
+		byte[] buffer = new byte[1024];
 
-     try{
+		FileOutputStream fos = new FileOutputStream(zipFile);
+		ZipOutputStream zos = new ZipOutputStream(fos);
 
-    	FileOutputStream fos = new FileOutputStream(zipFile);
-    	ZipOutputStream zos = new ZipOutputStream(fos);
+		for(String file : fileList){
+			ZipEntry ze= new ZipEntry(file);
+			zos.putNextEntry(ze);
+			FileInputStream in =
+					new FileInputStream(folder + file);
 
-//    	System.out.println("Output to Zip : " + zipFile);
+			int len;
+			while ((len = in.read(buffer)) > 0) {
+				zos.write(buffer, 0, len);
+			}
 
-    	for(String file : fileList){
-//    		System.out.println("File Added : " + file);
-    		ZipEntry ze= new ZipEntry(file);
-        	zos.putNextEntry(ze);
+			in.close();
+		}
 
-        	FileInputStream in =
-                       new FileInputStream(folder + File.separator + file);
-
-        	int len;
-        	while ((len = in.read(buffer)) > 0) {
-        		zos.write(buffer, 0, len);
-        	}
-
-        	in.close();
-    	}
-
-    	zos.closeEntry();
-    	//remember close it
-    	zos.close();
-
-//    	System.out.println("Done");
-    }catch(IOException ex){
-       ex.printStackTrace();
-    }
-   }
+		zos.closeEntry();
+		zos.close();
+	}
 
 
 

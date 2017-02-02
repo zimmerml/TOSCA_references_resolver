@@ -5,25 +5,28 @@ import java.io.IOException;
 import java.util.List;
 
 public abstract class Language {
+	
+	//List of package managers supported by language
 	protected List <PacketManager> packetManagers;
+	
+	//Extensions for this language
 	protected List <String> extensions;
-	protected String Name;
+	
+	//Language Name
+	public String Name;
 
-	protected String architecture;
-	public String getArchitecture() {
-		return architecture;
-	}
-	public void setArchitecture(String architecture) {
-		this.architecture = architecture;
-		for(PacketManager pm:packetManagers)
-			pm.setArchitecture(architecture);
-	}
-	public String getName(){
-		return Name;
-	}
+	/** Get supported extensions
+	 * @return list with extensions
+	 */
 	public List <String> getExtensions() {
 		return extensions;
 	}
+	
+	/** Proceed file, transfer it to package managers
+	 * @param cr CSAR manager
+	 * @throws FileNotFoundException
+	 * @throws IOException
+	 */
 	public void proceed(Control_references cr) throws FileNotFoundException, IOException
 	{
 		if(cr == null)

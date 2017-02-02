@@ -5,31 +5,72 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Scanner;
 
 public final class PM_apt_get extends PacketManager {
 	
-	public PM_apt_get(String architecture){
-		this.architecture = architecture;
-		Name = "apt-get";
+	//package manager name
+	static public final String Name = "apt-get";
+	
+	//level of recursive dependency, to be checked
+	static private int Dependency = 2;
+	
+	//list with already downloaded packages
+	private List<String> downloaded;
+	
+	
+	/** Constructor
+	 * Initialize list and ask for dependency level
+	 */
+	@SuppressWarnings("resource")
+	public PM_apt_get(){
+		downloaded = new LinkedList<String>();
+		System.out.print("enter Dependenscy level for apt-get:");
+		Dependency = new Scanner(System.in).nextInt();
 	}
 	
+	/* (non-Javadoc)
+	 * @see TOSCA.PacketManager#proceed(java.lang.String, TOSCA.Control_references)
+	 */
 	void proceed(String filename, Control_references cr) throws IOException {
+		String prefix = "";
+		for(int i = 0;i < Utils.getPathLength(filename)-1; i++)
+			prefix=prefix + "../";
 		if(cr == null)
 			throw new NullPointerException();
-		System.out.println("proceed " + filename);
+		System.out.println(Name+" proceed " + filename);
 		BufferedReader br = new BufferedReader(new FileReader(filename));
 		boolean isChanged = false;
 		String line = null;
 		String newFile = "";
 		while ((line = br.readLine()) != null) {
-			if(line.startsWith("apt-get install"))
+			//split string to words
+			String[] words= line.replaceAll("[;&]","").split("\\s+");
+			//skip space at the beginning of string
+			int i = 0;
+			if(words[i].equals(""))
+				i = 1;
+			//look for apt-get
+			if(words.length >= 1+i && words[i].equals("apt-get"))
 			{
-				System.out.println("apt-get found:" +line);
-				isChanged = true;
-				String[] parts = line.replaceAll("[;&]","").split(" ");
-				for(int packet = 2; packet < parts.length; packet++) {
-					System.out.println("packet: " + parts[packet]);
-					newFile+="dpkg -i "+ getPacket(parts[packet],cr) +"\n";
+				//apt-get found
+				if(words.length >= 3+i &&words[1+i].equals("install"))
+				{
+					//replace "apt-get install" by "dpkg -i"
+					System.out.println("apt-get found:" +line);
+					isChanged = true;
+					for(int packet = 2+i; packet < words.length; packet++) {
+						System.out.println("packet: " + words[packet]);
+						newFile+="dpkg -i "+ prefix + getPacket(words[packet],cr, Dependency, new LinkedList<String>()) +"\n";
+					}
+				}
+				else
+				{
+					//comment apt-get
+					newFile += "#//References resolver//" + line + '\n';
 				}
 			}
 			else
@@ -38,38 +79,98 @@ public final class PM_apt_get extends PacketManager {
 		br.close();
 		if(isChanged)
 		{
-			System.out.println("new file: "+newFile);
+			//references found, need to replace file
+			//delete old
 			File file = new File(filename);
 			file.delete();
 
+			//create new file
 			FileWriter wScript = new FileWriter(file);
 			wScript.write(newFile, 0, newFile.length());
 			wScript.close();
 		}
 	}
-	private String getPacket(String packet, Control_references cr)
+	
+	/** Download package and check its dependency
+	 * @param packet	package name
+	 * @param cr		CSAR manager
+	 * @param depth		dependency level to be checked
+	 * @param listed	list with already included packages 
+	 * @return list of packages
+	 */
+	private String getPacket(String packet, Control_references cr,int depth, List<String> listed)
 	{
+		//if package is already listed: nothing to do
+		if(listed.contains(packet))
+			return "";
+		//if this is the first call of recursive function, we need to add architecture to package
+		if(depth == Dependency)
+			packet = packet + ":"+cr.getArchitecture();
+		
 		String packets = "References_resolver/Bash/"+packet+"/"+packet+".deb" + " " ;
 		File folder = new File("./");
 		Process proc;
 		try {
-			System.out.println("apt-get download "  + packet+":"+architecture);
-			proc = Runtime.getRuntime().exec("apt-get download "  + packet+":"+architecture);
-			proc.waitFor();
-			for(File entry:folder.listFiles())
-				if(entry.getName().endsWith(architecture+".deb") && entry.getName().startsWith(packet))
-				{
-					File dir = new File(cr.getFolder() + "References_resolver/Bash/"+packet+"/");
-					dir.mkdirs();
-					entry.renameTo(new File(cr.getFolder()+"References_resolver/Bash/"+packet+"/"+packet+".deb"));
-				}
+			//check if package was already downloaded
+			if(!downloaded.contains(packet));
+			{
+				//"apt-get download" downloads only to current folder
+				System.out.println("apt-get download "  + packet);
+				proc = Runtime.getRuntime().exec("apt-get download "  + packet);
+				proc.waitFor();
+				System.out.println("done");
+				//need to move package to right folder
+				for(File entry:folder.listFiles())
+					if(entry.getName().endsWith(cr.getArchitecture()+".deb") && entry.getName().startsWith(packet.substring(0, packet.indexOf(':'))))
+					{
+						File dir = new File(cr.getFolder() + "References_resolver/Bash/"+packet+"/");
+						dir.mkdirs();
+						entry.renameTo(new File(cr.getFolder()+"References_resolver/Bash/"+packet+"/"+packet+".deb"));
+						listed.add(packet);
+						downloaded.add(packet);
+					}
+			}
+			if(depth > 0)
+			{
+				//check dependency
+				for(String dPacket:getDependensies(packet ))
+					packets += getPacket(dPacket, cr, depth - 1,listed);
+			}
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
+			System.out.println("Download" + packet + "failed");
 			e.printStackTrace();
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
+			System.out.println("Download" + packet + "failed");
 			e.printStackTrace();
 		}  
 		return packets;
+	}
+	
+	/**	Get dependency list for package
+	 * @param packet, package to be checked
+	 * @return list with depended packages
+	 * @throws IOException
+	 */
+	private List<String> getDependensies(String packet) throws IOException
+	{
+		List<String> depend = new LinkedList<String>();
+		Runtime rt = Runtime.getRuntime();
+		Process proc = rt.exec("apt-cache depends "+packet );
+
+		BufferedReader stdInput = new BufferedReader(new 
+		     InputStreamReader(proc.getInputStream()));
+
+		System.out.print("depends for "+packet +":");
+		String s = null;
+		while ((s = stdInput.readLine()) != null) {
+			String[] words= s.replaceAll("[;&<>]","").split("\\s+");
+			if(words.length == 3 && words[1].equals("Depends:"))
+			{
+				depend.add(words[2]);
+				System.out.print(words[2] + ",");
+			}
+		}
+		System.out.println("");
+		return depend;
 	}
 }
