@@ -1,9 +1,12 @@
-package TOSCA;
+package tosca.Languages.Bash;
 
 import java.util.LinkedList;
 
+import tosca.Abstract.Language;
+import tosca.Abstract.PacketManager;
+
 /** Script Language
- * @author jery
+ * @author Yaroslav
  *
  */
 public final class Bash extends Language {
