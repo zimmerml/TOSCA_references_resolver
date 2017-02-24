@@ -152,7 +152,7 @@ public class zip {
 	 * @param f
 	 * @throws IOException
 	 */
-	static void delete(File f) throws IOException {
+	static public void delete(File f) throws IOException {
 		if (f.isDirectory()) {
 			for (File c : f.listFiles())
 				delete(c);
