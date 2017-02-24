@@ -60,7 +60,21 @@ public class PackageTemplate {
 		}
 
 		public static class ArtifactReferences {
-
+			
+			public ArtifactReferences(){
+				artifactReference = new ArtifactReference();
+			}
+			
+			static class ArtifactReference{
+				public ArtifactReference(){
+					
+				}
+				//TODO
+				
+			}
+//
+			@XmlElement(name = "ArtifactReference", required = true)
+			public ArtifactReference artifactReference;
 		}
 
 		public Properties properties;

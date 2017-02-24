@@ -34,9 +34,9 @@ public class zip {
 
 		// create output directory if not exists
 		File folder = new File(outputFolder);
-		if (folder.exists()) {
-			delete(folder);
-		}
+		//if (folder.exists()) {
+		//	delete(folder);
+		//}
 		folder.mkdir();
 
 		// get the zip file content

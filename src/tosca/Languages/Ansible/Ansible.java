@@ -35,17 +35,26 @@ public class Ansible extends Language {
 		for (String f : cr.getFiles())
 			for (String suf : extensions)
 				if (f.toLowerCase().endsWith(suf.toLowerCase())){
-					boolean isChanged = false;
-					String filename = new File(f).getName();
-					String folder = new File(f).getParent() + File.separator + "temp_" + filename + File.separator;
-					List<String> files = zip.unZipIt(f, folder);
-					
-					if(isChanged){
-						new File(f).delete();
-						zip.zipIt(f, folder);
-					} 
-					//zip.delete(new File(folder));
+					if(suf.equals(".zip")){
+						boolean isChanged = false;
+//						String filename = new File(f).getName();
+						String folder = new File(f).getParent() + File.separator ;
+						List<String> files = zip.unZipIt(f, folder);
+						for(String file:files)
+							proceed(file);
+						if(isChanged){
+							new File(f).delete();
+							zip.zipIt(f, folder);
+						} 
+						//zip.delete(new File(folder));
+					}
+					else{
+						proceed(f);
+					}
 				}
+	}
+	public void proceed(String filename) throws FileNotFoundException, IOException, JAXBException {
+		
 	}
 
 }

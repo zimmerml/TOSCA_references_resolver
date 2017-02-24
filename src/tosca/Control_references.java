@@ -96,6 +96,7 @@ public class Control_references {
 		folder = CSAR + "_temp_references_resolver";
 		File folderfile = new File(folder);
 		folder = folderfile + File.separator;
+		zip.delete(new File(folder));
 		files = zip.unZipIt(CSAR, folder);
 		metaFile.init(folder);
 	}
