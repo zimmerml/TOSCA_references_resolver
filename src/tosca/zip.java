@@ -50,20 +50,26 @@ public class zip {
 
 			String fileName = ze.getName();
 			File newFile = new File(outputFolder + fileName);
-			fileList.add(ze.getName());
+			if(!ze.isDirectory()){
+				fileList.add(ze.getName());
+				
+				// create all non exists folders
+				new File(newFile.getParent()).mkdirs();
 
-			// create all non exists folders
-			new File(newFile.getParent()).mkdirs();
+				// fill file
+				FileOutputStream fos = new FileOutputStream(newFile);
 
-			// fill file
-			FileOutputStream fos = new FileOutputStream(newFile);
+				int len;
+				while ((len = zis.read(buffer)) > 0) {
+					fos.write(buffer, 0, len);
+				}
 
-			int len;
-			while ((len = zis.read(buffer)) > 0) {
-				fos.write(buffer, 0, len);
+				fos.close();
 			}
+			else
+				newFile.mkdirs();
+				
 
-			fos.close();
 			ze = zis.getNextEntry();
 		}
 

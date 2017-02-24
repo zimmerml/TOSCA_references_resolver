@@ -80,7 +80,9 @@ public class MetaFile {
 	 * @param type of new file
 	 */
 	public void addFileToMeta(String path, String type) {
-		meta.add(new MetaEntry(path, type));
+		MetaEntry entry = new MetaEntry(path, type);
+		if(!meta.contains(entry))
+			meta.add(entry);
 	}
 
 	/** Pack Data back to file

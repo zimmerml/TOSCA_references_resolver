@@ -28,6 +28,7 @@ public class Control_references {
 	// Metafile description
 	public MetaFile metaFile;
 
+	public static final String ArchitectureFileName = "arch";
 	/**
 	 * Constructor
 	 */
@@ -140,7 +141,7 @@ public class Control_references {
 	// no need to close user input
 	@SuppressWarnings("resource")
 	public void readArchitecture() throws IOException {
-		File arch = new File(folder + Resolver.folder + "arch");
+		File arch = new File(folder + Resolver.folder + ArchitectureFileName);
 		BufferedReader br;
 		try {
 			br = new BufferedReader(new FileReader(arch));
@@ -149,7 +150,7 @@ public class Control_references {
 			if (line != null && !line.equals(""))
 				architecture = line;
 			else {
-				new File(folder + Resolver.folder + "arch").delete();
+				new File(folder + Resolver.folder + ArchitectureFileName).delete();
 				throw new FileNotFoundException();
 			}
 
@@ -165,6 +166,7 @@ public class Control_references {
 			bw.write(architecture);
 			bw.close();
 		}
+		metaFile.addFileToMeta(Resolver.folder + ArchitectureFileName, "text/txt");
 	}
 
 	/**
@@ -179,7 +181,7 @@ public class Control_references {
 		architecture = arch;
 
 		// delete old file
-		File fArch = new File(folder + Resolver.folder + "arch");
+		File fArch = new File(folder + Resolver.folder + ArchitectureFileName);
 		fArch.delete();
 
 		// create new file

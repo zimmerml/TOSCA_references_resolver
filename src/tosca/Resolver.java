@@ -10,6 +10,7 @@ import java.util.Scanner;
 import javax.xml.bind.JAXBException;
 
 import tosca.Abstract.Language;
+import tosca.Languages.Ansible.Ansible;
 import tosca.Languages.Bash.Bash;
 import tosca.xml_definitions.PackageType;
 
@@ -34,7 +35,9 @@ public class Resolver {
 	public static void main(String[] args) throws IOException {
 		String source, target;
 		Bash bash = new Bash();
+		Ansible ansible = new Ansible();
 		Resolver resolver = new Resolver(bash);
+		resolver.addLanguage(ansible);
 		if (args.length >= 1)
 			source = args[0];
 		else {
@@ -68,7 +71,7 @@ public class Resolver {
 	 * @param newLanguage
 	 */
 	public Resolver(Language newLanguage) {
-		setLanguages(newLanguage);
+		setLanguage(newLanguage);
 	}
 
 	/**
@@ -140,13 +143,27 @@ public class Resolver {
 			System.out.println("Language " + l.Name + " added to resolver");
 		languages = newLanguages;
 	}
+	
+
+	/**
+	 * Add new Languages
+	 * 
+	 * @param newLanguages
+	 */
+	public void addLanguages(List<Language> newLanguages) {
+		if (newLanguages == null)
+			throw new NullPointerException();
+		for (Language l : newLanguages)
+			System.out.println("Language " + l.Name + " added to resolver");
+		languages.addAll( newLanguages);
+	}
 
 	/**
 	 * Set new Language
 	 * 
 	 * @param newLanguage
 	 */
-	public void setLanguages(Language newLanguage) {
+	public void setLanguage(Language newLanguage) {
 		if (newLanguage == null)
 			throw new NullPointerException();
 		languages = new LinkedList<Language>();
@@ -155,4 +172,16 @@ public class Resolver {
 				+ " added to resolver");
 	}
 
+	/**
+	 * Add new Language
+	 * 
+	 * @param newLanguage
+	 */
+	public void addLanguage(Language newLanguage) {
+		if (newLanguage == null)
+			throw new NullPointerException();
+		languages.add(newLanguage);
+		System.out.println("Language " + newLanguage.Name
+				+ " added to resolver");
+	}
 }
