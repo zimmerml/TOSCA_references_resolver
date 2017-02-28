@@ -48,7 +48,7 @@ public class Apt extends PacketManager {
 				if(line.matches("\\s*apt:.*pkg\\s*=\\s*\\{.*item.*\\}.*")){
 					//apt = { item }
 					State = 2;
-					newFile += line + '\n';
+					newFile += "  apt:\n    deb={{ item }}" + '\n'; 
 				}
 				else if(line.matches("\\s*apt:.* pkg=.*")){
 					Pattern p = Pattern.compile("(apt:.*pkg=)\\s*(\\w*)\\s*.*");
@@ -63,7 +63,8 @@ public class Apt extends PacketManager {
 					break;
 				} else if(line.matches("\\s*apt:.*")){
 					newFile += line + '\n';   //TODO   !!!!!!!!
-				}
+				} else
+					newFile += line + '\n';   
 				break;
 			case 2:
 				if(line.matches("\\s*with_items:\\s*")){
@@ -87,7 +88,7 @@ public class Apt extends PacketManager {
 						if(words.length == 2 + i && words[i].equals("-")){
 							for(String packet: cr.getPacket(words[i+1]).split("\\s+" ))
 								newFile += prefix + packet + '\n'; //TOCHECK 
-								
+							isChanged = true;	
 						} else 
 							newFile += line + '\n'; 
 					} else
@@ -95,19 +96,19 @@ public class Apt extends PacketManager {
 				}
 				break;
 			}
-			br.close();
-			if (isChanged) {
-				// references found, need to replace file
-				// delete old
-				File file = new File(filename);
-				file.delete();
 
-				// create new file
-				FileWriter wScript = new FileWriter(file);
-				wScript.write(newFile, 0, newFile.length());
-				wScript.close();
-			}
+		}
+		br.close();
+		if (isChanged) {
+			// references found, need to replace file
+			// delete old
+			File file = new File(filename);
+			file.delete();
 
+			// create new file
+			FileWriter wScript = new FileWriter(file);
+			wScript.write(newFile, 0, newFile.length());
+			wScript.close();
 		}
 	}
 }

@@ -10,10 +10,10 @@ import java.util.Scanner;
 
 import javax.xml.bind.JAXBException;
 
-import tosca.xml_definitions.PackageTemplate;
+//import tosca.xml_definitions.PackageTemplate;
 
 public class Downloader {
-	
+
 	static public final String extension = ".deb";
 
 	// level of recursive dependency, to be checked
@@ -26,7 +26,7 @@ public class Downloader {
 		checkDependency();
 		downloaded = new LinkedList<String>();
 	}
-	
+
 	@SuppressWarnings("resource")
 	private void checkDependency()
 	{
@@ -38,7 +38,7 @@ public class Downloader {
 		if (Dependency < 0)
 			Dependency = 999;
 	}
-	
+
 	public String getPacket(String packet, Control_references cr) throws JAXBException {
 		return getPacket(packet, cr, Dependency, new LinkedList<String>());		
 	}
@@ -58,6 +58,7 @@ public class Downloader {
 	 */
 	public String getPacket(String packet, Control_references cr, int depth,
 			List<String> listed) throws JAXBException {
+		System.out.println("Get packet: " + packet);
 		// if package is already listed: nothing to do
 		if (listed.contains(packet))
 			return "";
@@ -71,58 +72,77 @@ public class Downloader {
 		File folder = new File("./");
 		Process proc;
 		try {
-
 			List<String> dependensis;
 			if (depth > 0)
-				dependensis = getDependensies(packet);
+				dependensis = getDependensies(packet,listed);
 			else
 				dependensis = new LinkedList<String>();
 			// check if package was already downloaded
-			if (!downloaded.contains(packet))
-			{
-				// "apt-get download" downloads only to current folder
-				System.out.println("apt-get downloading " + packet);
-				proc = Runtime.getRuntime().exec("apt-get download " + packet);
-				proc.waitFor();
-				System.out.println("done");
-				// need to move package to right folder
-				Boolean found = false;
-				String dir_name = Resolver.folder + packet + File.separator;
-				File dir = new File(cr.getFolder() + dir_name);
-				for (File entry : folder.listFiles())
-					if (entry.getName().endsWith(cr.getArchitecture() + extension)
-							&& ((packet.contains(":") && entry.getName()
-									.startsWith(packet.substring(0,	packet.indexOf(':')))))
-							|| (!packet.contains(":") && entry.getName()
-									.startsWith(packet))) {
-						dir.mkdirs();
-						entry.renameTo(new File(cr.getFolder() + dir_name
-								+ packet + extension));
-						listed.add(packet);
-						downloaded.add(packet);
-						found = true;
-						break;
+			if(!listed.contains(packet)){	
+				listed.add(packet);
+				if (!downloaded.contains(packet))
+				{
+					downloaded.add(packet);
+					// "apt-get download" downloads only to current folder
+					System.out.println("apt-get download " + packet);
+					Runtime rt = Runtime.getRuntime();
+					proc = rt.exec("apt-get download " + packet);
+	
+					BufferedReader stdInput = new BufferedReader(new InputStreamReader(
+							proc.getInputStream()));
+	
+					BufferedReader stdError = new BufferedReader(new 
+							InputStreamReader(proc.getErrorStream()));
+	
+					String s = null;
+					while ((s = stdInput.readLine()) != null) {
+						System.out.print(s);
 					}
-				if (found == false)
-					System.out.println("downloaded packet " + packet
-							+ " not found");
-
-				List<String> named_dep = new LinkedList<String>();
-				for (String dep : dependensis)
-					named_dep.add(dep);
-				String fullPacketName = packet;
-				PackageTemplate.createPackageTemplate(cr, Resolver.folder
-						+ packet + "/", named_dep,
-						fullPacketName); //TODO
-
-				cr.metaFile.addFileToMeta(dir_name + fullPacketName
-						+ PackageTemplate.extension, "text/xml");//TODO
-				cr.metaFile.addFileToMeta(dir_name + packet + extension,
-						"application/deb");
-			}
+	
+					// read any errors from the attempted command
+					System.out.println("Errors:\n");
+					while ((s = stdError.readLine()) != null) {
+						System.out.println(s);
+					}
+					proc.waitFor();
+					System.out.println("done");
+					// need to move package to right folder
+					Boolean found = false;
+					String dir_name = Resolver.folder + packet + File.separator;
+					File dir = new File(cr.getFolder() + dir_name);
+					for (File entry : folder.listFiles())
+						if (entry.getName().endsWith(cr.getArchitecture() + extension)
+								&& ((packet.contains(":") && entry.getName()
+										.startsWith(packet.substring(0,	packet.indexOf(':')))))
+										|| (!packet.contains(":") && entry.getName()
+												.startsWith(packet))) {
+							dir.mkdirs();
+							entry.renameTo(new File(cr.getFolder() + dir_name
+									+ packet + extension));
+							found = true;
+							break;
+						}
+					if (found == false)
+						System.out.println("downloaded packet " + packet
+								+ " not found");
+	
+					//				List<String> named_dep = new LinkedList<String>();
+					//				for (String dep : dependensis)
+					//					named_dep.add(dep);
+					//				String fullPacketName = packet;
+					//				PackageTemplate.createPackageTemplate(cr, Resolver.folder
+					//						+ packet + "/", named_dep,
+					//						fullPacketName); //TODO
+	
+					//				cr.metaFile.addFileToMeta(dir_name + fullPacketName
+					//						+ PackageTemplate.extension, "text/xml");//TODO
+					cr.metaFile.addFileToMeta(dir_name + packet + extension,
+							"application/deb");
+				}
 			// check dependency recursively
 			for (String dPacket : dependensis)
 				packets += getPacket(dPacket, cr, depth - 1, listed);
+			}
 
 		} catch (IOException e) {
 			System.out.println("Download" + packet + "failed");
@@ -142,7 +162,7 @@ public class Downloader {
 	 * @return list with depended packages
 	 * @throws IOException
 	 */
-	private List<String> getDependensies(String packet) throws IOException {
+	private List<String> getDependensies(String packet, List<String> listed) throws IOException {
 		List<String> depend = new LinkedList<String>();
 		Runtime rt = Runtime.getRuntime();
 		Process proc = rt.exec("apt-cache depends " + packet);
@@ -150,12 +170,13 @@ public class Downloader {
 		BufferedReader stdInput = new BufferedReader(new InputStreamReader(
 				proc.getInputStream()));
 
-		System.out.print("depends for " + packet + ": ");
+		System.out.print("dependensis : ");
 		String s = null;
 		while ((s = stdInput.readLine()) != null) {
 			String[] words = s.replaceAll("[;&<>]", "").split("\\s+");
 			if (words.length == 3 && words[1].equals("Depends:")) {
-				depend.add(words[2]);
+				if(!listed.contains(words[2]))
+					depend.add(words[2]);
 				System.out.print(words[2] + ",");
 			}
 		}

@@ -26,6 +26,10 @@ public class Control_references {
 
 	// architecture of packages
 	private String architecture;
+	
+	private Integer resolving;
+	public final static Integer REPLACEMENT = 1; 
+	public final static Integer ADDITION = 2; 
 
 	// Metafile description
 	public MetaFile metaFile;
@@ -33,6 +37,7 @@ public class Control_references {
 	private Downloader downloader;
 
 	public static final String ArchitectureFileName = "arch";
+	public static final String ResolvingFileName = "resolv";
 	/**
 	 * Constructor
 	 */
@@ -56,6 +61,7 @@ public class Control_references {
 			IOException {
 		metaFile = new MetaFile();
 		init(filename);
+		downloader = new Downloader();
 	}
 
 	/**
@@ -72,6 +78,7 @@ public class Control_references {
 		CSAR = filename;
 		unpack();
 		readArchitecture();
+		readResolving();
 	}
 
 	/**
@@ -143,6 +150,9 @@ public class Control_references {
 		return architecture;
 	}
 
+	public Integer getResolving() {
+		return resolving;
+	}
 	/**
 	 * reads Architecture from extracted data or from user input
 	 * 
@@ -178,6 +188,57 @@ public class Control_references {
 		}
 		metaFile.addFileToMeta(Resolver.folder + ArchitectureFileName, "text/txt");
 	}
+	
+	private boolean isResolving(String input)
+	{
+		if(Integer.getInteger(input) == REPLACEMENT || Integer.getInteger(input) == ADDITION)
+			return true;
+		return false;
+	}
+	private boolean isResolving(Integer input)
+	{
+		if(input == REPLACEMENT || input == ADDITION)
+			return true;
+		return false;
+	}
+	
+	/**
+	 * reads Architecture from extracted data or from user input
+	 * 
+	 * @throws IOException
+	 */
+	// no need to close user input
+	@SuppressWarnings("resource")
+	public void readResolving() throws IOException {
+		File resolv = new File(folder + Resolver.folder + ResolvingFileName);
+		BufferedReader br;
+		try {
+			br = new BufferedReader(new FileReader(resolv));
+			String line = br.readLine();
+			br.close();
+			if (line != null && !line.equals("") && isResolving(line))
+				resolving = Integer.getInteger(line);
+			else {
+				new File(folder + Resolver.folder + ResolvingFileName).delete();
+				throw new FileNotFoundException();
+			}
+
+		} catch (FileNotFoundException e) {
+			new File(folder + Resolver.folder).mkdir();
+			FileWriter bw = new FileWriter(resolv);
+			System.out.println("Please enter resolving method.");
+			System.out.println("Example: \n"+REPLACEMENT+") Replacement(default)\n"+ADDITION+") Addition");
+			System.out.print("resolving:");
+			String temp = new Scanner(System.in).nextLine();
+			if (isResolving(temp))
+				resolving = Integer.getInteger(temp);
+			else
+				resolving = REPLACEMENT;
+			bw.write(resolving.toString());
+			bw.close();
+		}
+		metaFile.addFileToMeta(Resolver.folder + ResolvingFileName, "text/txt");
+	}
 
 	/**
 	 * Set specific architecture
@@ -197,6 +258,30 @@ public class Control_references {
 		// create new file
 		FileWriter bw = new FileWriter(fArch);
 		bw.write(arch);
+		bw.flush();
+		bw.close();
+	}
+	/**
+	 * Set specific Resolving method
+	 * 
+	 * @param resolving
+	 * @throws IOException
+	 */
+	public void setResolving(Integer resolving) throws IOException {
+		if (resolving == null)
+			throw new NullPointerException();
+		if(!isResolving(resolving)){
+			System.out.println("wrong resolving");
+			return;
+		}
+
+		// delete old file
+		File fResolv = new File(folder + Resolver.folder + ResolvingFileName);
+		fResolv.delete();
+
+		// create new file
+		FileWriter bw = new FileWriter(fResolv);
+		bw.write(resolving.toString());
 		bw.flush();
 		bw.close();
 	}
