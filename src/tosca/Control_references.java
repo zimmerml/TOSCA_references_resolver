@@ -10,6 +10,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Scanner;
 
+import javax.xml.bind.JAXBException;
+
 //unpack 
 public class Control_references {
 
@@ -27,6 +29,8 @@ public class Control_references {
 
 	// Metafile description
 	public MetaFile metaFile;
+	
+	private Downloader downloader;
 
 	public static final String ArchitectureFileName = "arch";
 	/**
@@ -34,6 +38,11 @@ public class Control_references {
 	 */
 	public Control_references() {
 		metaFile = new MetaFile();
+		downloader = new Downloader();
+	}
+	
+	public String getPacket(String packet) throws JAXBException {
+		return downloader.getPacket(packet, this);
 	}
 
 	/**

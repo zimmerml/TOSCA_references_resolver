@@ -26,9 +26,9 @@ public abstract class PacketManager {
 	 * @param cr
 	 *            CSAR manager
 	 * @throws FileNotFoundException
-	 * @throws IOException
+	 * @throws IOExceptions
 	 * @throws JAXBException
 	 */
-	protected abstract void proceed(String filename, Control_references cr)
+	public abstract void proceed(String filename, Control_references cr)
 			throws FileNotFoundException, IOException, JAXBException;
 }
