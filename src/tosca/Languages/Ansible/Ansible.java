@@ -15,14 +15,13 @@ import tosca.Abstract.PacketManager;
 
 public class Ansible extends Language {
 	
-	//Language Name
-	static public final String Name = "Ansible";
 	
 	/** Constructor
 	 * list right extensions and creates package managers
 	 * 
 	 */
 	public Ansible(){
+		Name = "Ansible";
 		extensions = new LinkedList<String>();
 		extensions.add(".zip");
 		extensions.add(".yml");
@@ -49,6 +48,7 @@ public class Ansible extends Language {
 							new File(f).delete();
 							zip.zipIt(f, folder);
 						} 
+						//TODO
 						//zip.delete(new File(folder));
 					}
 					else{

@@ -11,14 +11,13 @@ import tosca.Abstract.PacketManager;
  */
 public final class Bash extends Language {
 
-	//Language Name
-	static public final String Name = "Bash";
 	
 	/** Constructor
 	 * list right extensions and creates package managers
 	 * 
 	 */
 	public Bash(){
+		Name = "Bash";
 		extensions = new LinkedList<String>();
 		extensions.add(".sh");
 		extensions.add(".bash");

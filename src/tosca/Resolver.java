@@ -19,7 +19,7 @@ import tosca.xml_definitions.PackageType;
  *
  */
 public class Resolver {
-	
+
 	// Folder Name, used by this framework
 	static public final String folder = "References_resolver" + File.separator;
 
@@ -140,10 +140,10 @@ public class Resolver {
 		if (newLanguages == null)
 			throw new NullPointerException();
 		for (Language l : newLanguages)
-			System.out.println("Language " + l.Name + " added to resolver");
+			System.out
+					.println("Language " + l.getName() + " added to resolver");
 		languages = newLanguages;
 	}
-	
 
 	/**
 	 * Add new Languages
@@ -154,8 +154,9 @@ public class Resolver {
 		if (newLanguages == null)
 			throw new NullPointerException();
 		for (Language l : newLanguages)
-			System.out.println("Language " + l.Name + " added to resolver");
-		languages.addAll( newLanguages);
+			System.out
+					.println("Language " + l.getName() + " added to resolver");
+		languages.addAll(newLanguages);
 	}
 
 	/**
@@ -168,7 +169,7 @@ public class Resolver {
 			throw new NullPointerException();
 		languages = new LinkedList<Language>();
 		languages.add(newLanguage);
-		System.out.println("Language " + newLanguage.Name
+		System.out.println("Language " + newLanguage.getName()
 				+ " added to resolver");
 	}
 
@@ -181,7 +182,7 @@ public class Resolver {
 		if (newLanguage == null)
 			throw new NullPointerException();
 		languages.add(newLanguage);
-		System.out.println("Language " + newLanguage.Name
+		System.out.println("Language " + newLanguage.getName()
 				+ " added to resolver");
 	}
 }

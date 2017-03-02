@@ -17,8 +17,11 @@ public abstract class Language {
 	protected List<String> extensions;
 
 	// Language Name
-	public String Name;
+	protected String Name;
 
+	public String getName(){
+		return Name;
+	}
 	/**
 	 * Get supported extensions
 	 * 
