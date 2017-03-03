@@ -48,25 +48,33 @@ public final class PM_apt_get extends PacketManager {
 			if (words[i].equals(""))
 				i = 1;
 			// look for apt-get
-			if (words.length >= 1 + i && words[i].equals("apt-get")) {
-				// apt-get found
-				if (words.length >= 3 + i && words[1 + i].equals("install")) {
-					// replace "apt-get install" by "dpkg -i"
-					System.out.println("apt-get found:" + line);
-					isChanged = true;
-					for (int packet = 2 + i; packet < words.length; packet++) {
-						System.out.println("packet: " + words[packet]);
-						newFile += "dpkg -i ";
-						for (String p : cr.getPacket(words[packet]).split("\\s+"))
-							newFile += prefix + p + " ";
-						newFile += "\n";
+			switch(cr.getResolving()){
+			case REPLACEMENT:
+				if (words.length >= 1 + i && words[i].equals("apt-get")) {
+					// apt-get found
+					if (words.length >= 3 + i && words[1 + i].equals("install")) {
+						// replace "apt-get install" by "dpkg -i"
+						System.out.println("apt-get found:" + line);
+						isChanged = true;
+						for (int packet = 2 + i; packet < words.length; packet++) {
+							System.out.println("packet: " + words[packet]);
+							newFile += "dpkg -i ";
+							for (String p : cr.getPacket(words[packet]).split("\\s+"))
+								newFile += prefix + p + " ";
+							newFile += "\n";
+						}
+					} else {
+						// comment apt-get
+						newFile += "#//References resolver//" + line + '\n';
 					}
-				} else {
-					// comment apt-get
-					newFile += "#//References resolver//" + line + '\n';
-				}
-			} else
-				newFile += line + '\n';
+				} else
+					newFile += line + '\n';
+				break;
+			case ADDITION:
+				break;
+			default:
+				break;
+			}
 		}
 		br.close();
 		if (isChanged) {

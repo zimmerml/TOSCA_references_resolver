@@ -12,6 +12,8 @@ import java.util.Scanner;
 
 import javax.xml.bind.JAXBException;
 
+import tosca.Abstract.Resolving;
+
 //unpack 
 public class Control_references {
 
@@ -27,9 +29,7 @@ public class Control_references {
 	// architecture of packages
 	private String architecture;
 	
-	private Integer resolving;
-	public final static Integer REPLACEMENT = 1; 
-	public final static Integer ADDITION = 2; 
+	private Resolving resolving = Resolving.UNDEFINED;
 
 	// Metafile description
 	public MetaFile metaFile;
@@ -150,7 +150,7 @@ public class Control_references {
 		return architecture;
 	}
 
-	public Integer getResolving() {
+	public Resolving getResolving() {
 		return resolving;
 	}
 	/**
@@ -189,19 +189,6 @@ public class Control_references {
 		metaFile.addFileToMeta(Resolver.folder + ArchitectureFileName, "text/txt");
 	}
 	
-	private boolean isResolving(String input)
-	{
-		if(Integer.getInteger(input) == REPLACEMENT || Integer.getInteger(input) == ADDITION)
-			return true;
-		return false;
-	}
-	private boolean isResolving(Integer input)
-	{
-		if(input == REPLACEMENT || input == ADDITION)
-			return true;
-		return false;
-	}
-	
 	/**
 	 * reads Architecture from extracted data or from user input
 	 * 
@@ -216,8 +203,8 @@ public class Control_references {
 			br = new BufferedReader(new FileReader(resolv));
 			String line = br.readLine();
 			br.close();
-			if (line != null && !line.equals("") && isResolving(line))
-				resolving = Integer.getInteger(line);
+			if (line != null && !line.equals("") && Resolving.fromString(line) != Resolving.UNDEFINED)
+				resolving = Resolving.fromString(line);
 			else {
 				new File(folder + Resolver.folder + ResolvingFileName).delete();
 				throw new FileNotFoundException();
@@ -227,13 +214,14 @@ public class Control_references {
 			new File(folder + Resolver.folder).mkdir();
 			FileWriter bw = new FileWriter(resolv);
 			System.out.println("Please enter resolving method.");
-			System.out.println("Example: \n"+REPLACEMENT+") Replacement(default)\n"+ADDITION+") Addition");
+			System.out.println("Example: \n"+Resolving.toInt(Resolving.REPLACEMENT)+") Replacement(default)\n"+Resolving.toInt(Resolving.ADDITION)+") Addition");
 			System.out.print("resolving:");
 			String temp = new Scanner(System.in).nextLine();
-			if (isResolving(temp))
-				resolving = Integer.getInteger(temp);
+			if (Integer.getInteger(temp) != null && 
+					Resolving.fromInt(Integer.getInteger(temp)) != Resolving.UNDEFINED)
+				resolving = Resolving.fromInt(Integer.parseInt(temp)) ;
 			else
-				resolving = REPLACEMENT;
+				resolving = Resolving.REPLACEMENT;
 			bw.write(resolving.toString());
 			bw.close();
 		}
@@ -267,10 +255,10 @@ public class Control_references {
 	 * @param resolving
 	 * @throws IOException
 	 */
-	public void setResolving(Integer resolving) throws IOException {
+	public void setResolving(Resolving resolving) throws IOException {
 		if (resolving == null)
 			throw new NullPointerException();
-		if(!isResolving(resolving)){
+		if(resolving == Resolving.UNDEFINED){
 			System.out.println("wrong resolving");
 			return;
 		}
@@ -281,7 +269,7 @@ public class Control_references {
 
 		// create new file
 		FileWriter bw = new FileWriter(fResolv);
-		bw.write(resolving.toString());
+		bw.write(Resolving.toString(resolving));
 		bw.flush();
 		bw.close();
 	}
