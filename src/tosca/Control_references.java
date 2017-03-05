@@ -214,14 +214,14 @@ public class Control_references {
 			new File(folder + Resolver.folder).mkdir();
 			FileWriter bw = new FileWriter(resolv);
 			System.out.println("Please enter resolving method.");
-			System.out.println("Example: \n"+Resolving.toInt(Resolving.REPLACEMENT)+") Replacement(default)\n"+Resolving.toInt(Resolving.ADDITION)+") Addition");
+			System.out.println("Example: \n"+Resolving.toInt(Resolving.EXPANDING)+") Replacement(default)\n"+Resolving.toInt(Resolving.ADDITION)+") Addition");
 			System.out.print("resolving:");
 			String temp = new Scanner(System.in).nextLine();
 			if (Integer.getInteger(temp) != null && 
 					Resolving.fromInt(Integer.getInteger(temp)) != Resolving.UNDEFINED)
 				resolving = Resolving.fromInt(Integer.parseInt(temp)) ;
 			else
-				resolving = Resolving.REPLACEMENT;
+				resolving = Resolving.EXPANDING;
 			bw.write(resolving.toString());
 			bw.close();
 		}

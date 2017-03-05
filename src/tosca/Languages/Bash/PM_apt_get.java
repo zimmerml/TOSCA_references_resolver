@@ -49,7 +49,7 @@ public final class PM_apt_get extends PacketManager {
 				i = 1;
 			// look for apt-get
 			switch(cr.getResolving()){
-			case REPLACEMENT:
+			case EXPANDING:
 				if (words.length >= 1 + i && words[i].equals("apt-get")) {
 					// apt-get found
 					if (words.length >= 3 + i && words[1 + i].equals("install")) {
@@ -71,6 +71,20 @@ public final class PM_apt_get extends PacketManager {
 					newFile += line + '\n';
 				break;
 			case ADDITION:
+				if (words.length >= 1 + i && words[i].equals("apt-get")) {
+					// apt-get found
+					if (words.length >= 3 + i && words[1 + i].equals("install")) {
+						// replace "apt-get install" by "dpkg -i"
+						System.out.println("apt-get found:" + line);
+						isChanged = true;
+						for (int packet = 2 + i; packet < words.length; packet++) {
+							System.out.println("packet: " + words[packet]);
+							cr.getPacket(words[packet]);
+						}
+					} 
+					newFile += "#//References resolver//" + line + '\n';
+				} else
+					newFile += line + '\n';
 				break;
 			default:
 				break;

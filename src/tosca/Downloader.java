@@ -125,7 +125,15 @@ public class Downloader {
 					if (found == false)
 						System.out.println("downloaded packet " + packet
 								+ " not found");
-	
+					switch(cr.getResolving()){
+					case ADDITION:
+						break;
+					case EXPANDING:
+						break;
+					default:
+						break;
+					
+					}
 					//				List<String> named_dep = new LinkedList<String>();
 					//				for (String dep : dependensis)
 					//					named_dep.add(dep);
