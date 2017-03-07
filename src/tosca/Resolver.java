@@ -12,7 +12,9 @@ import javax.xml.bind.JAXBException;
 import tosca.Abstract.Language;
 import tosca.Languages.Ansible.Ansible;
 import tosca.Languages.Bash.Bash;
-import tosca.xml_definitions.PackageType;
+import tosca.xml_definitions.RR_DependsOn;
+import tosca.xml_definitions.RR_NodeType;
+import tosca.xml_definitions.RR_PackageArtefactType;
 
 /**
  * @author jery
@@ -102,7 +104,16 @@ public class Resolver {
 		try {
 			// create CSAR manager and unpack archive
 			cr = new Control_references(filename);
-			PackageType.init(cr);
+			/*
+			 * TODO
+			 * Node type. done
+			 * Artifact Type for package. done
+			 * Relationship Type for dependencies 
+			 * change service template
+			 */
+			RR_NodeType.init(cr);
+			RR_PackageArtefactType.init(cr);
+			RR_DependsOn.init(cr);
 		} catch (FileNotFoundException e) {
 			System.out.println("Error by unpacking " + filename
 					+ ", file not found");

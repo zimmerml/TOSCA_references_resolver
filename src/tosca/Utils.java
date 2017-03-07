@@ -1,6 +1,8 @@
 package tosca;
 
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 
 public class Utils {
 
@@ -21,6 +23,13 @@ public class Utils {
 			count++;
 		}
 		return count;
+	}
+	
+	static public void createFile(String filename, String content) throws IOException{
+		new File(filename).delete();
+		FileWriter bw = new FileWriter(filename);
+		bw.write(content);
+		bw.close();
 	}
 
 }

@@ -34,19 +34,20 @@ public class Control_references {
 	// Metafile description
 	public MetaFile metaFile;
 	
-	private Downloader downloader;
+	private Packet_Handler downloader;
 
 	public static final String ArchitectureFileName = "arch";
 	public static final String ResolvingFileName = "resolv";
+	public static final String Definitions = "Definitions/";
 	/**
 	 * Constructor
 	 */
 	public Control_references() {
 		metaFile = new MetaFile();
-		downloader = new Downloader();
+		downloader = new Packet_Handler();
 	}
 	
-	public String getPacket(String packet) throws JAXBException {
+	public String getPacket(String packet) throws JAXBException, IOException {
 		return downloader.getPacket(packet, this);
 	}
 
@@ -61,7 +62,7 @@ public class Control_references {
 			IOException {
 		metaFile = new MetaFile();
 		init(filename);
-		downloader = new Downloader();
+		downloader = new Packet_Handler();
 	}
 
 	/**
@@ -178,11 +179,14 @@ public class Control_references {
 			new File(folder + Resolver.folder).mkdir();
 			FileWriter bw = new FileWriter(arch);
 			System.out.println("Please enter architecure.");
-			System.out.println("Example: i386(default), amd64, arm.");
+			System.out.println("Example: i386(default), amd64, arm, noarch.");
 			System.out.print("architecture:");
 			architecture = new Scanner(System.in).nextLine();
 			if (architecture.equals(""))
 				architecture = "i386";
+			architecture=":" + architecture;
+			if(architecture.equals(":noarch"))
+				architecture = "";
 			bw.write(architecture);
 			bw.close();
 		}
@@ -217,11 +221,16 @@ public class Control_references {
 			System.out.println("Example: \n"+Resolving.toInt(Resolving.EXPANDING)+") Replacement(default)\n"+Resolving.toInt(Resolving.ADDITION)+") Addition");
 			System.out.print("resolving:");
 			String temp = new Scanner(System.in).nextLine();
-			if (Integer.getInteger(temp) != null && 
-					Resolving.fromInt(Integer.getInteger(temp)) != Resolving.UNDEFINED)
+			try{
+			if (Resolving.fromInt(Integer.parseInt(temp)) != Resolving.UNDEFINED)
 				resolving = Resolving.fromInt(Integer.parseInt(temp)) ;
 			else
 				resolving = Resolving.EXPANDING;
+			}
+			catch(NumberFormatException ex){
+				resolving = Resolving.EXPANDING;
+				
+			}
 			bw.write(resolving.toString());
 			bw.close();
 		}
