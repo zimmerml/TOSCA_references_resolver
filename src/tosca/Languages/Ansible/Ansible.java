@@ -43,7 +43,7 @@ public class Ansible extends Language {
 						List<String> files = zip.unZipIt(f, folder);
 						for(String file:files)
 							if(file.toLowerCase().endsWith("yml"))
-								proceed(folder + file,cr);
+								proceed(folder + file,cr,f);
 						if(isChanged){
 							new File(f).delete();
 							zip.zipIt(f, folder);
@@ -52,13 +52,13 @@ public class Ansible extends Language {
 						//zip.delete(new File(folder));
 					}
 					else{
-						proceed(f, cr);
+						proceed(f, cr, f);
 					}
 				}
 	}
-	public void proceed(String filename, Control_references cr) throws FileNotFoundException, IOException, JAXBException {
+	public void proceed(String filename, Control_references cr, String source) throws FileNotFoundException, IOException, JAXBException {
 		for(PacketManager pm:packetManagers)
-			pm.proceed(filename, cr);
+			pm.proceed(filename, cr, source);
 	}
 
 }

@@ -2,6 +2,7 @@ package tosca.Languages.Bash;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -28,7 +29,7 @@ public final class PM_apt_get extends PacketManager {
 	 * @see TOSCA.PacketManager#proceed(java.lang.String,
 	 * TOSCA.Control_references)
 	 */
-	public void proceed(String filename, Control_references cr)
+	public void proceed(String filename, Control_references cr, String source)
 			throws IOException, JAXBException {
 		String prefix = "";
 		for (int i = 0; i < Utils.getPathLength(filename) - 1; i++)
@@ -80,6 +81,7 @@ public final class PM_apt_get extends PacketManager {
 						for (int packet = 2 + i; packet < words.length; packet++) {
 							System.out.println("packet: " + words[packet]);
 							cr.getPacket(words[packet]);
+							cr.AddDependenciesScript(source, words[packet]);
 						}
 					} 
 					newFile += "#//References resolver//" + line + '\n';
@@ -102,6 +104,12 @@ public final class PM_apt_get extends PacketManager {
 			wScript.write(newFile, 0, newFile.length());
 			wScript.close();
 		}
+	}
+
+	@Override
+	public void proceed(String filename, Control_references cr)
+			throws FileNotFoundException, IOException, JAXBException {
+		proceed(filename, cr, filename);
 	}
 
 }

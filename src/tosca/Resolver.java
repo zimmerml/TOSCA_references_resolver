@@ -14,7 +14,8 @@ import tosca.Languages.Ansible.Ansible;
 import tosca.Languages.Bash.Bash;
 import tosca.xml_definitions.RR_DependsOn;
 import tosca.xml_definitions.RR_NodeType;
-import tosca.xml_definitions.RR_PackageArtefactType;
+import tosca.xml_definitions.RR_PackageArtifactType;
+import tosca.xml_definitions.RR_ScriptArtifactType;
 
 /**
  * @author jery
@@ -112,8 +113,10 @@ public class Resolver {
 			 * change service template
 			 */
 			RR_NodeType.init(cr);
-			RR_PackageArtefactType.init(cr);
+			RR_PackageArtifactType.init(cr);
+			RR_ScriptArtifactType.init(cr);
 			RR_DependsOn.init(cr);
+			
 		} catch (FileNotFoundException e) {
 			System.out.println("Error by unpacking " + filename
 					+ ", file not found");

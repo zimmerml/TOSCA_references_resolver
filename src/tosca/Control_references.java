@@ -51,6 +51,9 @@ public class Control_references {
 		return downloader.getPacket(packet, this);
 	}
 
+	public void AddDependenciesScript(String script, String packet) throws JAXBException, IOException {
+		downloader.AddDependenciesScript(this, script, packet);
+	}
 	/**
 	 * init system
 	 * 
@@ -225,10 +228,10 @@ public class Control_references {
 			if (Resolving.fromInt(Integer.parseInt(temp)) != Resolving.UNDEFINED)
 				resolving = Resolving.fromInt(Integer.parseInt(temp)) ;
 			else
-				resolving = Resolving.EXPANDING;
+				resolving = Resolving.ADDITION;
 			}
 			catch(NumberFormatException ex){
-				resolving = Resolving.EXPANDING;
+				resolving = Resolving.ADDITION;
 				
 			}
 			bw.write(resolving.toString());

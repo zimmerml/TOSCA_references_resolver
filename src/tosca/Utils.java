@@ -26,6 +26,8 @@ public class Utils {
 	}
 	
 	static public void createFile(String filename, String content) throws IOException{
+
+		new File(new File(filename).getParent()).mkdirs();
 		new File(filename).delete();
 		FileWriter bw = new FileWriter(filename);
 		bw.write(content);

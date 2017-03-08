@@ -20,8 +20,12 @@ public class Apt extends PacketManager {
 	// package manager name
 	static public final String Name = "apt";
 
+
+	public void proceed(String filename, Control_references cr) throws FileNotFoundException, IOException, JAXBException{
+		proceed(filename, cr, filename);
+	}
 	@Override
-	public void proceed(String filename, Control_references cr)
+	public void proceed(String filename, Control_references cr, String source)
 			throws FileNotFoundException, IOException, JAXBException {
 		String prefix = "    - ";
 		for (int i = 0; i < Utils.getPathLength(filename) - 1; i++)
@@ -59,6 +63,7 @@ public class Apt extends PacketManager {
 							System.out.println("Found packet: " + m.group(2));
 							newFile += "#//References resolver//" + line + '\n';
 							cr.getPacket(m.group(2));
+							cr.AddDependenciesScript(source, m.group(2));
 							isChanged = true;
 							State = 0;
 						}
