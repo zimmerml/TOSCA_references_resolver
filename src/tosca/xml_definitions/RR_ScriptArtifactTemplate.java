@@ -100,7 +100,7 @@ public class RR_ScriptArtifactTemplate {
 	 */
 	public static void createPackageTemplate(Control_references cr, String packet)
 			throws IOException, JAXBException {
-		System.out.println("creating Package Template for " + packet  );
+		System.out.println("creating Script Template for " + packet  );
 
 		File temp = new File(cr.getFolder() + Control_references.Definitions + getFilename(packet));
 		if (temp.exists())

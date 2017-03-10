@@ -47,7 +47,7 @@ public class Control_references {
 	public Control_references() {
 		metaFile = new MetaFile();
 		downloader = new Packet_Handler();
-		service_template = new Service_Template();
+		service_template = new Service_Template(this);
 	}
 	
 	public String getPacket(String packet) throws JAXBException, IOException {
@@ -69,7 +69,7 @@ public class Control_references {
 		metaFile = new MetaFile();
 		init(filename);
 		downloader = new Packet_Handler();
-		service_template = new Service_Template();
+		service_template = new Service_Template(this);
 	}
 
 	/**

@@ -112,6 +112,7 @@ public class Resolver {
 			 * Relationship Type for dependencies 
 			 * change service template
 			 */
+			new File(cr.getFolder() +  Control_references.Definitions).mkdirs();
 			RR_NodeType.init(cr);
 			RR_PackageArtifactType.init(cr);
 			RR_ScriptArtifactType.init(cr);
