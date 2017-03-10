@@ -13,6 +13,7 @@ import java.util.Scanner;
 import javax.xml.bind.JAXBException;
 
 import tosca.Abstract.Resolving;
+import tosca.xml_definitions.Service_Template;
 
 //unpack 
 public class Control_references {
@@ -35,6 +36,7 @@ public class Control_references {
 	public MetaFile metaFile;
 	
 	private Packet_Handler downloader;
+	private Service_Template service_template;
 
 	public static final String ArchitectureFileName = "arch";
 	public static final String ResolvingFileName = "resolv";
@@ -45,6 +47,7 @@ public class Control_references {
 	public Control_references() {
 		metaFile = new MetaFile();
 		downloader = new Packet_Handler();
+		service_template = new Service_Template();
 	}
 	
 	public String getPacket(String packet) throws JAXBException, IOException {
@@ -66,6 +69,7 @@ public class Control_references {
 		metaFile = new MetaFile();
 		init(filename);
 		downloader = new Packet_Handler();
+		service_template = new Service_Template();
 	}
 
 	/**
