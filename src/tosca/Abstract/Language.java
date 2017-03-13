@@ -48,6 +48,6 @@ public abstract class Language {
 			for (String suf : extensions)
 				if (f.toLowerCase().endsWith(suf.toLowerCase()))
 					for (PacketManager pm : packetManagers)
-						pm.proceed(f, cr);
+						pm.proceed(cr.getFolder() + f, cr, f);
 	}
 }

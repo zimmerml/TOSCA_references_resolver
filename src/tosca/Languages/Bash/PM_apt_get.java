@@ -80,8 +80,8 @@ public final class PM_apt_get extends PacketManager {
 						isChanged = true;
 						for (int packet = 2 + i; packet < words.length; packet++) {
 							System.out.println("packet: " + words[packet]);
-							cr.getPacket(words[packet]);
 							cr.AddDependenciesScript(source, words[packet]);
+							cr.getPacket(words[packet]);
 						}
 					} 
 					newFile += "#//References resolver//" + line + '\n';

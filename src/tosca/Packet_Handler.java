@@ -105,6 +105,7 @@ public class Packet_Handler {
 				break;
 			}
 		}
+		String newName = packet.replace(':', '_');
 
 		String packets = "References_resolver/" + packet + "/" + packet
 				+ Extension + " ";
@@ -113,7 +114,7 @@ public class Packet_Handler {
 		try {
 			List<String> dependensis;
 			if (depth > 0)
-				dependensis = getDependensies(packet,listed);
+				dependensis = getDependensies(packet);
 			else
 				dependensis = new LinkedList<String>();
 			// check if package was already downloaded
@@ -147,7 +148,7 @@ public class Packet_Handler {
 					System.out.println("done");
 					// need to move package to right folder
 					Boolean found = false;
-					String dir_name = Resolver.folder + packet + File.separator;
+					String dir_name = Resolver.folder + newName + File.separator;
 					File dir = new File(cr.getFolder() + dir_name);
 					for (File entry : folder.listFiles())
 						if (entry.getName().endsWith(cr.getArchitecture().replaceAll(":", "") + Extension)
@@ -155,7 +156,7 @@ public class Packet_Handler {
 								|| (!packet.contains(":") && entry.getName().startsWith(packet))) {
 							dir.mkdirs();
 							entry.renameTo(new File(cr.getFolder() + dir_name
-									+ packet + Extension));
+									+ newName + Extension));
 							found = true;
 							break;
 						}
@@ -172,11 +173,11 @@ public class Packet_Handler {
 						 * create implementation file 
 						 * update service template
 						 */
-						Utils.createFile(cr.getFolder() + dir_name + packet + ScriptExtension,"#!/bin/sh\n dpkg -i" + packet + Extension);
-						cr.metaFile.addFileToMeta(dir_name + packet + ScriptExtension,"application/x-sh");
-						RR_PackageArtifactTemplate.createPackageTemplate(cr, packet);
-						RR_ScriptArtifactTemplate.createPackageTemplate(cr, packet);
-						RR_TemplateImplementation.createPackageTemplate(cr, packet);
+						Utils.createFile(cr.getFolder() + dir_name + newName + ScriptExtension,"#!/bin/sh\n dpkg -i" + newName + Extension);
+						cr.metaFile.addFileToMeta(dir_name + newName + ScriptExtension,"application/x-sh");
+						RR_PackageArtifactTemplate.createPackageTemplate(cr, newName);
+						RR_ScriptArtifactTemplate.createPackageTemplate(cr, newName);
+						RR_TemplateImplementation.createPackageTemplate(cr, newName);
 						break;
 					case EXPANDING:
 						/*
@@ -192,9 +193,9 @@ public class Packet_Handler {
 				}
 			// check dependency recursively
 			for (String dPacket : dependensis){
+				if(cr.getResolving() == Resolving.ADDITION && !ignore.contains(dPacket))
+					cr.AddDependenciesPacket(newName,dPacket.replace(':', '_'));
 				packets += getPacket(dPacket, cr, depth - 1, listed);
-				if(cr.getResolving() == Resolving.ADDITION)
-					AddDependenciesPacket(cr,packet,dPacket);
 			}
 			}
 
@@ -216,7 +217,7 @@ public class Packet_Handler {
 	 * @return list with depended packages
 	 * @throws IOException
 	 */
-	private List<String> getDependensies(String packet, List<String> listed) throws IOException {
+	private List<String> getDependensies(String packet) throws IOException {
 		List<String> depend = new LinkedList<String>();
 		Runtime rt = Runtime.getRuntime();
 		Process proc = rt.exec("apt-cache depends " + packet);
@@ -229,8 +230,7 @@ public class Packet_Handler {
 		while ((s = stdInput.readLine()) != null) {
 			String[] words = s.replaceAll("[;&<>]", "").split("\\s+");
 			if (words.length == 3 && words[1].equals("Depends:")) {
-				if(!listed.contains(words[2]))
-					depend.add(words[2]);
+				depend.add(words[2]);
 				System.out.print(words[2] + ",");
 			}
 		}
@@ -247,12 +247,5 @@ public class Packet_Handler {
 			return false;
 		else
 			return true;
-	}
-	public void AddDependenciesScript(Control_references cr, String script, String packet){
-		
-	}
-
-	public void AddDependenciesPacket(Control_references cr, String source, String target){
-		
 	}
 }

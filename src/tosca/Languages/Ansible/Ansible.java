@@ -40,13 +40,13 @@ public class Ansible extends Language {
 						boolean isChanged = false;
 //						String filename = new File(f).getName();
 						String folder = new File(f).getParent() + File.separator ;
-						List<String> files = zip.unZipIt(f, folder);
+						List<String> files = zip.unZipIt(cr.getFolder() + f, folder);
 						for(String file:files)
 							if(file.toLowerCase().endsWith("yml"))
 								proceed(folder + file,cr,f);
 						if(isChanged){
-							new File(f).delete();
-							zip.zipIt(f, folder);
+							new File(cr.getFolder() +f).delete();
+							zip.zipIt(cr.getFolder() +f, folder);
 						} 
 						//TODO
 						//zip.delete(new File(folder));

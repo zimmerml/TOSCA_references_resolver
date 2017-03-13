@@ -55,7 +55,10 @@ public class Control_references {
 	}
 
 	public void AddDependenciesScript(String script, String packet) throws JAXBException, IOException {
-		downloader.AddDependenciesScript(this, script, packet);
+		service_template.addDependencyToScript(this, script, packet+getArchitecture().replace(':', '_'));
+	}
+	public void AddDependenciesPacket(String script, String packet) throws JAXBException, IOException {
+		service_template.addDependencyToPacket(this, script, packet);
 	}
 	/**
 	 * init system
@@ -95,10 +98,10 @@ public class Control_references {
 	 * @return list with files
 	 */
 	public List<String> getFiles() {
-		List<String> fullFiles = new LinkedList<String>();
-		for (String s : files)
-			fullFiles.add(folder + s);
-		return fullFiles;
+//		List<String> fullFiles = new LinkedList<String>();
+//		for (String s : files)
+//			fullFiles.add(folder + s);
+		return files;
 	}
 
 	/**
