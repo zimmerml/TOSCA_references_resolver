@@ -14,13 +14,12 @@ import tosca.Abstract.Language;
 import tosca.Abstract.PacketManager;
 
 public class Ansible extends Language {
-	
-	
-	/** Constructor
-	 * list right extensions and creates package managers
+
+	/**
+	 * Constructor list right extensions and creates package managers
 	 * 
 	 */
-	public Ansible(){
+	public Ansible() {
 		Name = "Ansible";
 		extensions = new LinkedList<String>();
 		extensions.add(".zip");
@@ -29,35 +28,47 @@ public class Ansible extends Language {
 		packetManagers = new LinkedList<PacketManager>();
 		packetManagers.add(new Apt());
 	}
-	
+
+	/* 
+	 * Ansible files can be packed. need to unpack them and proceed separately
+	 * (non-Javadoc)
+	 * @see tosca.Abstract.Language#proceed(tosca.Control_references)
+	 */
 	public void proceed(Control_references cr) throws FileNotFoundException, IOException, JAXBException {
 		if (cr == null)
 			throw new NullPointerException();
 		for (String f : cr.getFiles())
 			for (String suf : extensions)
-				if (f.toLowerCase().endsWith(suf.toLowerCase())){
-					if(suf.equals(".zip")){
+				if (f.toLowerCase().endsWith(suf.toLowerCase())) {
+					if (suf.equals(".zip")) {
 						boolean isChanged = false;
-//						String filename = new File(f).getName();
-						String folder = new File(f).getParent() + File.separator ;
+						// String filename = new File(f).getName();
+						String folder = new File(f).getParent() + File.separator;
 						List<String> files = zip.unZipIt(cr.getFolder() + f, folder);
-						for(String file:files)
-							if(file.toLowerCase().endsWith("yml"))
-								proceed(folder + file,cr,f);
-						if(isChanged){
-							new File(cr.getFolder() +f).delete();
-							zip.zipIt(cr.getFolder() +f, folder);
-						} 
-						//TODO
-						//zip.delete(new File(folder));
-					}
-					else{
+						for (String file : files)
+							if (file.toLowerCase().endsWith("yml"))
+								proceed(folder + file, cr, f);
+						if (isChanged) {
+							new File(cr.getFolder() + f).delete();
+							zip.zipIt(cr.getFolder() + f, folder);
+						}
+						zip.delete(new File(folder));
+					} else 
 						proceed(f, cr, f);
-					}
 				}
 	}
-	public void proceed(String filename, Control_references cr, String source) throws FileNotFoundException, IOException, JAXBException {
-		for(PacketManager pm:packetManagers)
+
+	/**	proceed given file 
+	 * @param filename
+	 * @param cr
+	 * @param sourceof file, example - archive
+	 * @throws FileNotFoundException
+	 * @throws IOException
+	 * @throws JAXBException
+	 */
+	public void proceed(String filename, Control_references cr, String source) throws FileNotFoundException,
+			IOException, JAXBException {
+		for (PacketManager pm : packetManagers)
 			pm.proceed(filename, cr, source);
 	}
 

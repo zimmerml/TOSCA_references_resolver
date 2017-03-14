@@ -19,9 +19,10 @@ public abstract class Language {
 	// Language Name
 	protected String Name;
 
-	public String getName(){
+	public String getName() {
 		return Name;
 	}
+
 	/**
 	 * Get supported extensions
 	 * 
@@ -40,8 +41,7 @@ public abstract class Language {
 	 * @throws IOException
 	 * @throws JAXBException
 	 */
-	public void proceed(Control_references cr) throws FileNotFoundException,
-			IOException, JAXBException {
+	public void proceed(Control_references cr) throws FileNotFoundException, IOException, JAXBException {
 		if (cr == null)
 			throw new NullPointerException();
 		for (String f : cr.getFiles())

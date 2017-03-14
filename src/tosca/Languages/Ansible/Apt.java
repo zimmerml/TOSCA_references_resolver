@@ -20,13 +20,22 @@ public class Apt extends PacketManager {
 	// package manager name
 	static public final String Name = "apt";
 
-
-	public void proceed(String filename, Control_references cr) throws FileNotFoundException, IOException, JAXBException{
+	/* (non-Javadoc)
+	 * @see tosca.Abstract.PacketManager#proceed(java.lang.String, tosca.Control_references)
+	 */
+	public void proceed(String filename, Control_references cr) throws FileNotFoundException, IOException,
+			JAXBException {
 		proceed(filename, cr, filename);
 	}
+
+	/* 
+	 * Ansible reader
+	 * (non-Javadoc)
+	 * @see tosca.Abstract.PacketManager#proceed(java.lang.String, tosca.Control_references, java.lang.String)
+	 */
 	@Override
-	public void proceed(String filename, Control_references cr, String source)
-			throws FileNotFoundException, IOException, JAXBException {
+	public void proceed(String filename, Control_references cr, String source) throws FileNotFoundException,
+			IOException, JAXBException {
 		String prefix = "    - ";
 		for (int i = 0; i < Utils.getPathLength(filename) - 1; i++)
 			prefix = prefix + "../";
@@ -38,8 +47,7 @@ public class Apt extends PacketManager {
 		String line = null;
 		String newFile = "";
 		int State = 0;
-		switch(cr.getResolving())
-		{
+		switch (cr.getResolving()) {
 		case ADDITION:
 			while ((line = br.readLine()) != null) {
 				switch (State) {
@@ -150,8 +158,7 @@ public class Apt extends PacketManager {
 						Matcher m = p.matcher(line);
 						if (m.find()) {
 							System.out.println("Found packet: " + m.group(2));
-							newFile += "  apt: deb={{ item }}" + '\n'
-									+ "  with_items:" + '\n';
+							newFile += "  apt: deb={{ item }}" + '\n' + "  with_items:" + '\n';
 							for (String packet : cr.getPacket(m.group(2)).split("\\s+"))
 								newFile += prefix + packet + '\n';
 							isChanged = true;
@@ -159,8 +166,7 @@ public class Apt extends PacketManager {
 						}
 						break;
 					} else if (line.matches("\\s*apt:.*")) {
-						newFile += "  apt: deb={{ item }}" + '\n' + "  with_items:"
-								+ '\n';
+						newFile += "  apt: deb={{ item }}" + '\n' + "  with_items:" + '\n';
 						State = 4;
 					} else
 						newFile += line + '\n';
@@ -187,8 +193,7 @@ public class Apt extends PacketManager {
 							if (words[0].equals(""))
 								i = 1;
 							if (words.length == 2 + i && words[i].equals("-")) {
-								for (String packet : cr.getPacket(words[i + 1])
-										.split("\\s+"))
+								for (String packet : cr.getPacket(words[i + 1]).split("\\s+"))
 									newFile += prefix + packet + '\n'; // TOCHECK
 								isChanged = true;
 							} else
@@ -228,7 +233,7 @@ public class Apt extends PacketManager {
 			break;
 		default:
 			break;
-		
+
 		}
 		br.close();
 		if (isChanged) {

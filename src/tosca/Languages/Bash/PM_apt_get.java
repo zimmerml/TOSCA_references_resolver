@@ -17,6 +17,7 @@ public final class PM_apt_get extends PacketManager {
 
 	// package manager name
 	static public final String Name = "apt-get";
+
 	/**
 	 * Constructor
 	 */
@@ -29,8 +30,8 @@ public final class PM_apt_get extends PacketManager {
 	 * @see TOSCA.PacketManager#proceed(java.lang.String,
 	 * TOSCA.Control_references)
 	 */
-	public void proceed(String filename, Control_references cr, String source)
-			throws IOException, JAXBException {
+	public void proceed(String filename, Control_references cr, String source) throws IOException,
+			JAXBException {
 		String prefix = "";
 		for (int i = 0; i < Utils.getPathLength(filename) - 1; i++)
 			prefix = prefix + "../";
@@ -49,7 +50,7 @@ public final class PM_apt_get extends PacketManager {
 			if (words[i].equals(""))
 				i = 1;
 			// look for apt-get
-			switch(cr.getResolving()){
+			switch (cr.getResolving()) {
 			case EXPANDING:
 				if (words.length >= 1 + i && words[i].equals("apt-get")) {
 					// apt-get found
@@ -83,7 +84,7 @@ public final class PM_apt_get extends PacketManager {
 							cr.AddDependenciesScript(source, words[packet]);
 							cr.getPacket(words[packet]);
 						}
-					} 
+					}
 					newFile += "#//References resolver//" + line + '\n';
 				} else
 					newFile += line + '\n';
@@ -107,8 +108,8 @@ public final class PM_apt_get extends PacketManager {
 	}
 
 	@Override
-	public void proceed(String filename, Control_references cr)
-			throws FileNotFoundException, IOException, JAXBException {
+	public void proceed(String filename, Control_references cr) throws FileNotFoundException, IOException,
+			JAXBException {
 		proceed(filename, cr, filename);
 	}
 

@@ -12,8 +12,6 @@ import javax.xml.bind.JAXBException;
 
 import tosca.Abstract.Resolving;
 import tosca.xml_definitions.RR_PackageArtifactTemplate;
-import tosca.xml_definitions.RR_ScriptArtifactTemplate;
-import tosca.xml_definitions.RR_TemplateImplementation;
 
 //import tosca.xml_definitions.PackageTemplate;
 
@@ -27,18 +25,24 @@ public class Packet_Handler {
 
 	// list with already downloaded packages
 	private List<String> downloaded;
+	//packets to be ignored
 	private List<String> ignore;
 
-	public Packet_Handler(){
+	/**
+	 *  Constructor
+	 */
+	public Packet_Handler() {
 		checkDependency();
 		downloaded = new LinkedList<String>();
 		ignore = new LinkedList<String>();
 	}
 
+	/**
+	 *  Initialize dependency level
+	 */
 	@SuppressWarnings("resource")
-	private void checkDependency()
-	{
-		if(Dependency != null)
+	private void checkDependency() {
+		if (Dependency != null)
 			return;
 		System.out.print("enter Dependenscy level for apt-get:");
 		Dependency = new Scanner(System.in).nextInt();
@@ -47,9 +51,17 @@ public class Packet_Handler {
 			Dependency = 999;
 	}
 
+	/**		Downloads packet, public functions. Calls private recursive function
+	 * @param packet to be download
+	 * @param cr CSAR handler
+	 * @return
+	 * @throws JAXBException
+	 * @throws IOException
+	 */
 	public String getPacket(String packet, Control_references cr) throws JAXBException, IOException {
-		return getPacket(packet, cr, Dependency, new LinkedList<String>());		
+		return getPacket(packet, cr, Dependency, new LinkedList<String>());
 	}
+
 	/**
 	 * Download package and check its dependency
 	 * 
@@ -63,11 +75,11 @@ public class Packet_Handler {
 	 *            list with already included packages
 	 * @return list of packages
 	 * @throws JAXBException
-	 * @throws IOException 
+	 * @throws IOException
 	 */
 	@SuppressWarnings("resource")
-	public String getPacket(String packet, Control_references cr, int depth,
-			List<String> listed) throws JAXBException, IOException {
+	public String getPacket(String packet, Control_references cr, int depth, List<String> listed)
+			throws JAXBException, IOException {
 		System.out.println("Get packet: " + packet);
 		// if package is already listed: nothing to do
 		if (listed.contains(packet) || ignore.contains(packet))
@@ -75,24 +87,24 @@ public class Packet_Handler {
 		// if this is the first call of recursive function, we need to add
 		// architecture to package
 		// but some packages are multyarchitecture, need to check it.
-		if (depth == Dependency){
-			if(packetExists(packet + cr.getArchitecture())) 
+		if (depth == Dependency) {
+			if (packetExists(packet + cr.getArchitecture()))
 				packet = packet + cr.getArchitecture();
 		}
-		while(!packetExists(packet)){
-			
-			//Fault during download
-			System.out.println("cant find packet: "+packet);
+		while (!packetExists(packet)) {
+
+			// Fault during download
+			System.out.println("cant find packet: " + packet);
 			System.out.println("1) rename");
 			System.out.println("2) retry");
 			System.out.println("3) ignore");
 
 			int action = new Scanner(System.in).nextInt();
-			switch(action){
+			switch (action) {
 			case 1:
 				System.out.print("Enter new name: ");
 				String temp = new Scanner(System.in).nextLine();
-				if(temp != null && !temp.equals(""))
+				if (temp != null && !temp.equals(""))
 					packet = temp;
 				else
 					System.out.println("incorect name");
@@ -107,8 +119,7 @@ public class Packet_Handler {
 		}
 		String newName = packet.replace(':', '_');
 
-		String packets = "References_resolver/" + packet + "/" + packet
-				+ Extension + " ";
+		String packets = "References_resolver/" + packet + "/" + packet + Extension + " ";
 		File folder = new File("./");
 		Process proc;
 		try {
@@ -118,27 +129,24 @@ public class Packet_Handler {
 			else
 				dependensis = new LinkedList<String>();
 			// check if package was already downloaded
-			if(!listed.contains(packet)){	
+			if (!listed.contains(packet)) {
 				listed.add(packet);
-				if (!downloaded.contains(packet))
-				{
+				if (!downloaded.contains(packet)) {
 					downloaded.add(packet);
 					// "apt-get download" downloads only to current folder
 					System.out.println("apt-get download " + packet);
 					Runtime rt = Runtime.getRuntime();
 					proc = rt.exec("apt-get download " + packet);
-	
-					BufferedReader stdInput = new BufferedReader(new InputStreamReader(
-							proc.getInputStream()));
-	
-					BufferedReader stdError = new BufferedReader(new 
-							InputStreamReader(proc.getErrorStream()));
-	
+
+					BufferedReader stdInput = new BufferedReader(new InputStreamReader(proc.getInputStream()));
+
+					BufferedReader stdError = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
+
 					String s = null;
 					while ((s = stdInput.readLine()) != null) {
 						System.out.print(s);
 					}
-	
+
 					// read any errors from the attempted command
 					System.out.println("Errors:\n");
 					while ((s = stdError.readLine()) != null) {
@@ -152,51 +160,26 @@ public class Packet_Handler {
 					File dir = new File(cr.getFolder() + dir_name);
 					for (File entry : folder.listFiles())
 						if (entry.getName().endsWith(cr.getArchitecture().replaceAll(":", "") + Extension)
-								&& ((packet.contains(":") && entry.getName().startsWith(packet.substring(0,	packet.indexOf(':')))))
+								&& ((packet.contains(":") && entry.getName().startsWith(
+										packet.substring(0, packet.indexOf(':')))))
 								|| (!packet.contains(":") && entry.getName().startsWith(packet))) {
 							dir.mkdirs();
-							entry.renameTo(new File(cr.getFolder() + dir_name
-									+ newName + Extension));
+							entry.renameTo(new File(cr.getFolder() + dir_name + newName + Extension));
 							found = true;
 							break;
 						}
 					if (found == false)
-						System.out.println("downloaded packet " + packet
-								+ " not found");
-					switch(cr.getResolving()){
-					case ADDITION:
-						/*
-						 * TODO
-						 * create script file. done
-						 * create template file for script
-						 * create template file for package. done
-						 * create implementation file 
-						 * update service template
-						 */
-						Utils.createFile(cr.getFolder() + dir_name + newName + ScriptExtension,"#!/bin/sh\n dpkg -i" + newName + Extension);
-						cr.metaFile.addFileToMeta(dir_name + newName + ScriptExtension,"application/x-sh");
-						RR_PackageArtifactTemplate.createPackageTemplate(cr, newName);
-						RR_ScriptArtifactTemplate.createPackageTemplate(cr, newName);
-						RR_TemplateImplementation.createPackageTemplate(cr, newName);
-						break;
-					case EXPANDING:
-						/*
-						 *  Nothing to do, all changes in source scripts.
-						 */
-						break;
-					default:
-						break;
-					
-					}
-					cr.metaFile.addFileToMeta(dir_name + packet + Extension,
-							"application/deb");
+						System.out.println("downloaded packet " + packet + " not found");
+					cr.metaFile.addFileToMeta(dir_name + packet + Extension, "application/deb");
 				}
-			// check dependency recursively
-			for (String dPacket : dependensis){
-				if(cr.getResolving() == Resolving.ADDITION && !ignore.contains(dPacket))
-					cr.AddDependenciesPacket(newName,dPacket.replace(':', '_'));
-				packets += getPacket(dPacket, cr, depth - 1, listed);
-			}
+				// check dependency recursively
+				for (String dPacket : dependensis) {
+					if (cr.getResolving() == Resolving.ADDITION && !ignore.contains(dPacket)) {
+						cr.AddDependenciesPacket(newName, dPacket.replace(':', '_'));
+						RR_PackageArtifactTemplate.createPackageTemplate(cr, newName);
+					}
+					packets += getPacket(dPacket, cr, depth - 1, listed);
+				}
 			}
 
 		} catch (IOException e) {
@@ -222,8 +205,7 @@ public class Packet_Handler {
 		Runtime rt = Runtime.getRuntime();
 		Process proc = rt.exec("apt-cache depends " + packet);
 
-		BufferedReader stdInput = new BufferedReader(new InputStreamReader(
-				proc.getInputStream()));
+		BufferedReader stdInput = new BufferedReader(new InputStreamReader(proc.getInputStream()));
 
 		System.out.print("dependensis : ");
 		String s = null;
@@ -237,11 +219,16 @@ public class Packet_Handler {
 		System.out.println("");
 		return depend;
 	}
-	private boolean packetExists(String packet) throws IOException{
+
+	/**	Checks if packet can be download
+	 * @param packet to check
+	 * @return
+	 * @throws IOException
+	 */
+	private boolean packetExists(String packet) throws IOException {
 		Runtime rt = Runtime.getRuntime();
 		Process proc = rt.exec("apt-cache depends " + packet);
-		BufferedReader stdError = new BufferedReader(new 
-				InputStreamReader(proc.getErrorStream()));
+		BufferedReader stdError = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
 
 		if ((stdError.readLine()) != null)
 			return false;

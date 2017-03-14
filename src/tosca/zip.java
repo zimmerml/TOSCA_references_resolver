@@ -23,8 +23,8 @@ public class zip {
 	 * @throws FileNotFoundException
 	 *             , IOException
 	 */
-	static public List<String> unZipIt(String zipFile, String outputFolder)
-			throws FileNotFoundException, IOException {
+	static public List<String> unZipIt(String zipFile, String outputFolder) throws FileNotFoundException,
+			IOException {
 		if (!(new File(zipFile).exists()))
 			throw new FileNotFoundException(zipFile + "not found!");
 		// unpacked files
@@ -34,9 +34,9 @@ public class zip {
 
 		// create output directory if not exists
 		File folder = new File(outputFolder);
-		//if (folder.exists()) {
-		//	delete(folder);
-		//}
+		// if (folder.exists()) {
+		// delete(folder);
+		// }
 		folder.mkdir();
 
 		// get the zip file content
@@ -50,9 +50,9 @@ public class zip {
 
 			String fileName = ze.getName();
 			File newFile = new File(outputFolder + fileName);
-			if(!ze.isDirectory()){
+			if (!ze.isDirectory()) {
 				fileList.add(ze.getName());
-				
+
 				// create all non exists folders
 				new File(newFile.getParent()).mkdirs();
 
@@ -65,10 +65,8 @@ public class zip {
 				}
 
 				fos.close();
-			}
-			else
+			} else
 				newFile.mkdirs();
-				
 
 			ze = zis.getNextEntry();
 		}
@@ -90,8 +88,7 @@ public class zip {
 	 *            original folder
 	 * @return
 	 */
-	public static List<String> generateFileList(File node,
-			List<String> fileList, String folder) {
+	public static List<String> generateFileList(File node, List<String> fileList, String folder) {
 
 		// add file only
 		if (node.isFile()) {
@@ -104,8 +101,7 @@ public class zip {
 		if (node.isDirectory()) {
 			String[] subNote = node.list();
 			for (String filename : subNote) {
-				fileList = generateFileList(new File(node, filename), fileList,
-						folder);
+				fileList = generateFileList(new File(node, filename), fileList, folder);
 			}
 		}
 		return fileList;
@@ -121,8 +117,7 @@ public class zip {
 	 * @throws FileNotFoundException
 	 *             , IOException
 	 */
-	static public void zipIt(String zipFile, String folder)
-			throws FileNotFoundException, IOException {
+	static public void zipIt(String zipFile, String folder) throws FileNotFoundException, IOException {
 
 		List<String> fileList = new LinkedList<String>();
 		fileList = generateFileList(new File(folder), fileList, folder);
@@ -148,7 +143,9 @@ public class zip {
 		zos.close();
 	}
 
-	/** recursively delete files, folders and all subfolders
+	/**
+	 * recursively delete files, folders and all subfolders
+	 * 
 	 * @param f
 	 * @throws IOException
 	 */

@@ -27,26 +27,39 @@ import org.xml.sax.SAXException;
 
 import tosca.Control_references;
 
-//TODO abstract NodeType? 1 Imlementation  -> n NodeTypes ??
-
+/**
+ * @author jery Service Template Handler
+ */
 public class Service_Template {
 
 	public static final String Tosca = ".tosca";
 	private static final String ToscaNS = "xmlns:RR_tosca_ns";
 	private static final String myPrefix = "RR_tosca_ns:";
-
 	public static final String Definitions = "Definitions/";
+
+	// Reference from NodeType to files with Service Templates
 	HashMap<String, List<String>> NodeTypeToServiceTemplate;
+
+	// Reference from Script position to ArtifactID
 	HashMap<String, List<String>> RefToArtID;
+
+	// Reference from Script position to Node Type
 	HashMap<String, List<String>> RefToNodeType;
 
-
+	/**
+	 * simple Constructor
+	 */
 	public Service_Template() {
 		RefToArtID = new HashMap<String, List<String>>();
 		RefToNodeType = new HashMap<String, List<String>>();
 		NodeTypeToServiceTemplate = new HashMap<String, List<String>>();
 	}
 
+	/**
+	 * Constructor with initialization
+	 * 
+	 * @param cr
+	 */
 	public Service_Template(Control_references cr) {
 		NodeTypeToServiceTemplate = new HashMap<String, List<String>>();
 		RefToArtID = new HashMap<String, List<String>>();
@@ -54,6 +67,12 @@ public class Service_Template {
 		init(cr);
 	}
 
+	/**
+	 * Init all local references, search for script positions and dependent Node
+	 * Types
+	 * 
+	 * @param cr
+	 */
 	public void init(Control_references cr) {
 
 		NodeTypeToServiceTemplate.clear();
@@ -88,7 +107,15 @@ public class Service_Template {
 		}
 	}
 
-	// adds Templates and Relation
+	/**
+	 * Add Node Template for new packet, and depends it to packet created by me
+	 * 
+	 * @param cr
+	 * @param source_packet
+	 *            packet already in Service Template
+	 * @param target_packet
+	 *            packet to be created
+	 */
 	public void addDependencyToPacket(Control_references cr, String source_packet, String target_packet) {
 		for (String filename : NodeTypeToServiceTemplate.get(target_packet)) {
 			try {
@@ -111,12 +138,10 @@ public class Service_Template {
 							Node topology = nodes.item(i).getParentNode();
 							createPacketTemplate(document, topology, target_packet);
 							createPacketDependency(document, topology, sourceID, getID(target_packet));
-							
 
-
-							if (!NodeTypeToServiceTemplate.containsKey(target_packet)) 
+							if (!NodeTypeToServiceTemplate.containsKey(target_packet))
 								NodeTypeToServiceTemplate.put(target_packet, new LinkedList<String>());
-							if (!NodeTypeToServiceTemplate.get(target_packet).contains(filename)) 
+							if (!NodeTypeToServiceTemplate.get(target_packet).contains(filename))
 								NodeTypeToServiceTemplate.get(target_packet).add(filename);
 						}
 					}
@@ -138,6 +163,14 @@ public class Service_Template {
 
 	}
 
+	/**
+	 * Generates and return all files, which use give script
+	 * 
+	 * @param reference
+	 *            script position
+	 * @return list with each files containing service templates for given
+	 *         script position
+	 */
 	private List<String> getServiceTemplatesFromRef(String reference) {
 		List<String> serviceTemplates = new LinkedList<String>();
 
@@ -149,6 +182,16 @@ public class Service_Template {
 		return serviceTemplates;
 	}
 
+	/**
+	 * Add new NodeTemplate and dependency to existing NodeTemplate by given
+	 * script position
+	 * 
+	 * @param cr
+	 * @param script_filename
+	 *            script position
+	 * @param target_packet
+	 *            packet to be added
+	 */
 	public void addDependencyToScript(Control_references cr, String script_filename, String target_packet) {
 		List<String> files = getServiceTemplatesFromRef(script_filename);
 		for (String filename : files) {
@@ -173,9 +216,9 @@ public class Service_Template {
 								createPacketTemplate(document, topology, target_packet);
 								createPacketDependency(document, topology, sourceID, getID(target_packet));
 
-								if (!NodeTypeToServiceTemplate.containsKey(target_packet)) 
+								if (!NodeTypeToServiceTemplate.containsKey(target_packet))
 									NodeTypeToServiceTemplate.put(target_packet, new LinkedList<String>());
-								if (!NodeTypeToServiceTemplate.get(target_packet).contains(filename)) 
+								if (!NodeTypeToServiceTemplate.get(target_packet).contains(filename))
 									NodeTypeToServiceTemplate.get(target_packet).add(filename);
 							}
 					}
@@ -195,10 +238,27 @@ public class Service_Template {
 		}
 	}
 
+	/**
+	 * Generate NodeTemplate ID for given packet
+	 * 
+	 * @param packet
+	 *            packet name
+	 * @return ID
+	 */
 	private String getID(String packet) {
 		return packet + "_template";
 	}
 
+	/**
+	 * Creates NodeTemplate
+	 * 
+	 * @param document
+	 *            to be proceed
+	 * @param topology
+	 *            Node Containing Topology of Service Template
+	 * @param packet
+	 *            packet name
+	 */
 	private void createPacketTemplate(Document document, Node topology, String packet) {
 		NodeList nodes = document.getElementsByTagName("*");
 		for (int i = 0; i < nodes.getLength(); i++)
@@ -230,6 +290,17 @@ public class Service_Template {
 		topology.appendChild(template);
 	}
 
+	/**
+	 * Creates dependency between sourceID and targetID
+	 * 
+	 * @param document
+	 * @param topology
+	 *            node containing topology
+	 * @param sourceID
+	 *            packet which needs targetID
+	 * @param targetID
+	 *            is needed by sourceID
+	 */
 	private void createPacketDependency(Document document, Node topology, String sourceID, String targetID) {
 		System.out.println("Add relation from " + sourceID + " to " + targetID);
 		NodeList nodes = document.getElementsByTagName("*");
@@ -253,6 +324,11 @@ public class Service_Template {
 		relation.appendChild(targetElement);
 	}
 
+	/**
+	 * Add my imports to document
+	 * 
+	 * @param document
+	 */
 	private void addRRImport(Document document) {
 		Node definitions = document.getFirstChild();
 		if (definitions.getAttributes().getNamedItem(ToscaNS) == null) {
@@ -270,6 +346,12 @@ public class Service_Template {
 		}
 	}
 
+	/**
+	 * Parse Artifact Templates for creating script position -> ArtifactID
+	 * reference
+	 * 
+	 * @param file
+	 */
 	private void parseArtifacts(File file) {
 		// System.out.println("Parse " + file.getName());
 		if (!file.getName().toLowerCase().endsWith(Tosca))
@@ -297,7 +379,7 @@ public class Service_Template {
 										Element ref = (Element) ArtifactReferenceList.item(j);
 										String REF = java.net.URLDecoder.decode(
 												ref.getAttribute("reference"), "UTF-8");
-										if (!RefToArtID.containsKey(REF)) 
+										if (!RefToArtID.containsKey(REF))
 											RefToArtID.put(REF, new LinkedList<String>());
 										RefToArtID.get(REF).add(ID);
 									}
@@ -315,6 +397,14 @@ public class Service_Template {
 		}
 	}
 
+	/**
+	 * Parse node Containing Implementation Artifact, to create script position
+	 * -> NodeType reference
+	 * 
+	 * @param artifact
+	 *            node
+	 * @param nodeType
+	 */
 	private void parseImplementationsArtifact(Node artifact, String nodeType) {
 		if (artifact.getNodeName().endsWith(":ImplementationArtifacts")
 				|| artifact.getNodeName().equals("ImplementationArtifacts")
@@ -337,6 +427,11 @@ public class Service_Template {
 		}
 	}
 
+	/**
+	 * Parsing Implementation nodes, looking for NodeType
+	 * 
+	 * @param node
+	 */
 	private void parseImplementationsNodes(Node node) {
 		if (node.getNodeName().endsWith(":NodeTypeImplementation")
 				|| node.getNodeName().equals("NodeTypeImplementation")) {
@@ -351,6 +446,11 @@ public class Service_Template {
 		}
 	}
 
+	/**
+	 * Parse Implementations
+	 * 
+	 * @param file
+	 */
 	private void parseImplementations(File file) {
 
 		if (!file.getName().toLowerCase().endsWith(Tosca))
@@ -373,9 +473,16 @@ public class Service_Template {
 		}
 	}
 
+	/**
+	 * creates script position -> Node Type reference, by given Script position
+	 * -> ArtifactID and ArtifactID -> NodeType
+	 * 
+	 * @param nodeType
+	 * @param artifactID
+	 */
 	private void addNodeTypeRef(String nodeType, String artifactID) {
 		for (String key : RefToArtID.keySet()) {
-			if(RefToArtID.get(key).contains(artifactID)){
+			if (RefToArtID.get(key).contains(artifactID)) {
 				if (!RefToNodeType.containsKey(key))
 					RefToNodeType.put(key, new LinkedList<String>());
 				RefToNodeType.get(key).add(nodeType);
@@ -383,6 +490,11 @@ public class Service_Template {
 		}
 	}
 
+	/**
+	 * Parse Service templates, looking for right Node Types
+	 * 
+	 * @param file
+	 */
 	private void parseServiceTemplates(File file) {
 		if (!file.getName().toLowerCase().endsWith(Tosca))
 			return;
@@ -402,7 +514,10 @@ public class Service_Template {
 					String nodeType = e.getAttribute("type");
 					if (nodeType.contains(":"))
 						nodeType = nodeType.substring(nodeType.indexOf(':') + 1, nodeType.length());
-					AddFileToNode(nodeType, file.getName());
+					if (!NodeTypeToServiceTemplate.containsKey(nodeType))
+						NodeTypeToServiceTemplate.put(nodeType, new LinkedList<String>());
+					if (!NodeTypeToServiceTemplate.get(nodeType).contains(file.getName()))
+						NodeTypeToServiceTemplate.get(nodeType).add(file.getName());
 				}
 
 			}
@@ -410,13 +525,6 @@ public class Service_Template {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-	}
-
-	private void AddFileToNode(String nodeType, String name) {
-		if (!NodeTypeToServiceTemplate.containsKey(nodeType)) {
-			NodeTypeToServiceTemplate.put(nodeType, new LinkedList<String>());
-		}
-		NodeTypeToServiceTemplate.get(nodeType).add(name);
 	}
 
 }

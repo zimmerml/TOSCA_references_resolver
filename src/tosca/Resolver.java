@@ -15,7 +15,9 @@ import tosca.Languages.Bash.Bash;
 import tosca.xml_definitions.RR_DependsOn;
 import tosca.xml_definitions.RR_NodeType;
 import tosca.xml_definitions.RR_PackageArtifactType;
+import tosca.xml_definitions.RR_ScriptArtifactTemplate;
 import tosca.xml_definitions.RR_ScriptArtifactType;
+import tosca.xml_definitions.RR_TemplateImplementation;
 
 /**
  * @author jery
@@ -106,25 +108,24 @@ public class Resolver {
 			// create CSAR manager and unpack archive
 			cr = new Control_references(filename);
 			/*
-			 * TODO
-			 * Node type. done
-			 * Artifact Type for package. done
-			 * Relationship Type for dependencies 
-			 * change service template
+			 * TODO Node type. done Artifact Type for package. done Relationship
+			 * Type for dependencies change service template
 			 */
-			new File(cr.getFolder() +  Control_references.Definitions).mkdirs();
+			new File(cr.getFolder() + Control_references.Definitions).mkdirs();
 			RR_NodeType.init(cr);
 			RR_PackageArtifactType.init(cr);
 			RR_ScriptArtifactType.init(cr);
 			RR_DependsOn.init(cr);
-			
+			RR_ScriptArtifactTemplate.init(cr);
+			RR_TemplateImplementation.init(cr);
+			Utils.createFile(cr.getFolder() + RR_ScriptArtifactTemplate.script,
+					"#!/bin/sh\nTODO!!!!!!!!!\n dpkg -i");
+			cr.metaFile.addFileToMeta(RR_ScriptArtifactTemplate.script, "application/x-sh");
 		} catch (FileNotFoundException e) {
-			System.out.println("Error by unpacking " + filename
-					+ ", file not found");
+			System.out.println("Error by unpacking " + filename + ", file not found");
 			return;
 		} catch (JAXBException e) {
-			System.out
-					.println("Unable to create a XML packagetype description");
+			System.out.println("Unable to create a XML packagetype description");
 			e.printStackTrace();
 			return;
 		}
@@ -155,8 +156,7 @@ public class Resolver {
 		if (newLanguages == null)
 			throw new NullPointerException();
 		for (Language l : newLanguages)
-			System.out
-					.println("Language " + l.getName() + " added to resolver");
+			System.out.println("Language " + l.getName() + " added to resolver");
 		languages = newLanguages;
 	}
 
@@ -169,8 +169,7 @@ public class Resolver {
 		if (newLanguages == null)
 			throw new NullPointerException();
 		for (Language l : newLanguages)
-			System.out
-					.println("Language " + l.getName() + " added to resolver");
+			System.out.println("Language " + l.getName() + " added to resolver");
 		languages.addAll(newLanguages);
 	}
 
@@ -184,8 +183,7 @@ public class Resolver {
 			throw new NullPointerException();
 		languages = new LinkedList<Language>();
 		languages.add(newLanguage);
-		System.out.println("Language " + newLanguage.getName()
-				+ " added to resolver");
+		System.out.println("Language " + newLanguage.getName() + " added to resolver");
 	}
 
 	/**
@@ -197,7 +195,6 @@ public class Resolver {
 		if (newLanguage == null)
 			throw new NullPointerException();
 		languages.add(newLanguage);
-		System.out.println("Language " + newLanguage.getName()
-				+ " added to resolver");
+		System.out.println("Language " + newLanguage.getName() + " added to resolver");
 	}
 }

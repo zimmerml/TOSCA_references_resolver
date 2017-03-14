@@ -8,14 +8,14 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class MetaFile {
-	
-	//Metadata file location
+
+	// Metadata file location
 	public static final String filename = "TOSCA-Metadata/TOSCA.meta";
 
-	//Metadata header
+	// Metadata header
 	private String head;
 
-	//container for Metadate elements
+	// container for Metadate elements
 	public static class MetaEntry {
 		public String name;
 		public String type;
@@ -29,7 +29,7 @@ public class MetaFile {
 		}
 	}
 
-	//Metadata elements
+	// Metadata elements
 	public List<MetaEntry> meta;
 
 	/**
@@ -39,15 +39,17 @@ public class MetaFile {
 		meta = new LinkedList<MetaEntry>();
 	}
 
-	/**	Read Metadata from CSAR unpacked to folder
-	 * @param folder with CSAR content
+	/**
+	 * Read Metadata from CSAR unpacked to folder
+	 * 
+	 * @param folder
+	 *            with CSAR content
 	 * @throws IOException
 	 */
 	public void init(String folder) throws IOException {
 		head = "";
 		meta.clear();
-		BufferedReader br = new BufferedReader(
-				new FileReader(folder + filename));
+		BufferedReader br = new BufferedReader(new FileReader(folder + filename));
 		String line = null;
 		boolean isHead = true;
 		MetaEntry entry = new MetaEntry();
@@ -63,8 +65,7 @@ public class MetaFile {
 			if (line.startsWith("Name:")) {
 				String[] words = line.split("\\s+");
 				entry.name = words[1];
-				if ((line = br.readLine()) != null
-						&& line.startsWith("Content-Type:")) {
+				if ((line = br.readLine()) != null && line.startsWith("Content-Type:")) {
 					words = line.split("\\s+");
 					entry.type = words[1];
 					meta.add(entry);
@@ -75,26 +76,31 @@ public class MetaFile {
 		br.close();
 	}
 
-	/**	Add new element to Metadata
-	 * @param path to new file
-	 * @param type of new file
+	/**
+	 * Add new element to Metadata
+	 * 
+	 * @param path
+	 *            to new file
+	 * @param type
+	 *            of new file
 	 */
 	public void addFileToMeta(String path, String type) {
 		MetaEntry entry = new MetaEntry(path, type);
-		if(!meta.contains(entry))
+		if (!meta.contains(entry))
 			meta.add(entry);
 	}
 
-	/** Pack Data back to file
-	 * @param folder 
+	/**
+	 * Pack Data back to file
+	 * 
+	 * @param folder
 	 * @throws IOException
 	 */
 	public void pack(String folder) throws IOException {
 		FileWriter bw = new FileWriter(folder + filename);
 		bw.write(head);
 		for (MetaEntry entry : meta)
-			bw.write("Name: " + entry.name + "\nContent-Type: " + entry.type
-					+ "\n\n");
+			bw.write("Name: " + entry.name + "\nContent-Type: " + entry.type + "\n\n");
 		bw.flush();
 		bw.close();
 	}

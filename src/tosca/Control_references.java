@@ -6,7 +6,6 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Scanner;
 
@@ -16,6 +15,10 @@ import tosca.Abstract.Resolving;
 import tosca.xml_definitions.Service_Template;
 
 //unpack 
+/**
+ * @author jery
+ *
+ */
 public class Control_references {
 
 	// input CSAR file name
@@ -29,49 +32,83 @@ public class Control_references {
 
 	// architecture of packages
 	private String architecture;
-	
+
 	private Resolving resolving = Resolving.UNDEFINED;
 
 	// Metafile description
 	public MetaFile metaFile;
-	
-	private Packet_Handler downloader;
+
+	// Download and proceed packets
+	private Packet_Handler packet_handler;
+
+	// Updates service templates
 	private Service_Template service_template;
 
 	public static final String ArchitectureFileName = "arch";
 	public static final String ResolvingFileName = "resolv";
 	public static final String Definitions = "Definitions/";
+
 	/**
 	 * Constructor
 	 */
 	public Control_references() {
 		metaFile = new MetaFile();
-		downloader = new Packet_Handler();
+		packet_handler = new Packet_Handler();
 		service_template = new Service_Template(this);
 	}
-	
+
+	/**
+	 * Download and add packet to csar
+	 * 
+	 * @param packet
+	 *            name to download
+	 * @return
+	 * @throws JAXBException
+	 * @throws IOException
+	 */
 	public String getPacket(String packet) throws JAXBException, IOException {
-		return downloader.getPacket(packet, this);
+		return packet_handler.getPacket(packet, this);
 	}
 
-	public void AddDependenciesScript(String script, String packet) throws JAXBException, IOException {
-		service_template.addDependencyToScript(this, script, packet+getArchitecture().replace(':', '_'));
+	/**
+	 * Update Service Template
+	 * 
+	 * @param reference
+	 *            to script, which downloads packet
+	 * @param packet
+	 *            to be added to TOSCA
+	 * @throws JAXBException
+	 * @throws IOException
+	 */
+	public void AddDependenciesScript(String reference, String packet) throws JAXBException, IOException {
+		service_template.addDependencyToScript(this, reference, packet + getArchitecture().replace(':', '_'));
 	}
-	public void AddDependenciesPacket(String script, String packet) throws JAXBException, IOException {
-		service_template.addDependencyToPacket(this, script, packet);
+
+	/**
+	 * Update service template
+	 * 
+	 * @param source
+	 *            packet, which needs target packet
+	 * @param target
+	 *            new packet needed by source
+	 * @throws JAXBException
+	 * @throws IOException
+	 */
+	public void AddDependenciesPacket(String source, String target) throws JAXBException, IOException {
+		service_template.addDependencyToPacket(this, source, target);
 	}
+
 	/**
 	 * init system
 	 * 
 	 * @param filename
-	 *            , CSAR archive
+	 *            CSAR archive
 	 * @throws IOException
 	 */
-	public Control_references(String filename) throws FileNotFoundException,
-			IOException {
+	public Control_references(String filename) throws FileNotFoundException, IOException {
 		metaFile = new MetaFile();
 		init(filename);
-		downloader = new Packet_Handler();
+		packet_handler = new Packet_Handler();
 		service_template = new Service_Template(this);
 	}
 
@@ -98,9 +135,9 @@ public class Control_references {
 	 * @return list with files
 	 */
 	public List<String> getFiles() {
-//		List<String> fullFiles = new LinkedList<String>();
-//		for (String s : files)
-//			fullFiles.add(folder + s);
+		// List<String> fullFiles = new LinkedList<String>();
+		// for (String s : files)
+		// fullFiles.add(folder + s);
 		return files;
 	}
 
@@ -161,9 +198,11 @@ public class Control_references {
 		return architecture;
 	}
 
+	//Do we still need resolving method?
 	public Resolving getResolving() {
 		return resolving;
 	}
+
 	/**
 	 * reads Architecture from extracted data or from user input
 	 * 
@@ -194,15 +233,15 @@ public class Control_references {
 			architecture = new Scanner(System.in).nextLine();
 			if (architecture.equals(""))
 				architecture = "i386";
-			architecture=":" + architecture;
-			if(architecture.equals(":noarch"))
+			architecture = ":" + architecture;
+			if (architecture.equals(":noarch"))
 				architecture = "";
 			bw.write(architecture);
 			bw.close();
 		}
 		metaFile.addFileToMeta(Resolver.folder + ArchitectureFileName, "text/txt");
 	}
-	
+
 	/**
 	 * reads Architecture from extracted data or from user input
 	 * 
@@ -228,18 +267,18 @@ public class Control_references {
 			new File(folder + Resolver.folder).mkdir();
 			FileWriter bw = new FileWriter(resolv);
 			System.out.println("Please enter resolving method.");
-			System.out.println("Example: \n"+Resolving.toInt(Resolving.EXPANDING)+") Replacement(default)\n"+Resolving.toInt(Resolving.ADDITION)+") Addition");
+			System.out.println("Example: \n" + Resolving.toInt(Resolving.EXPANDING)
+					+ ") Replacement(default)\n" + Resolving.toInt(Resolving.ADDITION) + ") Addition");
 			System.out.print("resolving:");
 			String temp = new Scanner(System.in).nextLine();
-			try{
-			if (Resolving.fromInt(Integer.parseInt(temp)) != Resolving.UNDEFINED)
-				resolving = Resolving.fromInt(Integer.parseInt(temp)) ;
-			else
+			try {
+				if (Resolving.fromInt(Integer.parseInt(temp)) != Resolving.UNDEFINED)
+					resolving = Resolving.fromInt(Integer.parseInt(temp));
+				else
+					resolving = Resolving.ADDITION;
+			} catch (NumberFormatException ex) {
 				resolving = Resolving.ADDITION;
-			}
-			catch(NumberFormatException ex){
-				resolving = Resolving.ADDITION;
-				
+
 			}
 			bw.write(resolving.toString());
 			bw.close();
@@ -268,6 +307,7 @@ public class Control_references {
 		bw.flush();
 		bw.close();
 	}
+
 	/**
 	 * Set specific Resolving method
 	 * 
@@ -277,7 +317,7 @@ public class Control_references {
 	public void setResolving(Resolving resolving) throws IOException {
 		if (resolving == null)
 			throw new NullPointerException();
-		if(resolving == Resolving.UNDEFINED){
+		if (resolving == Resolving.UNDEFINED) {
 			System.out.println("wrong resolving");
 			return;
 		}

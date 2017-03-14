@@ -16,6 +16,12 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import tosca.Control_references;
 
+/**
+ * TOSCA DependsOn description
+ * 
+ * @author jery
+ *
+ */
 public class RR_DependsOn {
 
 	/**
@@ -29,16 +35,16 @@ public class RR_DependsOn {
 		public RelationshipType relationshipType;
 
 		@XmlAttribute(name = "xmlns:tosca", required = true)
-		public static final String tosca="http://docs.oasis-open.org/tosca/ns/2011/12";
+		public static final String tosca = "http://docs.oasis-open.org/tosca/ns/2011/12";
 		@XmlAttribute(name = "xmlns:winery", required = true)
-		public static final String winery="http://www.opentosca.org/winery/extensions/tosca/2013/02/12";
+		public static final String winery = "http://www.opentosca.org/winery/extensions/tosca/2013/02/12";
 		@XmlAttribute(name = "xmlns:ns1", required = true)
-		public static final String ns1="http://www.eclipse.org/winery/model/selfservice";
+		public static final String ns1 = "http://www.eclipse.org/winery/model/selfservice";
 		@XmlAttribute(name = "id", required = true)
-		public static final String id="winery-defs-RR_DependsOn_Realation";
+		public static final String id = "winery-defs-RR_DependsOn_Realation";
 		@XmlAttribute(name = "targetNamespace", required = true)
-		public static final String targetNamespace="http://docs.oasis-open.org/tosca/ns/2011/12/ToscaBaseTypes"; //TODO
-		
+		public static final String targetNamespace = "http://docs.oasis-open.org/tosca/ns/2011/12/ToscaBaseTypes"; // TODO
+
 		public Definitions() {
 			relationshipType = new RelationshipType();
 		}
@@ -47,7 +53,7 @@ public class RR_DependsOn {
 			@XmlAttribute(name = "name", required = true)
 			public static final String name = "RR_DependsOn";
 			@XmlAttribute(name = "targetNamespace", required = true)
-			public static final String targetNamespace="http://docs.oasis-open.org/tosca/ns/2011/12/ToscaBaseTypes"; //TODO
+			public static final String targetNamespace = "http://docs.oasis-open.org/tosca/ns/2011/12/ToscaBaseTypes"; // TODO
 
 			RelationshipType() {
 			}
@@ -58,22 +64,20 @@ public class RR_DependsOn {
 	public static final String filename = "RR_DependsOn.tosca";
 
 	/**
-	 * Create PackageType xml description
+	 * Create DependsOn xml description
 	 * 
 	 * @param cr
 	 * @throws JAXBException
 	 * @throws IOException
 	 */
-	public static void init(Control_references cr) throws JAXBException,
-			IOException {
+	public static void init(Control_references cr) throws JAXBException, IOException {
 		File dir = new File(cr.getFolder() + Control_references.Definitions);
 		dir.mkdirs();
 		File temp = new File(cr.getFolder() + Control_references.Definitions + filename);
 		if (temp.exists())
 			temp.delete();
 		temp.createNewFile();
-		OutputStream output = new FileOutputStream(cr.getFolder()
-				+ Control_references.Definitions + filename);
+		OutputStream output = new FileOutputStream(cr.getFolder() + Control_references.Definitions + filename);
 
 		JAXBContext jc = JAXBContext.newInstance(Definitions.class);
 
@@ -82,6 +86,7 @@ public class RR_DependsOn {
 		Marshaller marshaller = jc.createMarshaller();
 		marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
 		marshaller.marshal(shema, output);
-		cr.metaFile.addFileToMeta(Control_references.Definitions + filename, "application/vnd.oasis.tosca.definitions");
+		cr.metaFile.addFileToMeta(Control_references.Definitions + filename,
+				"application/vnd.oasis.tosca.definitions");
 	}
 }

@@ -29,9 +29,18 @@ public abstract class PacketManager {
 	 * @throws IOExceptions
 	 * @throws JAXBException
 	 */
-	public abstract void proceed(String filename, Control_references cr)
-			throws FileNotFoundException, IOException, JAXBException;
+	public abstract void proceed(String filename, Control_references cr) throws FileNotFoundException,
+			IOException, JAXBException;
 
+	/** 
+	 * Proceed given file with different source (like archive)
+	 * @param filename
+	 * @param cr
+	 * @param source
+	 * @throws FileNotFoundException
+	 * @throws IOException
+	 * @throws JAXBException
+	 */
 	public abstract void proceed(String filename, Control_references cr, String source)
 			throws FileNotFoundException, IOException, JAXBException;
 }
