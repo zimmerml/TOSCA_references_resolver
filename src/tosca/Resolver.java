@@ -17,7 +17,7 @@ import tosca.xml_definitions.RR_NodeType;
 import tosca.xml_definitions.RR_PackageArtifactType;
 import tosca.xml_definitions.RR_ScriptArtifactTemplate;
 import tosca.xml_definitions.RR_ScriptArtifactType;
-import tosca.xml_definitions.RR_TemplateImplementation;
+import tosca.xml_definitions.RR_TypeImplementation;
 
 /**
  * @author jery
@@ -117,7 +117,7 @@ public class Resolver {
 			RR_ScriptArtifactType.init(cr);
 			RR_DependsOn.init(cr);
 			RR_ScriptArtifactTemplate.init(cr);
-			RR_TemplateImplementation.init(cr);
+			RR_TypeImplementation.init(cr);
 			Utils.createFile(cr.getFolder() + RR_ScriptArtifactTemplate.script,
 					"#!/bin/sh\nTODO!!!!!!!!!\n dpkg -i");
 			cr.metaFile.addFileToMeta(RR_ScriptArtifactTemplate.script, "application/x-sh");
