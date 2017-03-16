@@ -150,6 +150,8 @@ public class zip {
 	 * @throws IOException
 	 */
 	static public void delete(File f) throws IOException {
+		if(!f.exists())
+			return;
 		if (f.isDirectory()) {
 			for (File c : f.listFiles())
 				delete(c);
