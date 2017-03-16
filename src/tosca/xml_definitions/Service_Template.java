@@ -117,7 +117,7 @@ public class Service_Template {
 	 *            packet to be created
 	 */
 	public void addDependencyToPacket(Control_references cr, String source_packet, String target_packet) {
-		for (String filename : NodeTypeToServiceTemplate.get(target_packet)) {
+		for (String filename : NodeTypeToServiceTemplate.get(source_packet)) {
 			try {
 				DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
 				DocumentBuilder documentBuilder;
