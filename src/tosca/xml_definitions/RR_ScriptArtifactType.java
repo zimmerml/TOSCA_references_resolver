@@ -52,10 +52,10 @@ public class RR_ScriptArtifactType {
 		public static final String tosca="http://docs.oasis-open.org/tosca/ns/2011/12";
 		@XmlAttribute(name = "xmlns:winery", required = true)
 		public static final String winery="http://www.opentosca.org/winery/extensions/tosca/2013/02/12";
-		@XmlAttribute(name = "xmlns:ns1", required = true)
-		public static final String ns1="http://www.eclipse.org/winery/model/selfservice";
+		@XmlAttribute(name = "xmlns:ns0", required = true)
+		public static final String ns0="http://www.eclipse.org/winery/model/selfservice";
 		@XmlAttribute(name = "id", required = true)
-		public static final String id="winery-defs-RR_package_artifact_type";
+		public static final String id="winery-defs-for_tbt-RR_ScriptArtifact";
 		@XmlAttribute(name = "targetNamespace", required = true)
 		public static final String targetNamespace="http://docs.oasis-open.org/tosca/ns/2011/12/ToscaBaseTypes"; //TODO
 		

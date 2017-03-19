@@ -24,6 +24,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Scanner;
@@ -31,7 +32,10 @@ import java.util.Scanner;
 import javax.xml.bind.JAXBException;
 
 import tosca.Abstract.Resolving;
+import tosca.xml_definitions.RR_NodeType;
 import tosca.xml_definitions.RR_PackageArtifactTemplate;
+import tosca.xml_definitions.RR_ScriptArtifactTemplate;
+import tosca.xml_definitions.RR_TypeImplementation;
 
 //import tosca.xml_definitions.PackageTemplate;
 
@@ -43,22 +47,25 @@ public class Packet_Handler {
 	// level of recursive dependency, to be checked
 	private Integer Dependency = null;
 
+	private HashMap<String,String> rename;
+	
 	// list with already downloaded packages
 	private List<String> downloaded;
-	//packets to be ignored
+	// packets to be ignored
 	private List<String> ignore;
 
 	/**
-	 *  Constructor
+	 * Constructor
 	 */
 	public Packet_Handler() {
 		checkDependency();
 		downloaded = new LinkedList<String>();
 		ignore = new LinkedList<String>();
+		rename = new HashMap<String,String>();
 	}
 
 	/**
-	 *  Initialize dependency level
+	 * Initialize dependency level
 	 */
 	@SuppressWarnings("resource")
 	private void checkDependency() {
@@ -71,14 +78,19 @@ public class Packet_Handler {
 			Dependency = 999;
 	}
 
-	/**		Downloads packet, public functions. Calls private recursive function
-	 * @param packet to be download
-	 * @param cr CSAR handler
+	/**
+	 * Downloads packet, public functions. Calls private recursive function
+	 * 
+	 * @param packet
+	 *            to be download
+	 * @param cr
+	 *            CSAR handler
 	 * @return
 	 * @throws JAXBException
 	 * @throws IOException
 	 */
-	public String getPacket(String packet, Control_references cr) throws JAXBException, IOException {
+	public String getPacket(String packet, Control_references cr)
+			throws JAXBException, IOException {
 		return getPacket(packet, cr, Dependency, new LinkedList<String>());
 	}
 
@@ -97,9 +109,11 @@ public class Packet_Handler {
 	 * @throws JAXBException
 	 * @throws IOException
 	 */
-	@SuppressWarnings("resource")
-	public String getPacket(String packet, Control_references cr, int depth, List<String> listed)
-			throws JAXBException, IOException {
+	public String getPacket(String packet, Control_references cr, int depth,
+			List<String> listed) throws JAXBException, IOException {
+		String sourceName = packet;
+		if(rename.containsKey(packet))
+			packet = rename.get(packet);
 		System.out.println("Get packet: " + packet);
 		// if package is already listed: nothing to do
 		if (listed.contains(packet) || ignore.contains(packet))
@@ -108,38 +122,18 @@ public class Packet_Handler {
 		// architecture to package
 		// but some packages are multyarchitecture, need to check it.
 		if (depth == Dependency) {
-			if (packetExists(packet + cr.getArchitecture()))
+			if (packetExists(packet + cr.getArchitecture()))// TODO debconf-2.0
 				packet = packet + cr.getArchitecture();
 		}
 		while (!packetExists(packet)) {
-
-			// Fault during download
-			System.out.println("cant find packet: " + packet);
-			System.out.println("1) rename");
-			System.out.println("2) retry");
-			System.out.println("3) ignore");
-
-			int action = new Scanner(System.in).nextInt();
-			switch (action) {
-			case 1:
-				System.out.print("Enter new name: ");
-				String temp = new Scanner(System.in).nextLine();
-				if (temp != null && !temp.equals(""))
-					packet = temp;
-				else
-					System.out.println("incorect name");
-				break;
-			case 3:
-				ignore.add(packet);
-				System.out.println("packet " + packet + " added to ignore list");
+			packet = getSolution(packet);
+			if (packet.equals(""))
 				return "";
-			default:
-				break;
-			}
 		}
 		String newName = packet.replace(':', '_');
 
-		String packets = "References_resolver/" + packet + "/" + packet + Extension + " ";
+		String packets = "References_resolver/" + packet + "/" + packet
+				+ Extension + " ";
 		File folder = new File("./");
 		Process proc;
 		try {
@@ -153,50 +147,80 @@ public class Packet_Handler {
 				listed.add(packet);
 				if (!downloaded.contains(packet)) {
 					downloaded.add(packet);
-					// "apt-get download" downloads only to current folder
-					System.out.println("apt-get download " + packet);
-					Runtime rt = Runtime.getRuntime();
-					proc = rt.exec("apt-get download " + packet);
-
-					BufferedReader stdInput = new BufferedReader(new InputStreamReader(proc.getInputStream()));
-
-					BufferedReader stdError = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
-
-					String s = null;
-					while ((s = stdInput.readLine()) != null) {
-						System.out.print(s);
-					}
-
-					// read any errors from the attempted command
-					System.out.println("Errors:\n");
-					while ((s = stdError.readLine()) != null) {
-						System.out.println(s);
-					}
-					proc.waitFor();
-					System.out.println("done");
-					// need to move package to right folder
-					Boolean found = false;
-					String dir_name = Resolver.folder + newName + File.separator;
+					String dir_name = Resolver.folder + newName
+							+ File.separator;
 					File dir = new File(cr.getFolder() + dir_name);
-					for (File entry : folder.listFiles())
-						if (entry.getName().endsWith(cr.getArchitecture().replaceAll(":", "") + Extension)
-								&& ((packet.contains(":") && entry.getName().startsWith(
-										packet.substring(0, packet.indexOf(':')))))
-								|| (!packet.contains(":") && entry.getName().startsWith(packet))) {
-							dir.mkdirs();
-							entry.renameTo(new File(cr.getFolder() + dir_name + newName + Extension));
-							found = true;
+					while (true) {
+						// "apt-get download" downloads only to current folder
+						System.out.println("apt-get download " + packet);
+						Runtime rt = Runtime.getRuntime();
+						proc = rt.exec("apt-get download " + packet);
+
+						BufferedReader stdInput = new BufferedReader(
+								new InputStreamReader(proc.getInputStream()));
+
+						BufferedReader stdError = new BufferedReader(
+								new InputStreamReader(proc.getErrorStream()));
+
+						String s = null;
+						while ((s = stdInput.readLine()) != null) {
+							System.out.print(s);
+						}
+
+						// read any errors from the attempted command
+						System.out.println("Errors:\n");
+						while ((s = stdError.readLine()) != null) {
+							System.out.println(s);
+						}
+						proc.waitFor();
+						System.out.println("done");
+						// need to move package to right folder
+						Boolean found = false;
+						for (File entry : folder.listFiles())
+							if (entry.getName().endsWith(
+									cr.getArchitecture().replaceAll(":", "")
+											+ Extension)
+									&& ((packet.contains(":") && entry
+											.getName()
+											.startsWith(
+													packet.substring(0,
+															packet.indexOf(':')))))
+									|| (!packet.contains(":") && entry
+											.getName().startsWith(packet))) {
+								dir.mkdirs();
+								entry.renameTo(new File(cr.getFolder()
+										+ dir_name + newName + Extension));
+								found = true;
+								break;
+							}
+						if (found == false) {
+							System.out.println("downloaded packet " + packet
+									+ " not found");
+
+							packet = getSolution(packet);
+							if (packet.equals(""))
+								break;
+						} else {
+							if(sourceName != packet)
+								rename.put(sourceName, packet);
+							cr.metaFile.addFileToMeta(dir_name + newName
+									+ Extension + Extension, "application/deb");
 							break;
 						}
-					if (found == false)
-						System.out.println("downloaded packet " + packet + " not found");
-					cr.metaFile.addFileToMeta(dir_name + packet + Extension, "application/deb");
+					}
+				}
+				if (cr.getResolving() == Resolving.ADDITION) {
+					RR_NodeType.createNodeType(cr, newName);
+					RR_ScriptArtifactTemplate.createScriptArtifact(cr, newName);
+					RR_PackageArtifactTemplate.createPackageArtifact(cr, newName);
+					RR_TypeImplementation.createNT_Impl(cr, newName);
 				}
 				// check dependency recursively
 				for (String dPacket : dependensis) {
-					if (cr.getResolving() == Resolving.ADDITION && !ignore.contains(dPacket)) {
-						cr.AddDependenciesPacket(newName, dPacket.replace(':', '_'));
-						RR_PackageArtifactTemplate.createPackageTemplate(cr, newName);
+					if (cr.getResolving() == Resolving.ADDITION
+							&& !ignore.contains(dPacket)) {
+						cr.AddDependenciesPacket(newName,
+								dPacket.replace(':', '_'));
 					}
 					packets += getPacket(dPacket, cr, depth - 1, listed);
 				}
@@ -225,7 +249,8 @@ public class Packet_Handler {
 		Runtime rt = Runtime.getRuntime();
 		Process proc = rt.exec("apt-cache depends " + packet);
 
-		BufferedReader stdInput = new BufferedReader(new InputStreamReader(proc.getInputStream()));
+		BufferedReader stdInput = new BufferedReader(new InputStreamReader(
+				proc.getInputStream()));
 
 		System.out.print("dependensis : ");
 		String s = null;
@@ -240,19 +265,47 @@ public class Packet_Handler {
 		return depend;
 	}
 
-	/**	Checks if packet can be download
-	 * @param packet to check
+	/**
+	 * Checks if packet can be download
+	 * 
+	 * @param packet
+	 *            to check
 	 * @return
 	 * @throws IOException
 	 */
 	private boolean packetExists(String packet) throws IOException {
 		Runtime rt = Runtime.getRuntime();
 		Process proc = rt.exec("apt-cache depends " + packet);
-		BufferedReader stdError = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
+		BufferedReader stdError = new BufferedReader(new InputStreamReader(
+				proc.getErrorStream()));
 
 		if ((stdError.readLine()) != null)
 			return false;
 		else
 			return true;
+	}
+
+	@SuppressWarnings("resource")
+	private String getSolution(String packet) {
+		System.out.println("cant find packet: " + packet);
+		System.out.println("1) rename");
+		System.out.println("2) retry");
+		System.out.println("3) ignore");
+		int action = new Scanner(System.in).nextInt();
+		switch (action) {
+		case 1:
+			System.out.print("Enter new name: ");
+			String temp = new Scanner(System.in).nextLine();
+			if (temp != null && !temp.equals(""))
+				return temp;
+			else
+				System.out.println("incorect name");
+			break;
+		case 3:
+			ignore.add(packet);
+			System.out.println("packet " + packet + " added to ignore list");
+			return "";
+		}
+		return packet;
 	}
 }

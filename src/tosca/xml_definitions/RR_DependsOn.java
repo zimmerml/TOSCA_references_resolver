@@ -51,7 +51,7 @@ public class RR_DependsOn {
 	@XmlAccessorType(XmlAccessType.PUBLIC_MEMBER)
 	public static class Definitions {
 
-		@XmlElement(name = "RelationshipType", required = true)
+		@XmlElement(name = "tosca:RelationshipType", required = true)
 		public RelationshipType relationshipType;
 
 		@XmlAttribute(name = "xmlns:tosca", required = true)
@@ -61,7 +61,7 @@ public class RR_DependsOn {
 		@XmlAttribute(name = "xmlns:ns1", required = true)
 		public static final String ns1 = "http://www.eclipse.org/winery/model/selfservice";
 		@XmlAttribute(name = "id", required = true)
-		public static final String id = "winery-defs-RR_DependsOn_Realation";
+		public static final String id = "winery-defs-for_tbt-RR_DependsOn";
 		@XmlAttribute(name = "targetNamespace", required = true)
 		public static final String targetNamespace = "http://docs.oasis-open.org/tosca/ns/2011/12/ToscaBaseTypes"; // TODO
 

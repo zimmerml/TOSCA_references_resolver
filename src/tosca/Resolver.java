@@ -30,16 +30,12 @@ import java.util.Scanner;
 import javax.xml.bind.JAXBException;
 
 import tosca.Control_references;
-import tosca.Utils;
 import tosca.Abstract.Language;
 import tosca.Languages.Ansible.Ansible;
 import tosca.Languages.Bash.Bash;
 import tosca.xml_definitions.RR_DependsOn;
-import tosca.xml_definitions.RR_NodeType;
 import tosca.xml_definitions.RR_PackageArtifactType;
-import tosca.xml_definitions.RR_ScriptArtifactTemplate;
 import tosca.xml_definitions.RR_ScriptArtifactType;
-import tosca.xml_definitions.RR_TypeImplementation;
 
 /**
  * @author jery
@@ -134,15 +130,10 @@ public class Resolver {
 			 * Type for dependencies change service template
 			 */
 			new File(cr.getFolder() + Control_references.Definitions).mkdirs();
-			RR_NodeType.init(cr);
 			RR_PackageArtifactType.init(cr);
 			RR_ScriptArtifactType.init(cr);
 			RR_DependsOn.init(cr);
-			RR_ScriptArtifactTemplate.init(cr);
-			RR_TypeImplementation.init(cr);
-			Utils.createFile(cr.getFolder() + RR_ScriptArtifactTemplate.script, ScriptContent());
-			cr.metaFile.addFileToMeta(RR_ScriptArtifactTemplate.script, "application/x-sh");
-		} catch (FileNotFoundException e) {
+			} catch (FileNotFoundException e) {
 			System.out.println("Error by unpacking " + filename + ", file not found");
 			return;
 		} catch (JAXBException e) {
@@ -217,26 +208,5 @@ public class Resolver {
 			throw new NullPointerException();
 		languages.add(newLanguage);
 		System.out.println("Language " + newLanguage.getName() + " added to resolver");
-	}
-	public static String ScriptContent(){
-		return (String) "#!/bin/bash\n"+
-				"\n"+
-				"#find csar root\n"+
-				"csarRoot=$(find ~ -maxdepth 1 -path \"*.csar\");\n"+
-				"\n"+
-				"IFS=';' read -ra NAMES <<< \"$DAs\";\n"+
-				"for i in \"${NAMES[@]}\"; do\n"+
-				"	echo \"KeyValue-Pair: \"\n"+
-				"    	echo $i\n"+
-				"	IFS=',' read -ra PATH <<< \"$i\";   \n" +
-				"	echo \"Key: \"\n"+
-				"    	echo ${PATH[0]}\n"+
-				"    	echo \"Value: \"\n"+
-				"    	echo ${PATH[1]}\n"+
-				"	if [[ \"${PATH[1]}\" == *.sh ]];\n"+
-				"	then\n"+
-				"		$csarRoot${PATH[1]} &> nohup_${PATH[0]}.out&\n"+
-				"	fi\n"+
-				"done\n";
 	}
 }
