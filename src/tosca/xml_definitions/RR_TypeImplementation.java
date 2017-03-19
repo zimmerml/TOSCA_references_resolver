@@ -53,7 +53,7 @@ public class RR_TypeImplementation {
 		public Import import_script;
 		@XmlElement(name = "tosca:Import", required = true)
 		public Import import_IA;
-		@XmlElement(name = "NodeTypeImplementation", required = true)
+		@XmlElement(name = "tosca:NodeTypeImplementation", required = true)
 		public NodeTypeImplementation nodeTypeImplementation;
 
 		@XmlAttribute(name = "xmlns:tosca", required = true)
@@ -63,7 +63,7 @@ public class RR_TypeImplementation {
 		@XmlAttribute(name = "xmlns:ns1", required = true)
 		public static final String ns1="http://www.eclipse.org/winery/model/selfservice";
 		@XmlAttribute(name = "id", required = true)
-		public static final String id = "winery_RR_NodeType_Impl";
+		public String id;
 		@XmlAttribute(name = "targetNamespace", required = true)
 		public static final String targetNamespace="http://opentosca.org/nodetypeimplementations"; //TODO
 		
@@ -71,9 +71,7 @@ public class RR_TypeImplementation {
 			nodeTypeImplementation = new NodeTypeImplementation();
 			import_script = new Import(RR_ScriptArtifactType.Definitions.ArtifactType.targetNamespace,
 					RR_ScriptArtifactType.filename,"http://docs.oasis-open.org/tosca/ns/2011/12" );
-			import_IA = new Import(RR_ScriptArtifactTemplate.Definitions.targetNamespace,
-					RR_ScriptArtifactTemplate.filename,"http://docs.oasis-open.org/tosca/ns/2011/12" );
-		}
+			}
 
 		
 		public static class NodeTypeImplementation {
@@ -84,11 +82,11 @@ public class RR_TypeImplementation {
 			@XmlAttribute(name = "xmlns:ns0", required = true)
 			public static final String ns0 = RR_NodeType.Definitions.targetNamespace;
 			@XmlAttribute(name = "name", required = true)
-			public static final String name = "RR_NodeType_Impl";
+			public String name;
 			@XmlAttribute(name = "targetNamespace", required = true)
 			public static final String targetNamespace = "http://opentosca.org/nodetypeimplementations";
 			@XmlAttribute(name = "nodeType", required = true)
-			public static final String nodeType = "ns0:" + RR_NodeType.Definitions.NodeType.name;
+			public String nodeType;
 
 			NodeTypeImplementation() {
 				implementationArtifacts = new ImplementationArtifacts();
@@ -110,7 +108,7 @@ public class RR_TypeImplementation {
 					@XmlAttribute(name = "xmlns:ns6", required = true)
 					public static final String ns6 = RR_ScriptArtifactType.Definitions.targetNamespace;
 					@XmlAttribute(name = "name", required = true)
-					public static final String name = RR_ScriptArtifactTemplate.Definitions.ArtifactTemplate.id;
+					public String name;
 					@XmlAttribute(name = "interfaceName", required = true)
 					public static final String interfaceName = RR_NodeType.Definitions.NodeType.Interfaces.Interface.name;
 					@XmlAttribute(name = "operationName", required = true)
@@ -118,26 +116,24 @@ public class RR_TypeImplementation {
 					@XmlAttribute(name = "artifactType", required = true)
 					public static final String artifactType = "tbt:" + RR_ScriptArtifactTemplate.Definitions.ArtifactTemplate.type;
 					@XmlAttribute(name = "artifactRef", required = true)
-					public static final String artifactRef = "ns6:" + RR_ScriptArtifactTemplate.Definitions.ArtifactTemplate.id;
+					public String artifactRef;
 					ImplementationArtifact() {
 					}
 				}
 			}
 		}
 	}
-	// output filename
-	public static final String filename = "RR_NodeType_Impl.tosca";
 
 	/** Create Type Implementation for my Node Type
 	 * @param cr 
 	 * @throws IOException
 	 * @throws JAXBException
 	 */
-	public static void init(Control_references cr)
+	public static void createNT_Impl(Control_references cr,String packet)
 			throws IOException, JAXBException {
 		System.out.println("creating Implementation");
 
-		File temp = new File(cr.getFolder() + Control_references.Definitions + filename);
+		File temp = new File(cr.getFolder() + Control_references.Definitions + getFileName(packet));
 		if (temp.exists())
 			temp.delete();
 		temp.createNewFile();
@@ -146,10 +142,22 @@ public class RR_TypeImplementation {
 		JAXBContext jc = JAXBContext.newInstance(Definitions.class);
 
 		Definitions template = new Definitions();
-		
+		template.id = "winery-defs-for_" + getTypeName(packet);
+		template.import_IA = new Import(RR_ScriptArtifactTemplate.Definitions.targetNamespace,
+				RR_ScriptArtifactTemplate.getFileName(packet),"http://docs.oasis-open.org/tosca/ns/2011/12" );
+		template.nodeTypeImplementation.name = getTypeName(packet);
+		template.nodeTypeImplementation.nodeType = "ns0:" + RR_NodeType.getTypeName(packet);
+		template.nodeTypeImplementation.implementationArtifacts.implementationArtifact.name = RR_ScriptArtifactTemplate.getIAName(packet);
+		template.nodeTypeImplementation.implementationArtifacts.implementationArtifact.artifactRef = "ns6:" + RR_ScriptArtifactTemplate.getIAName(packet);
 		Marshaller marshaller = jc.createMarshaller();
 		marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
 		marshaller.marshal(template, output);
-		cr.metaFile.addFileToMeta(Control_references.Definitions + filename, "application/vnd.oasis.tosca.definitions");
+		cr.metaFile.addFileToMeta(Control_references.Definitions + getFileName(packet), "application/vnd.oasis.tosca.definitions");
+	}
+	public static String getTypeName(String packet){
+		return "RR_NT_"+packet + "_Impl";
+	}
+	public static String getFileName(String packet){
+		return "RR_NT_"+packet + "_Impl" + ".tosca";
 	}
 }

@@ -32,7 +32,10 @@ import java.util.Scanner;
 import javax.xml.bind.JAXBException;
 
 import tosca.Abstract.Resolving;
+import tosca.xml_definitions.RR_NodeType;
 import tosca.xml_definitions.RR_PackageArtifactTemplate;
+import tosca.xml_definitions.RR_ScriptArtifactTemplate;
+import tosca.xml_definitions.RR_TypeImplementation;
 
 //import tosca.xml_definitions.PackageTemplate;
 
@@ -206,14 +209,18 @@ public class Packet_Handler {
 						}
 					}
 				}
+				if (cr.getResolving() == Resolving.ADDITION) {
+					RR_NodeType.createNodeType(cr, newName);
+					RR_ScriptArtifactTemplate.createScriptArtifact(cr, newName);
+					RR_PackageArtifactTemplate.createPackageArtifact(cr, newName);
+					RR_TypeImplementation.createNT_Impl(cr, newName);
+				}
 				// check dependency recursively
 				for (String dPacket : dependensis) {
 					if (cr.getResolving() == Resolving.ADDITION
 							&& !ignore.contains(dPacket)) {
 						cr.AddDependenciesPacket(newName,
 								dPacket.replace(':', '_'));
-						RR_PackageArtifactTemplate.createPackageTemplate(cr,
-								newName);
 					}
 					packets += getPacket(dPacket, cr, depth - 1, listed);
 				}

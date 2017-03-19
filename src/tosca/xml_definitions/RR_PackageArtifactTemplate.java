@@ -43,7 +43,6 @@ import tosca.Resolver;
  * Package Artifact Template for packages
  */
 public class RR_PackageArtifactTemplate {
-	public static final String extension = "_DA.tosca";
 
 	/**
 	 * @author Yaroslav Package Artifact Template description
@@ -54,7 +53,7 @@ public class RR_PackageArtifactTemplate {
 
 		@XmlElement(name = "tosca:Import", required = true)
 		public Import tImport;
-		@XmlElement(name = "ArtifactTemplate", required = true)
+		@XmlElement(name = "tosca:ArtifactTemplate", required = true)
 		public ArtifactTemplate artifactTemplate;
 
 		@XmlAttribute(name = "xmlns:tosca", required = true)
@@ -124,7 +123,7 @@ public class RR_PackageArtifactTemplate {
 	 * @throws IOException
 	 * @throws JAXBException
 	 */
-	public static void createPackageTemplate(Control_references cr, String packet) throws IOException,
+	public static void createPackageArtifact(Control_references cr, String packet) throws IOException,
 			JAXBException {
 		System.out.println("creating Package Template for " + packet);
 
@@ -153,14 +152,14 @@ public class RR_PackageArtifactTemplate {
 	// Parameters created dynamically on packet name
 	
 	public static String getWineryID(String packet) {
-		return "winery-defs-for_" + packet + "_Impl_InstallDA";
+		return "winery-defs-for_" + packet + "_DA";
 	}
 
 	public static String getID(String packet) {
-		return packet + "_Impl_InstallDA";
+		return "RR_" + packet + "_DA";
 	}
 
 	public static String getFilename(String packet) {
-		return "RR_" + packet + extension;
+		return "RR_" + packet + "_DA.tosca";
 	}
 }

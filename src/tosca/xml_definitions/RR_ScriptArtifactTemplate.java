@@ -36,6 +36,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import tosca.Control_references;
 import tosca.Resolver;
+import tosca.Utils;
 
 /**
  * @author Yaroslav Script Artifact Template for packages
@@ -52,7 +53,7 @@ public class RR_ScriptArtifactTemplate {
 
 		@XmlElement(name = "tosca:Import", required = true)
 		public Import tImport;
-		@XmlElement(name = "ArtifactTemplate", required = true)
+		@XmlElement(name = "tosca:ArtifactTemplate", required = true)
 		public ArtifactTemplate artifactTemplate;
 
 		@XmlAttribute(name = "xmlns:tosca", required = true)
@@ -62,7 +63,7 @@ public class RR_ScriptArtifactTemplate {
 		@XmlAttribute(name = "xmlns:ns1", required = true)
 		public static final String ns1="http://www.eclipse.org/winery/model/selfservice";
 		@XmlAttribute(name = "id", required = true)
-		public static final String id = "winery_RR_Script_Template";
+		public String id;
 		@XmlAttribute(name = "targetNamespace", required = true)
 		public static final String targetNamespace="http://opentosca.org/artifacttemplates"; //TODO
 		
@@ -80,7 +81,7 @@ public class RR_ScriptArtifactTemplate {
 			@XmlAttribute(name = "xmlns:tbt", required = true)
 			public static final String tbt = RR_ScriptArtifactType.Definitions.ArtifactType.targetNamespace;
 			@XmlAttribute(name = "id", required = true)
-			public static final String id = "RR_ScriptTemplate";
+			public String id;
 			@XmlAttribute(name = "type", required = true)
 			public static final String type = RR_ScriptArtifactType.Definitions.ArtifactType.name;
 
@@ -100,7 +101,7 @@ public class RR_ScriptArtifactTemplate {
 
 				public static class ArtifactReference{
 					@XmlAttribute(name = "reference", required = true)
-					public static final String reference = script;
+					public String reference;
 					ArtifactReference() {
 					}
 				}
@@ -108,20 +109,17 @@ public class RR_ScriptArtifactTemplate {
 			}
 		}
 	}
-	// output filename
-	public static final String filename = "RR_Script_Template.tosca";
-	public static final String script = Resolver.folder + "RR_Script.sh";	
 
 	/** Create template for package
 	 * @param cr 
 	 * @throws IOException
 	 * @throws JAXBException
 	 */
-	public static void init(Control_references cr)
+	public static void createScriptArtifact(Control_references cr, String packet)
 			throws IOException, JAXBException {
 		System.out.println("creating Script Template " );
 
-		File temp = new File(cr.getFolder() + Control_references.Definitions + filename);
+		File temp = new File(cr.getFolder() + Control_references.Definitions + getFileName(packet));
 		if (temp.exists())
 			temp.delete();
 		temp.createNewFile();
@@ -131,10 +129,34 @@ public class RR_ScriptArtifactTemplate {
 
 		Definitions template = new Definitions();
 		
+		template.id = "winery-defs-for_"+getIAName(packet);
+		template.artifactTemplate.id = getIAName(packet);
+		template.artifactTemplate.artifactReferences.artifactReference.reference = getScriptPosition(packet);
+		
 		Marshaller marshaller = jc.createMarshaller();
 		marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
 		marshaller.marshal(template, output);
-		cr.metaFile.addFileToMeta(Control_references.Definitions + filename, "application/vnd.oasis.tosca.definitions");
+		
+		cr.metaFile.addFileToMeta(Control_references.Definitions + getFileName(packet), "application/vnd.oasis.tosca.definitions");
+	
+		Utils.createFile(cr.getFolder() + getScriptPosition(packet), ScriptContent(packet));
+		
+		cr.metaFile.addFileToMeta(cr.getFolder() +  getScriptPosition(packet), "application/x-sh");
+	
+	}
+	public static String getIAName(String packet){
+		return "RR_"+packet+"_IA";
+	}
+	public static String getFileName(String packet){
+		return "RR_"+packet+"_IA" + ".tosca";
 	}
 
+	public static String ScriptContent(String packet){
+		return (String) "#!/bin/bash\n"+
+				"\n"+
+				"dpkg -i " + packet + "\n";
+	}
+	public static String getScriptPosition(String packet){
+		return Resolver.folder + packet + File.separator +"RR_"+packet+".sh";
+	}
 }

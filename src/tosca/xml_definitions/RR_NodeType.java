@@ -49,6 +49,9 @@ public class RR_NodeType {
 	@XmlAccessorType(XmlAccessType.PUBLIC_MEMBER)
 	public static class Definitions {
 
+		@XmlElement(name = "tosca:Import", required = true)
+		public Import import_impl;
+		
 		@XmlElement(name = "tosca:NodeType", required = true)
 		public NodeType nodeType;
 
@@ -59,7 +62,7 @@ public class RR_NodeType {
 		@XmlAttribute(name = "xmlns:ns1", required = true)
 		public static final String ns1 = "http://www.eclipse.org/winery/model/selfservice";
 		@XmlAttribute(name = "id", required = true)
-		public static final String id = "winery-defs-RR_node_type";
+		public String id;
 		@XmlAttribute(name = "targetNamespace", required = true)
 		public static final String targetNamespace = "http://opentosca.org/nodetypes";
 
@@ -69,7 +72,7 @@ public class RR_NodeType {
 
 		public static class NodeType {
 			@XmlAttribute(name = "name", required = true)
-			public static final String name = "RR_PacketInstallNode";
+			public String name;
 			@XmlAttribute(name = "targetNamespace", required = true)
 			public static final String targetNamespace = "http://opentosca.org/nodetypes";
 			@XmlAttribute(name = "winery:bordercolor", required = true)
@@ -111,8 +114,6 @@ public class RR_NodeType {
 		}
 	}
 
-	// output filename
-	public static final String filename = "RR_NodeType.tosca";
 
 	/**
 	 * Creates xml description for my NodeType
@@ -121,23 +122,36 @@ public class RR_NodeType {
 	 * @throws JAXBException
 	 * @throws IOException
 	 */
-	public static void init(Control_references cr) throws JAXBException, IOException {
+	public static void createNodeType(Control_references cr, String packet) throws JAXBException, IOException {
 		File dir = new File(cr.getFolder() + Control_references.Definitions);
 		dir.mkdirs();
-		File temp = new File(cr.getFolder() + Control_references.Definitions + filename);
+		File temp = new File(cr.getFolder() + Control_references.Definitions + getFileName(packet));
 		if (temp.exists())
 			temp.delete();
 		temp.createNewFile();
-		OutputStream output = new FileOutputStream(cr.getFolder() + Control_references.Definitions + filename);
+		OutputStream output = new FileOutputStream(cr.getFolder() + Control_references.Definitions + getFileName(packet));
 
 		JAXBContext jc = JAXBContext.newInstance(Definitions.class);
 
 		Definitions shema = new Definitions();
 
+
+		shema.id = "winery-defs-for_" + getTypeName(packet);
+		shema.import_impl = new Import("http://opentosca.org/nodetypeimplementations",
+				RR_TypeImplementation.getFileName(packet), "http://docs.oasis-open.org/tosca/ns/2011/12");
+		shema.nodeType.name = getTypeName(packet);
+		
+		
 		Marshaller marshaller = jc.createMarshaller();
 		marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
 		marshaller.marshal(shema, output);
-		cr.metaFile.addFileToMeta(Control_references.Definitions + filename,
+		cr.metaFile.addFileToMeta(Control_references.Definitions + getFileName(packet),
 				"application/vnd.oasis.tosca.definitions");
+	}
+	public static String getTypeName(String packet){
+		return "RR_NT_"+packet;
+	}
+	public static String getFileName(String packet){
+		return "RR_NT_"+packet + ".tosca";
 	}
 }

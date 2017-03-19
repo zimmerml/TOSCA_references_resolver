@@ -150,14 +150,14 @@ public class Service_Template {
 							|| nodes.item(i).getNodeName().equals("NodeTemplate")) {
 						String type = ((Element) nodes.item(i)).getAttribute("type");
 						String sourceID = ((Element) nodes.item(i)).getAttribute("id");
-						if ((type.equals("RRnt:" + RR_NodeType.Definitions.NodeType.name))
+						if ((type.equals("RRnt:" + RR_NodeType.getTypeName(source_packet)))
 								&& sourceID.equals(getID(source_packet))) {
 							// right NodeTemplate found
 							// need to create new Node Template
 							// and reference
 							Node topology = nodes.item(i).getParentNode();
 							createPacketTemplate(document, topology, target_packet);
-							createPacketDependency(document, topology, sourceID, getID(target_packet));
+							createPacketDependency(document, topology, getID(source_packet), getID(target_packet));
 
 							if (!NodeTypeToServiceTemplate.containsKey(target_packet))
 								NodeTypeToServiceTemplate.put(target_packet, new LinkedList<String>());
@@ -165,7 +165,7 @@ public class Service_Template {
 								NodeTypeToServiceTemplate.get(target_packet).add(filename);
 						}
 					}
-				addRRImport(document);
+				addRRImport(document, target_packet);
 				Transformer transformer = TransformerFactory.newInstance().newTransformer();
 				transformer.setOutputProperty(OutputKeys.INDENT, "yes");
 				transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
@@ -242,7 +242,7 @@ public class Service_Template {
 									NodeTypeToServiceTemplate.get(target_packet).add(filename);
 							}
 					}
-				addRRImport(document);
+				addRRImport(document, target_packet);
 				Transformer transformer = TransformerFactory.newInstance().newTransformer();
 				transformer.setOutputProperty(OutputKeys.INDENT, "yes");
 				transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
@@ -266,7 +266,7 @@ public class Service_Template {
 	 * @return ID
 	 */
 	private String getID(String packet) {
-		return packet + "_template";
+		return RR_NodeType.getTypeName(packet).replace('.', '_');// + "_template";
 	}
 
 	/**
@@ -292,7 +292,7 @@ public class Service_Template {
 		template.setAttribute("xmlns:RRnt", RR_NodeType.Definitions.NodeType.targetNamespace);
 		template.setAttribute("id", getID(packet));
 		template.setAttribute("name", packet);
-		template.setAttribute("type", "RRnt:" + RR_NodeType.Definitions.NodeType.name);
+		template.setAttribute("type", "RRnt:" + RR_NodeType.getTypeName(packet));
 		Element deploymentArtifacts = document.createElement(myPrefix + "DeploymentArtifacts");
 		template.appendChild(deploymentArtifacts);
 		Element deploymentArtifact = document.createElement(myPrefix + "DeploymentArtifact");
@@ -305,8 +305,6 @@ public class Service_Template {
 		deploymentArtifact.setAttribute("artifactRef", "RRda:" + RR_PackageArtifactTemplate.getID(packet));
 
 		deploymentArtifacts.appendChild(deploymentArtifact);
-		// winery? TODO
-		// winery? TODO
 		topology.appendChild(template);
 	}
 
@@ -327,7 +325,7 @@ public class Service_Template {
 		for (int i = 0; i < nodes.getLength(); i++)
 			if (nodes.item(i).getNodeName().endsWith(":RelationshipTemplate")
 					|| nodes.item(i).getNodeName().equals("RelationshipTemplate")) {
-				if (((Element) nodes.item(i)).getAttribute("id").equals(getID(sourceID + "_" + targetID)))
+				if (((Element) nodes.item(i)).getAttribute("id").equals(sourceID + "_" + targetID))
 					return;
 			}
 		Element relation = document.createElement(myPrefix + "RelationshipTemplate");
@@ -349,21 +347,35 @@ public class Service_Template {
 	 * 
 	 * @param document
 	 */
-	private void addRRImport(Document document) {
+	private void addRRImport(Document document, String packet) { //TODO
+		Element tImport;
 		Node definitions = document.getFirstChild();
 		if (definitions.getAttributes().getNamedItem(ToscaNS) == null) {
 			((Element) definitions).setAttribute(ToscaNS, "http://docs.oasis-open.org/tosca/ns/2011/12");
-			Element tImport = document.createElement("RR_tosca_ns:Import");
+
+			tImport = document.createElement("RR_tosca_ns:Import");
 			tImport.setAttribute("importType", "http://docs.oasis-open.org/tosca/ns/2011/12");
 			tImport.setAttribute("location", RR_DependsOn.filename);
 			tImport.setAttribute("namespace", RR_DependsOn.Definitions.RelationshipType.targetNamespace);
 			definitions.insertBefore(tImport, definitions.getFirstChild());
+
 			tImport = document.createElement("RR_tosca_ns:Import");
 			tImport.setAttribute("importType", "http://docs.oasis-open.org/tosca/ns/2011/12");
-			tImport.setAttribute("location", RR_NodeType.filename);
-			tImport.setAttribute("namespace", RR_NodeType.Definitions.NodeType.targetNamespace);
+			tImport.setAttribute("location", RR_PackageArtifactType.filename);
+			tImport.setAttribute("namespace", RR_PackageArtifactType.Definitions.ArtifactType.targetNamespace);
 			definitions.insertBefore(tImport, definitions.getFirstChild());
-		}
+		} 
+		tImport = document.createElement("RR_tosca_ns:Import");
+		tImport.setAttribute("importType", "http://docs.oasis-open.org/tosca/ns/2011/12");
+		tImport.setAttribute("location", RR_NodeType.getFileName(packet));
+		tImport.setAttribute("namespace", RR_NodeType.Definitions.NodeType.targetNamespace);
+		definitions.insertBefore(tImport, definitions.getFirstChild());
+		
+		tImport = document.createElement("RR_tosca_ns:Import");
+		tImport.setAttribute("importType", "http://docs.oasis-open.org/tosca/ns/2011/12");
+		tImport.setAttribute("location", RR_PackageArtifactTemplate.getFilename(packet));
+		tImport.setAttribute("namespace", RR_PackageArtifactTemplate.Definitions.targetNamespace);
+		definitions.insertBefore(tImport, definitions.getFirstChild());
 	}
 
 	/**
