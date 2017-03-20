@@ -35,6 +35,7 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import tosca.Control_references;
+import tosca.Packet_Handler;
 import tosca.Resolver;
 import tosca.Utils;
 
@@ -140,22 +141,28 @@ public class RR_ScriptArtifactTemplate {
 		cr.metaFile.addFileToMeta(Control_references.Definitions + getFileName(packet), "application/vnd.oasis.tosca.definitions");
 	
 		Utils.createFile(cr.getFolder() + getScriptPosition(packet), ScriptContent(packet));
-		
+		Runtime.getRuntime().exec("chmod +x " + cr.getFolder() + getScriptPosition(packet));
 		cr.metaFile.addFileToMeta(cr.getFolder() +  getScriptPosition(packet), "application/x-sh");
 	
 	}
 	public static String getIAName(String packet){
 		return "RR_"+packet+"_IA";
 	}
+	
 	public static String getFileName(String packet){
 		return "RR_"+packet+"_IA" + ".tosca";
 	}
 
+	/** Content of script, which must install package
+	 * @param packet
+	 * @return
+	 */
 	public static String ScriptContent(String packet){
 		return (String) "#!/bin/bash\n"+
 				"\n"+
-				"dpkg -i " + packet + "\n";
+				"dpkg -i " + packet + Packet_Handler.Extension + "\n";
 	}
+	
 	public static String getScriptPosition(String packet){
 		return Resolver.folder + packet + File.separator +"RR_"+packet+".sh";
 	}

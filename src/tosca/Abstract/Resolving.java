@@ -25,6 +25,13 @@ public enum Resolving {
 	EXPANDING, // 1
 	ADDITION;// 2
 
+	/**
+	 * read resolving method from String
+	 * 
+	 * @param input
+	 *            String to parse
+	 * @return resolving method
+	 */
 	public static Resolving fromString(String input) {
 		if (input.equals("REPLACEMENT"))
 			return EXPANDING;
@@ -33,6 +40,13 @@ public enum Resolving {
 		return UNDEFINED;
 	}
 
+	/**
+	 * translate resolving method to String
+	 * 
+	 * @param res
+	 *            resolving method
+	 * @return String
+	 */
 	public static String toString(Resolving res) {
 		switch (res) {
 		case EXPANDING:
@@ -44,6 +58,13 @@ public enum Resolving {
 		}
 	}
 
+	/**
+	 * read resolving method from int
+	 * 
+	 * @param input
+	 *            int to parse
+	 * @return resolving method
+	 */
 	public static Resolving fromInt(int input) {
 		if (input == 1)
 			return EXPANDING;
@@ -52,6 +73,13 @@ public enum Resolving {
 		return UNDEFINED;
 	}
 
+	/**
+	 * translate resolving method to String
+	 * 
+	 * @param res
+	 *            resolving method
+	 * @return int
+	 */
 	public static int toInt(Resolving res) {
 		switch (res) {
 		case EXPANDING:

@@ -49,12 +49,14 @@ public class Ansible extends Language {
 		packetManagers.add(new Apt());
 	}
 
-	/* 
+	/*
 	 * Ansible files can be packed. need to unpack them and proceed separately
 	 * (non-Javadoc)
+	 * 
 	 * @see tosca.Abstract.Language#proceed(tosca.Control_references)
 	 */
-	public void proceed(Control_references cr) throws FileNotFoundException, IOException, JAXBException {
+	public void proceed(Control_references cr) throws FileNotFoundException,
+			IOException, JAXBException {
 		if (cr == null)
 			throw new NullPointerException();
 		for (String f : cr.getFiles())
@@ -63,8 +65,10 @@ public class Ansible extends Language {
 					if (suf.equals(".zip")) {
 						boolean isChanged = false;
 						// String filename = new File(f).getName();
-						String folder = new File(f).getParent() + File.separator;
-						List<String> files = zip.unZipIt(cr.getFolder() + f, folder);
+						String folder = new File(f).getParent()
+								+ File.separator;
+						List<String> files = zip.unZipIt(cr.getFolder() + f,
+								folder);
 						for (String file : files)
 							if (file.toLowerCase().endsWith("yml"))
 								proceed(folder + file, cr, f);
@@ -73,21 +77,24 @@ public class Ansible extends Language {
 							zip.zipIt(cr.getFolder() + f, folder);
 						}
 						zip.delete(new File(folder));
-					} else 
+					} else
 						proceed(f, cr, f);
 				}
 	}
 
-	/**	proceed given file 
+	/**
+	 * proceed given file
+	 * 
 	 * @param filename
 	 * @param cr
-	 * @param sourceof file, example - archive
+	 * @param source
+	 *            of file, example - archive
 	 * @throws FileNotFoundException
 	 * @throws IOException
 	 * @throws JAXBException
 	 */
-	public void proceed(String filename, Control_references cr, String source) throws FileNotFoundException,
-			IOException, JAXBException {
+	public void proceed(String filename, Control_references cr, String source)
+			throws FileNotFoundException, IOException, JAXBException {
 		for (PacketManager pm : packetManagers)
 			pm.proceed(filename, cr, source);
 	}

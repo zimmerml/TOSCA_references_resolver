@@ -69,7 +69,8 @@ public class MetaFile {
 	public void init(String folder) throws IOException {
 		head = "";
 		meta.clear();
-		BufferedReader br = new BufferedReader(new FileReader(folder + filename));
+		BufferedReader br = new BufferedReader(
+				new FileReader(folder + filename));
 		String line = null;
 		boolean isHead = true;
 		MetaEntry entry = new MetaEntry();
@@ -85,7 +86,8 @@ public class MetaFile {
 			if (line.startsWith("Name:")) {
 				String[] words = line.split("\\s+");
 				entry.name = words[1];
-				if ((line = br.readLine()) != null && line.startsWith("Content-Type:")) {
+				if ((line = br.readLine()) != null
+						&& line.startsWith("Content-Type:")) {
 					words = line.split("\\s+");
 					entry.type = words[1];
 					meta.add(entry);
@@ -120,7 +122,8 @@ public class MetaFile {
 		FileWriter bw = new FileWriter(folder + filename);
 		bw.write(head);
 		for (MetaEntry entry : meta)
-			bw.write("Name: " + entry.name + "\nContent-Type: " + entry.type + "\n\n");
+			bw.write("Name: " + entry.name + "\nContent-Type: " + entry.type
+					+ "\n\n");
 		bw.flush();
 		bw.close();
 	}

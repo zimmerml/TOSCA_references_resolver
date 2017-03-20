@@ -42,7 +42,7 @@ import tosca.Control_references;
  * @author jery
  *
  */
-public class RR_DependsOn {
+public class RR_PreDependsOn {
 
 	/**
 	 * @author Yaroslav package dependencies relation XML description
@@ -71,20 +71,20 @@ public class RR_DependsOn {
 
 		public static class RelationshipType {
 			@XmlAttribute(name = "name", required = true)
-			public static final String name = "RR_DependsOn";
+			public static final String name = "RR_PreDependsOn";
 			@XmlAttribute(name = "targetNamespace", required = true)
 			public static final String targetNamespace = "http://docs.oasis-open.org/tosca/ns/2011/12/ToscaBaseTypes"; // TODO
 			@XmlAttribute(name = "winery:color", required = true)
-			public static final String color = "#0000FF"; 
-
+			public static final String color = "#FF0000"; 
+			
 			RelationshipType() {
 			}
 		}
 	}
 
 	// output filename
-	public static final String filename = "RR_DependsOn.tosca";
-	public static final String Name = "Depends";
+	public static final String filename = "RR_PreDependsOn.tosca";
+	public static final String Name = "PreDepends";
 
 	/**
 	 * Create DependsOn xml description

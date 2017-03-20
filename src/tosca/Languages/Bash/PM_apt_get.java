@@ -50,8 +50,8 @@ public final class PM_apt_get extends PacketManager {
 	 * @see TOSCA.PacketManager#proceed(java.lang.String,
 	 * TOSCA.Control_references)
 	 */
-	public void proceed(String filename, Control_references cr, String source) throws IOException,
-			JAXBException {
+	public void proceed(String filename, Control_references cr, String source)
+			throws IOException, JAXBException {
 		String prefix = "";
 		for (int i = 0; i < Utils.getPathLength(filename) - 1; i++)
 			prefix = prefix + "../";
@@ -81,7 +81,8 @@ public final class PM_apt_get extends PacketManager {
 						for (int packet = 2 + i; packet < words.length; packet++) {
 							System.out.println("packet: " + words[packet]);
 							newFile += "dpkg -i ";
-							for (String p : cr.getPacket(words[packet]).split("\\s+"))
+							for (String p : cr.getPacket(words[packet]).split(
+									"\\s+"))
 								newFile += prefix + p + " ";
 							newFile += "\n";
 						}
@@ -128,8 +129,8 @@ public final class PM_apt_get extends PacketManager {
 	}
 
 	@Override
-	public void proceed(String filename, Control_references cr) throws FileNotFoundException, IOException,
-			JAXBException {
+	public void proceed(String filename, Control_references cr)
+			throws FileNotFoundException, IOException, JAXBException {
 		proceed(filename, cr, filename);
 	}
 

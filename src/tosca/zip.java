@@ -43,8 +43,8 @@ public class zip {
 	 * @throws FileNotFoundException
 	 *             , IOException
 	 */
-	static public List<String> unZipIt(String zipFile, String outputFolder) throws FileNotFoundException,
-			IOException {
+	static public List<String> unZipIt(String zipFile, String outputFolder)
+			throws FileNotFoundException, IOException {
 		if (!(new File(zipFile).exists()))
 			throw new FileNotFoundException(zipFile + "not found!");
 		// unpacked files
@@ -108,7 +108,8 @@ public class zip {
 	 *            original folder
 	 * @return
 	 */
-	public static List<String> generateFileList(File node, List<String> fileList, String folder) {
+	public static List<String> generateFileList(File node,
+			List<String> fileList, String folder) {
 
 		// add file only
 		if (node.isFile()) {
@@ -121,7 +122,8 @@ public class zip {
 		if (node.isDirectory()) {
 			String[] subNote = node.list();
 			for (String filename : subNote) {
-				fileList = generateFileList(new File(node, filename), fileList, folder);
+				fileList = generateFileList(new File(node, filename), fileList,
+						folder);
 			}
 		}
 		return fileList;
@@ -137,7 +139,8 @@ public class zip {
 	 * @throws FileNotFoundException
 	 *             , IOException
 	 */
-	static public void zipIt(String zipFile, String folder) throws FileNotFoundException, IOException {
+	static public void zipIt(String zipFile, String folder)
+			throws FileNotFoundException, IOException {
 
 		List<String> fileList = new LinkedList<String>();
 		fileList = generateFileList(new File(folder), fileList, folder);
@@ -170,7 +173,7 @@ public class zip {
 	 * @throws IOException
 	 */
 	static public void delete(File f) throws IOException {
-		if(!f.exists())
+		if (!f.exists())
 			return;
 		if (f.isDirectory()) {
 			for (File c : f.listFiles())

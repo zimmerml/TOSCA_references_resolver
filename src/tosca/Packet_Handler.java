@@ -32,8 +32,10 @@ import java.util.Scanner;
 import javax.xml.bind.JAXBException;
 
 import tosca.Abstract.Resolving;
+import tosca.xml_definitions.RR_DependsOn;
 import tosca.xml_definitions.RR_NodeType;
 import tosca.xml_definitions.RR_PackageArtifactTemplate;
+import tosca.xml_definitions.RR_PreDependsOn;
 import tosca.xml_definitions.RR_ScriptArtifactTemplate;
 import tosca.xml_definitions.RR_TypeImplementation;
 
@@ -47,10 +49,12 @@ public class Packet_Handler {
 	// level of recursive dependency, to be checked
 	private Integer Dependency = null;
 
+	//list with renamed packages
 	private HashMap<String,String> rename;
 	
 	// list with already downloaded packages
 	private List<String> downloaded;
+	
 	// packets to be ignored
 	private List<String> ignore;
 
@@ -122,7 +126,7 @@ public class Packet_Handler {
 		// architecture to package
 		// but some packages are multyarchitecture, need to check it.
 		if (depth == Dependency) {
-			if (packetExists(packet + cr.getArchitecture()))// TODO debconf-2.0
+			if (packetExists(packet + cr.getArchitecture()))
 				packet = packet + cr.getArchitecture();
 		}
 		while (!packetExists(packet)) {
@@ -220,7 +224,7 @@ public class Packet_Handler {
 					if (cr.getResolving() == Resolving.ADDITION
 							&& !ignore.contains(dPacket)) {
 						cr.AddDependenciesPacket(newName,
-								dPacket.replace(':', '_'));
+								dPacket.replace(':', '_'), getDependencyType(packet,dPacket));
 					}
 					packets += getPacket(dPacket, cr, depth - 1, listed);
 				}
@@ -254,9 +258,10 @@ public class Packet_Handler {
 
 		System.out.print("dependensis : ");
 		String s = null;
+		//TODO Predepends
 		while ((s = stdInput.readLine()) != null) {
 			String[] words = s.replaceAll("[;&<>]", "").split("\\s+");
-			if (words.length == 3 && words[1].equals("Depends:")) {
+			if (words.length == 3 && (words[1].equals("Depends:") ||words[1].equals("PreDepends:")) ) {
 				depend.add(words[2]);
 				System.out.print(words[2] + ",");
 			}
@@ -285,6 +290,10 @@ public class Packet_Handler {
 			return true;
 	}
 
+	/** Ask user for solution, by undownloadable package
+	 * @param packet old package name
+	 * @returnnew package name
+	 */
 	@SuppressWarnings("resource")
 	private String getSolution(String packet) {
 		System.out.println("cant find packet: " + packet);
@@ -307,5 +316,29 @@ public class Packet_Handler {
 			return "";
 		}
 		return packet;
+	}
+	
+
+	public static String getDependencyType(String source, String target) throws IOException{
+		Runtime rt = Runtime.getRuntime();
+		Process proc = rt.exec("apt-cache depends " + source);
+
+		BufferedReader stdInput = new BufferedReader(new InputStreamReader(
+				proc.getInputStream()));
+
+		System.out.print("dependensis : ");
+		String s = null;
+		//TODO Predepends
+		while ((s = stdInput.readLine()) != null) {
+			String[] words = s.replaceAll("[;&<>]", "").split("\\s+");
+			if (words.length == 3 && words[1].equals("Depends:") && words[2].equals(target) ) {
+				return RR_DependsOn.Name;
+			}
+
+			if (words.length == 3 && words[1].equals("PreDepends:") && words[2].equals(target) ) {
+				return RR_PreDependsOn.Name;
+			}
+		}
+		return null;
 	}
 }
