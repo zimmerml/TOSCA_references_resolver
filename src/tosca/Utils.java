@@ -45,13 +45,16 @@ public class Utils {
 		return count;
 	}
 
-	/**	Create file and all parent folders with given content
+	/**
+	 * Create file and all parent folders with given content
+	 * 
 	 * @param filename
 	 * @param content
 	 * @throws IOException
 	 */
-	static public void createFile(String filename, String content) throws IOException {
-		if(new File(filename).getParent() != null)
+	static public void createFile(String filename, String content)
+			throws IOException {
+		if (new File(filename).getParent() != null)
 			new File(new File(filename).getParent()).mkdirs();
 		new File(filename).delete();
 		FileWriter bw = new FileWriter(filename);

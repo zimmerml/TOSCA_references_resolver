@@ -154,9 +154,11 @@ public class RR_TypeImplementation {
 		marshaller.marshal(template, output);
 		cr.metaFile.addFileToMeta(Control_references.Definitions + getFileName(packet), "application/vnd.oasis.tosca.definitions");
 	}
+	
 	public static String getTypeName(String packet){
 		return "RR_NT_"+packet + "_Impl";
 	}
+	
 	public static String getFileName(String packet){
 		return "RR_NT_"+packet + "_Impl" + ".tosca";
 	}

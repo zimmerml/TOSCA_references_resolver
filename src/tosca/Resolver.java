@@ -35,6 +35,7 @@ import tosca.Languages.Ansible.Ansible;
 import tosca.Languages.Bash.Bash;
 import tosca.xml_definitions.RR_DependsOn;
 import tosca.xml_definitions.RR_PackageArtifactType;
+import tosca.xml_definitions.RR_PreDependsOn;
 import tosca.xml_definitions.RR_ScriptArtifactType;
 
 /**
@@ -132,12 +133,15 @@ public class Resolver {
 			new File(cr.getFolder() + Control_references.Definitions).mkdirs();
 			RR_PackageArtifactType.init(cr);
 			RR_ScriptArtifactType.init(cr);
+			RR_PreDependsOn.init(cr);
 			RR_DependsOn.init(cr);
-			} catch (FileNotFoundException e) {
-			System.out.println("Error by unpacking " + filename + ", file not found");
+		} catch (FileNotFoundException e) {
+			System.out.println("Error by unpacking " + filename
+					+ ", file not found");
 			return;
 		} catch (JAXBException e) {
-			System.out.println("Unable to create a XML packagetype description");
+			System.out
+					.println("Unable to create a XML packagetype description");
 			e.printStackTrace();
 			return;
 		}
@@ -168,7 +172,8 @@ public class Resolver {
 		if (newLanguages == null)
 			throw new NullPointerException();
 		for (Language l : newLanguages)
-			System.out.println("Language " + l.getName() + " added to resolver");
+			System.out
+					.println("Language " + l.getName() + " added to resolver");
 		languages = newLanguages;
 	}
 
@@ -181,7 +186,8 @@ public class Resolver {
 		if (newLanguages == null)
 			throw new NullPointerException();
 		for (Language l : newLanguages)
-			System.out.println("Language " + l.getName() + " added to resolver");
+			System.out
+					.println("Language " + l.getName() + " added to resolver");
 		languages.addAll(newLanguages);
 	}
 
@@ -195,7 +201,8 @@ public class Resolver {
 			throw new NullPointerException();
 		languages = new LinkedList<Language>();
 		languages.add(newLanguage);
-		System.out.println("Language " + newLanguage.getName() + " added to resolver");
+		System.out.println("Language " + newLanguage.getName()
+				+ " added to resolver");
 	}
 
 	/**
@@ -207,6 +214,7 @@ public class Resolver {
 		if (newLanguage == null)
 			throw new NullPointerException();
 		languages.add(newLanguage);
-		System.out.println("Language " + newLanguage.getName() + " added to resolver");
+		System.out.println("Language " + newLanguage.getName()
+				+ " added to resolver");
 	}
 }

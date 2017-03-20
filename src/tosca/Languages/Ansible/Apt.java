@@ -40,22 +40,26 @@ public class Apt extends PacketManager {
 	// package manager name
 	static public final String Name = "apt";
 
-	/* (non-Javadoc)
-	 * @see tosca.Abstract.PacketManager#proceed(java.lang.String, tosca.Control_references)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see tosca.Abstract.PacketManager#proceed(java.lang.String,
+	 * tosca.Control_references)
 	 */
-	public void proceed(String filename, Control_references cr) throws FileNotFoundException, IOException,
-			JAXBException {
+	public void proceed(String filename, Control_references cr)
+			throws FileNotFoundException, IOException, JAXBException {
 		proceed(filename, cr, filename);
 	}
 
-	/* 
-	 * Ansible reader
-	 * (non-Javadoc)
-	 * @see tosca.Abstract.PacketManager#proceed(java.lang.String, tosca.Control_references, java.lang.String)
+	/*
+	 * Ansible reader (non-Javadoc)
+	 * 
+	 * @see tosca.Abstract.PacketManager#proceed(java.lang.String,
+	 * tosca.Control_references, java.lang.String)
 	 */
 	@Override
-	public void proceed(String filename, Control_references cr, String source) throws FileNotFoundException,
-			IOException, JAXBException {
+	public void proceed(String filename, Control_references cr, String source)
+			throws FileNotFoundException, IOException, JAXBException {
 		String prefix = "    - ";
 		for (int i = 0; i < Utils.getPathLength(filename) - 1; i++)
 			prefix = prefix + "../";
@@ -85,7 +89,8 @@ public class Apt extends PacketManager {
 						State = 2;
 						newFile += "#//References resolver//" + line + '\n';
 					} else if (line.matches("\\s*apt:.* pkg=.*")) {
-						Pattern p = Pattern.compile("(apt:.*pkg=)\\s*(\\w*)\\s*.*");
+						Pattern p = Pattern
+								.compile("(apt:.*pkg=)\\s*(\\w*)\\s*.*");
 						Matcher m = p.matcher(line);
 						if (m.find()) {
 							System.out.println("Found packet: " + m.group(2));
@@ -125,7 +130,8 @@ public class Apt extends PacketManager {
 							if (words.length == 2 + i && words[i].equals("-")) {
 								cr.AddDependenciesScript(source, words[i + 1]);
 								cr.getPacket(words[i + 1]);
-								newFile += "#//References resolver//" + line + '\n';
+								newFile += "#//References resolver//" + line
+										+ '\n';
 								isChanged = true;
 							} else
 								newFile += line + '\n';
@@ -174,19 +180,23 @@ public class Apt extends PacketManager {
 						State = 2;
 						newFile += "  apt:\n    deb={{ item }}" + '\n';
 					} else if (line.matches("\\s*apt:.* pkg=.*")) {
-						Pattern p = Pattern.compile("(apt:.*pkg=)\\s*(\\w*)\\s*.*");
+						Pattern p = Pattern
+								.compile("(apt:.*pkg=)\\s*(\\w*)\\s*.*");
 						Matcher m = p.matcher(line);
 						if (m.find()) {
 							System.out.println("Found packet: " + m.group(2));
-							newFile += "  apt: deb={{ item }}" + '\n' + "  with_items:" + '\n';
-							for (String packet : cr.getPacket(m.group(2)).split("\\s+"))
+							newFile += "  apt: deb={{ item }}" + '\n'
+									+ "  with_items:" + '\n';
+							for (String packet : cr.getPacket(m.group(2))
+									.split("\\s+"))
 								newFile += prefix + packet + '\n';
 							isChanged = true;
 							State = 0;
 						}
 						break;
 					} else if (line.matches("\\s*apt:.*")) {
-						newFile += "  apt: deb={{ item }}" + '\n' + "  with_items:" + '\n';
+						newFile += "  apt: deb={{ item }}" + '\n'
+								+ "  with_items:" + '\n';
 						State = 4;
 					} else
 						newFile += line + '\n';
@@ -213,7 +223,8 @@ public class Apt extends PacketManager {
 							if (words[0].equals(""))
 								i = 1;
 							if (words.length == 2 + i && words[i].equals("-")) {
-								for (String packet : cr.getPacket(words[i + 1]).split("\\s+"))
+								for (String packet : cr.getPacket(words[i + 1])
+										.split("\\s+"))
 									newFile += prefix + packet + '\n'; // TOCHECK
 								isChanged = true;
 							} else
@@ -232,7 +243,8 @@ public class Apt extends PacketManager {
 						Matcher m = p.matcher(line);
 						if (m.find()) {
 							System.out.println("Found packet: " + m.group(2));
-							for (String packet : cr.getPacket(m.group(2)).split("\\s+"))
+							for (String packet : cr.getPacket(m.group(2))
+									.split("\\s+"))
 								newFile += prefix + packet + '\n';
 							State = 0;
 							isChanged = true;
@@ -241,7 +253,8 @@ public class Apt extends PacketManager {
 						Pattern p = Pattern.compile("(\\s*deb:)\\s*(\\w*)\\s*");
 						Matcher m = p.matcher(line);
 						if (m.find()) {
-							System.out.println("Found deb packet: " + m.group(2));
+							System.out.println("Found deb packet: "
+									+ m.group(2));
 							newFile += prefix + m.group(2) + '\n';
 							State = 0;
 						}

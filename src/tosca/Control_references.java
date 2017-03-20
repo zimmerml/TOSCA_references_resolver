@@ -100,8 +100,10 @@ public class Control_references {
 	 * @throws JAXBException
 	 * @throws IOException
 	 */
-	public void AddDependenciesScript(String reference, String packet) throws JAXBException, IOException {
-		service_template.addDependencyToScript(this, reference, packet + getArchitecture().replace(':', '_'));
+	public void AddDependenciesScript(String reference, String packet)
+			throws JAXBException, IOException {
+		service_template.addDependencyToScript(this, reference, packet
+				+ getArchitecture().replace(':', '_'));
 	}
 
 	/**
@@ -114,8 +116,9 @@ public class Control_references {
 	 * @throws JAXBException
 	 * @throws IOException
 	 */
-	public void AddDependenciesPacket(String source, String target) throws JAXBException, IOException {
-		service_template.addDependencyToPacket(this, source, target);
+	public void AddDependenciesPacket(String source, String target, String dependencyType)
+			throws JAXBException, IOException {
+		service_template.addDependencyToPacket(this, source, target, dependencyType);
 	}
 
 	/**
@@ -125,7 +128,8 @@ public class Control_references {
 	 *            CSAR archive
 	 * @throws IOException
 	 */
-	public Control_references(String filename) throws FileNotFoundException, IOException {
+	public Control_references(String filename) throws FileNotFoundException,
+			IOException {
 		metaFile = new MetaFile();
 		init(filename);
 		packet_handler = new Packet_Handler();
@@ -218,7 +222,7 @@ public class Control_references {
 		return architecture;
 	}
 
-	//Do we still need resolving method?
+	// Do we still need resolving method?
 	public Resolving getResolving() {
 		return resolving;
 	}
@@ -240,7 +244,8 @@ public class Control_references {
 			if (line != null && !line.equals(""))
 				architecture = line;
 			else {
-				new File(folder + Resolver.folder + ArchitectureFileName).delete();
+				new File(folder + Resolver.folder + ArchitectureFileName)
+						.delete();
 				throw new FileNotFoundException();
 			}
 
@@ -259,7 +264,8 @@ public class Control_references {
 			bw.write(architecture);
 			bw.close();
 		}
-		metaFile.addFileToMeta(Resolver.folder + ArchitectureFileName, "text/txt");
+		metaFile.addFileToMeta(Resolver.folder + ArchitectureFileName,
+				"text/txt");
 	}
 
 	/**
@@ -276,7 +282,8 @@ public class Control_references {
 			br = new BufferedReader(new FileReader(resolv));
 			String line = br.readLine();
 			br.close();
-			if (line != null && !line.equals("") && Resolving.fromString(line) != Resolving.UNDEFINED)
+			if (line != null && !line.equals("")
+					&& Resolving.fromString(line) != Resolving.UNDEFINED)
 				resolving = Resolving.fromString(line);
 			else {
 				new File(folder + Resolver.folder + ResolvingFileName).delete();
@@ -287,8 +294,10 @@ public class Control_references {
 			new File(folder + Resolver.folder).mkdir();
 			FileWriter bw = new FileWriter(resolv);
 			System.out.println("Please enter resolving method.");
-			System.out.println("Example: \n" + Resolving.toInt(Resolving.EXPANDING)
-					+ ") Replacement(default)\n" + Resolving.toInt(Resolving.ADDITION) + ") Addition");
+			System.out.println("Example: \n"
+					+ Resolving.toInt(Resolving.EXPANDING)
+					+ ") Replacement(default)\n"
+					+ Resolving.toInt(Resolving.ADDITION) + ") Addition");
 			System.out.print("resolving:");
 			String temp = new Scanner(System.in).nextLine();
 			try {
