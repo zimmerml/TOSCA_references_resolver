@@ -1,0 +1,25 @@
+Apache [PRODUCT_NAME]
+Copyright [XXXX-XXXX] The Apache Software Foundation
+
+This product includes software developed at
+The Apache Software Foundation (http://www.apache.org/).
+
+This Product use folloving third-party packages:
+
+java.io 
+java.io (https://docs.oracle.com/javase/7/docs/api/java/io/package-summary.html) is licensed under "Oracle Binary Code License Agreement for the Java SE Platform Products and JavaFX", which can be obtained at "java.com/license"
+A local copy can be found at Licenses/BCL.txt
+
+
+javax.xml.bind
+javax.xml.bind  (https://docs.oracle.com/javase/7/docs/api/java/io/package-summary.html) is licensed under "Oracle Binary Code License Agreement for the Java SE Platform Products and JavaFX", which can be obtained at "java.com/license"
+A local copy can be found at Licenses/BCL.txt
+
+
+org.w3c.dom
+org.w3c.dom (https://www.w3.org/2003/01/dom2-javadoc/org/w3c/dom/package-summary.html)  is licensed under "W3C Software Notice and License (W3C)", which can be obtained at "https://www.w3.org/Consortium/Legal/2015/copyright-software-and-document"
+A local copy can be found at Licenses/WC3.txt
+
+org.xml.sax
+org.xml.sax is in public domain
+https://saas.solenovo.fi/solemove/lics/LICENSE-SAX.html
