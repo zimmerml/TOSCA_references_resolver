@@ -95,8 +95,8 @@ public class Apt extends PacketManager {
 						if (m.find()) {
 							System.out.println("Found packet: " + m.group(2));
 							newFile += "#//References resolver//" + line + '\n';
-							cr.AddDependenciesScript(source, m.group(2));
-							cr.getPacket(m.group(2));
+//							cr.AddDependenciesScript(source, m.group(2));
+							cr.getPacket(m.group(2), source);
 							isChanged = true;
 							State = 0;
 						}
@@ -128,8 +128,7 @@ public class Apt extends PacketManager {
 							if (words[0].equals(""))
 								i = 1;
 							if (words.length == 2 + i && words[i].equals("-")) {
-								cr.AddDependenciesScript(source, words[i + 1]);
-								cr.getPacket(words[i + 1]);
+								cr.getPacket(words[i + 1], source);
 								newFile += "#//References resolver//" + line
 										+ '\n';
 								isChanged = true;
@@ -149,8 +148,8 @@ public class Apt extends PacketManager {
 						Matcher m = p.matcher(line);
 						if (m.find()) {
 							System.out.println("Found packet: " + m.group(2));
-							cr.AddDependenciesScript(source, m.group(2));
-							cr.getPacket(m.group(2));
+//							cr.AddDependenciesScript(source, m.group(2));
+							cr.getPacket(m.group(2), source);
 							newFile += "#//References resolver//" + line + '\n';
 							isChanged = true;
 							State = 0;
@@ -187,7 +186,7 @@ public class Apt extends PacketManager {
 							System.out.println("Found packet: " + m.group(2));
 							newFile += "  apt: deb={{ item }}" + '\n'
 									+ "  with_items:" + '\n';
-							for (String packet : cr.getPacket(m.group(2))
+							for (String packet : cr.getPacket(m.group(2), source)
 									.split("\\s+"))
 								newFile += prefix + packet + '\n';
 							isChanged = true;
@@ -223,7 +222,7 @@ public class Apt extends PacketManager {
 							if (words[0].equals(""))
 								i = 1;
 							if (words.length == 2 + i && words[i].equals("-")) {
-								for (String packet : cr.getPacket(words[i + 1])
+								for (String packet : cr.getPacket(words[i + 1], source)
 										.split("\\s+"))
 									newFile += prefix + packet + '\n'; // TOCHECK
 								isChanged = true;
@@ -243,7 +242,7 @@ public class Apt extends PacketManager {
 						Matcher m = p.matcher(line);
 						if (m.find()) {
 							System.out.println("Found packet: " + m.group(2));
-							for (String packet : cr.getPacket(m.group(2))
+							for (String packet : cr.getPacket(m.group(2), source)
 									.split("\\s+"))
 								newFile += prefix + packet + '\n';
 							State = 0;

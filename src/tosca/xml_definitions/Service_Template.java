@@ -440,6 +440,10 @@ public class Service_Template {
 					RR_PackageArtifactType.Definitions.ArtifactType.targetNamespace);
 			definitions.insertBefore(tImport, definitions.getFirstChild());
 		}
+		NodeList nodes = document.getElementsByTagName("RR_tosca_ns:Import");
+		for (int i = 0; i < nodes.getLength(); i++)
+			if (((Element) (nodes.item(i))).getAttribute("location").equals(RR_NodeType.getFileName(packet)))
+				return;
 		tImport = document.createElement("RR_tosca_ns:Import");
 		tImport.setAttribute("importType",
 				"http://docs.oasis-open.org/tosca/ns/2011/12");

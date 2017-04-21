@@ -92,8 +92,8 @@ public class Control_references {
 	 * @throws JAXBException
 	 * @throws IOException
 	 */
-	public String getPacket(String packet) throws JAXBException, IOException {
-		return packet_handler.getPacket(packet, this);
+	public String getPacket(String packet, String source) throws JAXBException, IOException {
+		return packet_handler.getPacket(packet, this, source);
 	}
 
 	/**
@@ -108,8 +108,7 @@ public class Control_references {
 	 */
 	public void AddDependenciesScript(String reference, String packet)
 			throws JAXBException, IOException {
-		service_template.addDependencyToScript(this, reference, packet
-				+ getArchitecture().replace(':', '_'));
+		service_template.addDependencyToScript(this, reference, packet);
 	}
 
 	/**

@@ -61,5 +61,8 @@ public class Utils {
 		bw.write(content);
 		bw.close();
 	}
-
+	
+	static String correctName(String name){
+		return name.replace(':', '_').replace('+', 'p');
+	}
 }

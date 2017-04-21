@@ -76,7 +76,7 @@ public class Ansible extends Language {
 							new File(cr.getFolder() + f).delete();
 							zip.zipIt(cr.getFolder() + f, folder);
 						}
-						zip.delete(new File(folder));
+						//TODO zip.delete(new File(folder));
 					} else
 						proceed(f, cr, f);
 				}

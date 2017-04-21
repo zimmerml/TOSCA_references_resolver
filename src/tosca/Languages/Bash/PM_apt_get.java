@@ -81,7 +81,7 @@ public final class PM_apt_get extends PacketManager {
 						for (int packet = 2 + i; packet < words.length; packet++) {
 							System.out.println("packet: " + words[packet]);
 							newFile += "dpkg -i ";
-							for (String p : cr.getPacket(words[packet]).split(
+							for (String p : cr.getPacket(words[packet], source).split(
 									"\\s+"))
 								newFile += prefix + p + " ";
 							newFile += "\n";
@@ -102,8 +102,8 @@ public final class PM_apt_get extends PacketManager {
 						isChanged = true;
 						for (int packet = 2 + i; packet < words.length; packet++) {
 							System.out.println("packet: " + words[packet]);
-							cr.AddDependenciesScript(source, words[packet]);
-							cr.getPacket(words[packet]);
+//							cr.AddDependenciesScript(source, words[packet]);
+							cr.getPacket(words[packet], source);
 						}
 					}
 					newFile += "#//References resolver//" + line + '\n';
