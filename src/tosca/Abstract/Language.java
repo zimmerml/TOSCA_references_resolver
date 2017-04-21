@@ -39,6 +39,7 @@ public abstract class Language {
 	// Language Name
 	protected String Name;
 
+	protected List <String> created_packages;
 	/**
 	 * get Language name
 	 * 
@@ -76,4 +77,5 @@ public abstract class Language {
 					for (PacketManager pm : packetManagers)
 						pm.proceed(cr.getFolder() + f, cr, f);
 	}
+	public abstract void createTOSCA_Node(Control_references cr, String packet, String source) throws IOException, JAXBException;
 }

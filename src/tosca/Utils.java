@@ -62,7 +62,7 @@ public class Utils {
 		bw.close();
 	}
 	
-	static String correctName(String name){
+	public static String correctName(String name){
 		return name.replace(':', '_').replace('+', 'p');
 	}
 }

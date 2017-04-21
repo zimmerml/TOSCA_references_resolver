@@ -22,7 +22,6 @@ package tosca;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.HashMap;
@@ -33,7 +32,7 @@ import java.util.Scanner;
 
 import javax.xml.bind.JAXBException;
 
-import tosca.Abstract.Resolving;
+import tosca.Abstract.Language;
 import tosca.xml_definitions.RR_DependsOn;
 import tosca.xml_definitions.RR_NodeType;
 import tosca.xml_definitions.RR_PackageArtifactTemplate;
@@ -77,9 +76,9 @@ public class Packet_Handler {
 	 * @throws JAXBException
 	 * @throws IOException
 	 */
-	public String getPacket(String packet, Control_references cr, String source)
+	public String getPacket(Language language,String packet, Control_references cr, String source)
 			throws JAXBException, IOException {
-		return getPacket(packet, cr, new LinkedList<String>(),source, 0);
+		return getPacket(language, packet, cr, new LinkedList<String>(),source, 0);
 	}
 
 	/**
@@ -97,7 +96,7 @@ public class Packet_Handler {
 	 * @throws JAXBException
 	 * @throws IOException
 	 */
-	public String getPacket(String packet, Control_references cr,
+	public String getPacket(Language language, String packet, Control_references cr,
 			List<String> listed, String source, int depth) throws JAXBException, IOException {
 		String sourceName = packet;
 		if(rename.containsKey(packet))
@@ -194,28 +193,16 @@ public class Packet_Handler {
 				}
 
 				newName = Utils.correctName(packet);
-				if (cr.getResolving() == Resolving.ADDITION) {
-					RR_NodeType.createNodeType(cr, newName);
-					RR_ScriptArtifactTemplate.createScriptArtifact(cr, newName);
-					RR_PackageArtifactTemplate.createPackageArtifact(cr, newName);
-					RR_TypeImplementation.createNT_Impl(cr, newName);
-				}
-				if (cr.getResolving() == Resolving.ADDITION){
-					if(depth == 0)
-						cr.AddDependenciesScript(Utils.correctName(source), newName);
-					else
-						cr.AddDependenciesPacket(Utils.correctName(source), newName, getDependencyType(source,packet));
-				}
+				language.createTOSCA_Node(cr, newName,source);
+				if(depth == 0)
+					cr.AddDependenciesScript(Utils.correctName(source), newName);
+				else
+					cr.AddDependenciesPacket(Utils.correctName(source), newName, getDependencyType(source,packet));
+			
 				// check dependency recursively
 				for (String dPacket : dependensis) {
-//					if (cr.getResolving() == Resolving.ADDITION
-//							&& !ignore.contains(dPacket)) {
-//						if(rename.containsKey(dPacket))
-//							dPacket = rename.get(dPacket);
-//						cr.AddDependenciesPacket(newName,
-//								dPacket.replace(':', '_'), getDependencyType(packet,dPacket));
-//					}
-					packets += getPacket(dPacket, cr, listed, packet, 1);
+
+					packets += getPacket(language, dPacket, cr, listed, packet, 1);
 				}
 			}
 
@@ -333,7 +320,6 @@ public class Packet_Handler {
 				proc.getInputStream()));
 
 		String s = null;
-		//TODO Predepends
 		String last = null;
 		while ((s = stdInput.readLine()) != null) {
 			String[] words = s.replaceAll("[;&<>]", "").split("\\s+");

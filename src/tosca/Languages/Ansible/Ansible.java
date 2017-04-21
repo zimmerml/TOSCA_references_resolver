@@ -29,9 +29,14 @@ import java.util.List;
 import javax.xml.bind.JAXBException;
 
 import tosca.Control_references;
+import tosca.Utils;
 import tosca.zip;
 import tosca.Abstract.Language;
 import tosca.Abstract.PacketManager;
+import tosca.xml_definitions.RR_NodeType;
+import tosca.xml_definitions.RR_PackageArtifactTemplate;
+import tosca.xml_definitions.RR_ScriptArtifactTemplate;
+import tosca.xml_definitions.RR_TypeImplementation;
 
 public class Ansible extends Language {
 
@@ -46,7 +51,7 @@ public class Ansible extends Language {
 		extensions.add(".yml");
 
 		packetManagers = new LinkedList<PacketManager>();
-		packetManagers.add(new Apt());
+		packetManagers.add(new Apt(this));
 	}
 
 	/*
@@ -97,6 +102,19 @@ public class Ansible extends Language {
 			throws FileNotFoundException, IOException, JAXBException {
 		for (PacketManager pm : packetManagers)
 			pm.proceed(filename, cr, source);
+	}
+	
+	
+
+	public void createTOSCA_Node(Control_references cr, String packet, String source) throws IOException, JAXBException{
+		if(created_packages.contains(packet+"+"+source))
+			return;
+		created_packages.add(packet+"+"+source);
+		String newName = Utils.correctName(packet);
+		RR_NodeType.createNodeType(cr, newName);
+		RR_ScriptArtifactTemplate.createScriptArtifact(cr, newName);
+		RR_PackageArtifactTemplate.createPackageArtifact(cr, newName);
+		RR_TypeImplementation.createNT_Impl(cr, newName);
 	}
 
 }

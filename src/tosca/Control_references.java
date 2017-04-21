@@ -37,7 +37,7 @@ import java.util.Scanner;
 
 import javax.xml.bind.JAXBException;
 
-import tosca.Abstract.Resolving;
+import tosca.Abstract.Language;
 import tosca.xml_definitions.Service_Template;
 
 //unpack 
@@ -59,7 +59,6 @@ public class Control_references {
 	// architecture of packages
 	private String architecture;
 
-	private Resolving resolving = Resolving.UNDEFINED;
 
 	// Metafile description
 	public MetaFile metaFile;
@@ -92,8 +91,8 @@ public class Control_references {
 	 * @throws JAXBException
 	 * @throws IOException
 	 */
-	public String getPacket(String packet, String source) throws JAXBException, IOException {
-		return packet_handler.getPacket(packet, this, source);
+	public String getPacket(Language language, String packet, String source) throws JAXBException, IOException {
+		return packet_handler.getPacket(language,packet, this, source);
 	}
 
 	/**
@@ -155,7 +154,6 @@ public class Control_references {
 		CSAR = filename;
 		unpack();
 		readArchitecture();
-		readResolving();
 	}
 
 	/**
@@ -227,10 +225,6 @@ public class Control_references {
 		return architecture;
 	}
 
-	// Do we still need resolving method?
-	public Resolving getResolving() {
-		return resolving;
-	}
 
 	/**
 	 * reads Architecture from extracted data or from user input
@@ -273,52 +267,6 @@ public class Control_references {
 				"text/txt");
 	}
 
-	/**
-	 * reads Architecture from extracted data or from user input
-	 * 
-	 * @throws IOException
-	 */
-	// no need to close user input
-	@SuppressWarnings("resource")
-	public void readResolving() throws IOException {
-		File resolv = new File(folder + Resolver.folder + ResolvingFileName);
-		BufferedReader br;
-		try {
-			br = new BufferedReader(new FileReader(resolv));
-			String line = br.readLine();
-			br.close();
-			if (line != null && !line.equals("")
-					&& Resolving.fromString(line) != Resolving.UNDEFINED)
-				resolving = Resolving.fromString(line);
-			else {
-				new File(folder + Resolver.folder + ResolvingFileName).delete();
-				throw new FileNotFoundException();
-			}
-
-		} catch (FileNotFoundException e) {
-			new File(folder + Resolver.folder).mkdir();
-			FileWriter bw = new FileWriter(resolv);
-			System.out.println("Please enter resolving method.");
-			System.out.println("Example: \n"
-					+ Resolving.toInt(Resolving.EXPANDING)
-					+ ") Replacement(default)\n"
-					+ Resolving.toInt(Resolving.ADDITION) + ") Addition");
-			System.out.print("resolving:");
-			String temp = new Scanner(System.in).nextLine();
-			try {
-				if (Resolving.fromInt(Integer.parseInt(temp)) != Resolving.UNDEFINED)
-					resolving = Resolving.fromInt(Integer.parseInt(temp));
-				else
-					resolving = Resolving.ADDITION;
-			} catch (NumberFormatException ex) {
-				resolving = Resolving.ADDITION;
-
-			}
-			bw.write(resolving.toString());
-			bw.close();
-		}
-		metaFile.addFileToMeta(Resolver.folder + ResolvingFileName, "text/txt");
-	}
 
 	/**
 	 * Set specific architecture
@@ -342,28 +290,4 @@ public class Control_references {
 		bw.close();
 	}
 
-	/**
-	 * Set specific Resolving method
-	 * 
-	 * @param resolving
-	 * @throws IOException
-	 */
-	public void setResolving(Resolving resolving) throws IOException {
-		if (resolving == null)
-			throw new NullPointerException();
-		if (resolving == Resolving.UNDEFINED) {
-			System.out.println("wrong resolving");
-			return;
-		}
-
-		// delete old file
-		File fResolv = new File(folder + Resolver.folder + ResolvingFileName);
-		fResolv.delete();
-
-		// create new file
-		FileWriter bw = new FileWriter(fResolv);
-		bw.write(Resolving.toString(resolving));
-		bw.flush();
-		bw.close();
-	}
 }
