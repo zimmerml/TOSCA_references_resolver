@@ -26,7 +26,6 @@ import java.util.LinkedList;
 import javax.xml.bind.JAXBException;
 
 import tosca.Control_references;
-import tosca.Utils;
 import tosca.Abstract.Language;
 import tosca.Abstract.PacketManager;
 import tosca.xml_definitions.RR_NodeType;

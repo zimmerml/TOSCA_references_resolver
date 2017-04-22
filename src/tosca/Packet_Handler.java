@@ -34,11 +34,7 @@ import javax.xml.bind.JAXBException;
 
 import tosca.Abstract.Language;
 import tosca.xml_definitions.RR_DependsOn;
-import tosca.xml_definitions.RR_NodeType;
-import tosca.xml_definitions.RR_PackageArtifactTemplate;
 import tosca.xml_definitions.RR_PreDependsOn;
-import tosca.xml_definitions.RR_ScriptArtifactTemplate;
-import tosca.xml_definitions.RR_TypeImplementation;
 
 //import tosca.xml_definitions.PackageTemplate;
 
@@ -56,13 +52,15 @@ public class Packet_Handler {
 	// packets to be ignored
 	private List<String> ignore;
 
+	private Control_references cr;
 	/**
 	 * Constructor
 	 */
-	public Packet_Handler() {
+	public Packet_Handler(Control_references cr) {
 		downloaded = new LinkedList<String>();
 		ignore = new LinkedList<String>();
 		rename = new HashMap<String,String>();
+		this.cr = cr;
 	}
 
 	/**
@@ -76,9 +74,9 @@ public class Packet_Handler {
 	 * @throws JAXBException
 	 * @throws IOException
 	 */
-	public String getPacket(Language language,String packet, Control_references cr, String source)
+	public String getPacket(Language language,String packet, String source)
 			throws JAXBException, IOException {
-		return getPacket(language, packet, cr, new LinkedList<String>(),source, 0);
+		return getPacket(language, packet, new LinkedList<String>(), source, source);
 	}
 
 	/**
@@ -96,8 +94,8 @@ public class Packet_Handler {
 	 * @throws JAXBException
 	 * @throws IOException
 	 */
-	public String getPacket(Language language, String packet, Control_references cr,
-			List<String> listed, String source, int depth) throws JAXBException, IOException {
+	public String getPacket(Language language, String packet, 
+			List<String> listed, String source, String sourcefile) throws JAXBException, IOException {
 		String sourceName = packet;
 		if(rename.containsKey(packet))
 			packet = rename.get(packet);
@@ -108,7 +106,7 @@ public class Packet_Handler {
 		// if this is the first call of recursive function, we need to add
 		// architecture to package
 		// but some packages are multyarchitecture, need to check it.
-		if (depth == 0) {
+		if (source.equals(sourcefile)) {
 			if (packetExists(packet + cr.getArchitecture()))
 				packet = packet + cr.getArchitecture();
 		}
@@ -193,8 +191,8 @@ public class Packet_Handler {
 				}
 
 				newName = Utils.correctName(packet);
-				language.createTOSCA_Node(cr, newName,source);
-				if(depth == 0)
+				language.createTOSCA_Node(cr, newName, sourcefile);
+				if(source.equals(sourcefile))
 					cr.AddDependenciesScript(Utils.correctName(source), newName);
 				else
 					cr.AddDependenciesPacket(Utils.correctName(source), newName, getDependencyType(source,packet));
@@ -202,7 +200,7 @@ public class Packet_Handler {
 				// check dependency recursively
 				for (String dPacket : dependensis) {
 
-					packets += getPacket(language, dPacket, cr, listed, packet, 1);
+					packets += getPacket(language, dPacket, listed, packet, sourcefile);
 				}
 			}
 
@@ -238,10 +236,16 @@ public class Packet_Handler {
 		String s = null;
 		//TODO Predepends
 		while ((s = stdInput.readLine()) != null) {
-			String[] words = s.replaceAll("[;&<>]", "").split("\\s+");
+			//TOCHECK
+			String[] words = s.replaceAll("[;&]", "").split("\\s+");
 			if (words.length == 3 && (words[1].equals("Depends:") ||words[1].equals("PreDepends:")) ) {
-				depend.add(words[2]);
-				System.out.print(words[2] + ",");
+				String to_add;
+				if(words[2].startsWith("<")&&words[2].endsWith(">"))
+					to_add = stdInput.readLine().replaceAll("\\s+", "");
+				else
+					to_add = words[2];
+				depend.add(to_add);
+				System.out.print(to_add + ",");
 			}
 		}
 		System.out.println("");

@@ -32,7 +32,7 @@ import javax.xml.bind.JAXBException;
 import tosca.Control_references;
 import tosca.Abstract.Language;
 import tosca.Languages.Ansible.Ansible;
-import tosca.Languages.Bash.Bash;
+//import tosca.Languages.Bash.Bash;
 import tosca.xml_definitions.RR_DependsOn;
 import tosca.xml_definitions.RR_PackageArtifactType;
 import tosca.xml_definitions.RR_PreDependsOn;
@@ -58,10 +58,10 @@ public class Resolver {
 	 */
 	public static void main(String[] args) throws IOException {
 		String source, target;
-		Bash bash = new Bash();
+		//Bash bash = new Bash();
 		Ansible ansible = new Ansible();
-		Resolver resolver = new Resolver(bash);
-		resolver.addLanguage(ansible);
+		Resolver resolver = new Resolver(ansible);
+		//resolver.addLanguage(ansible);
 		if (args.length >= 1)
 			source = args[0];
 		else {

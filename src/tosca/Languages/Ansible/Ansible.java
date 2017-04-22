@@ -22,14 +22,20 @@ package tosca.Languages.Ansible;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Scanner;
 
 import javax.xml.bind.JAXBException;
 
 import tosca.Control_references;
-import tosca.Utils;
+import tosca.Packet_Handler;
+import tosca.Resolver;
 import tosca.zip;
 import tosca.Abstract.Language;
 import tosca.Abstract.PacketManager;
@@ -39,6 +45,15 @@ import tosca.xml_definitions.RR_ScriptArtifactTemplate;
 import tosca.xml_definitions.RR_TypeImplementation;
 
 public class Ansible extends Language {
+	
+	private HashMap<String,Ansible_setup> ansible_setup;
+	
+	public static class Ansible_setup{
+		String config;
+		String hosts;
+		String connection;
+		String become;
+	}
 
 	/**
 	 * Constructor list right extensions and creates package managers
@@ -49,6 +64,9 @@ public class Ansible extends Language {
 		extensions = new LinkedList<String>();
 		extensions.add(".zip");
 		extensions.add(".yml");
+		
+		ansible_setup = new HashMap<String,Ansible_setup>();
+		created_packages = new LinkedList <String>();
 
 		packetManagers = new LinkedList<PacketManager>();
 		packetManagers.add(new Apt(this));
@@ -70,7 +88,7 @@ public class Ansible extends Language {
 					if (suf.equals(".zip")) {
 						boolean isChanged = false;
 						// String filename = new File(f).getName();
-						String folder = new File(f).getParent()
+						String folder = new File(cr.getFolder() + f).getParent()
 								+ File.separator;
 						List<String> files = zip.unZipIt(cr.getFolder() + f,
 								folder);
@@ -103,18 +121,71 @@ public class Ansible extends Language {
 		for (PacketManager pm : packetManagers)
 			pm.proceed(filename, cr, source);
 	}
-	
+
+	@SuppressWarnings("resource")
+	private void create_ansible_setup(String source) throws IOException{
+		Ansible_setup setup = new Ansible_setup();
+		setup.config = "";
+		//i hope that everything what needed for ansible - correct config file.
+		if(source.endsWith(".zip")){
+			String config = source.substring(0,source.length()-4) + File.separator + "ansible.cfg";
+			if(! new File(config).exists()){
+				throw new FileNotFoundException(config + " not found");
+			}
+			List<String> lines = Files.readAllLines(Paths.get(config));
+			for(String s: lines) {
+				setup.config+=(s)+"\r";
+		    }
+		}
+		System.out.println("Please, entrer hosts for " + source);
+		setup.hosts = new Scanner(System.in).nextLine();
+		System.out.println("Please, entrer connection for " + source);
+		setup.connection = new Scanner(System.in).nextLine();
+		System.out.println("Please, entrer become for " + source);
+		setup.become = new Scanner(System.in).nextLine();
+		ansible_setup.put(source,setup);
+	}
 	
 
 	public void createTOSCA_Node(Control_references cr, String packet, String source) throws IOException, JAXBException{
 		if(created_packages.contains(packet+"+"+source))
 			return;
 		created_packages.add(packet+"+"+source);
-		String newName = Utils.correctName(packet);
-		RR_NodeType.createNodeType(cr, newName);
-		RR_ScriptArtifactTemplate.createScriptArtifact(cr, newName);
-		RR_PackageArtifactTemplate.createPackageArtifact(cr, newName);
-		RR_TypeImplementation.createNT_Impl(cr, newName);
+		if(!ansible_setup.containsKey(source))
+			create_ansible_setup(source);
+		Ansible_setup setup = ansible_setup.get(source);
+		String artifact_name = Name + "_" + packet + "_" + source.replace("/","_") ;
+		String file = cr.getFolder() + Resolver.folder + packet + File.separator + artifact_name;
+		String folder = file + "_temp"+ File.separator;
+		new File(folder).mkdir();
+		
+		FileWriter file_writer = new FileWriter(new File(folder + "ansible.cfg"));
+		file_writer.write(setup.config);
+		file_writer.flush();
+		file_writer.close();
+		
+		file_writer = new FileWriter(new File(folder + "main.yml"));
+		file_writer.write("- name: install package\r");
+		if(!setup.hosts.equals(""))
+			file_writer.write("  hosts: "+setup.hosts + "\r");
+		if(!setup.connection.equals(""))
+			file_writer.write("  connection: "+setup.connection + "\r");
+		if(!setup.become.equals(""))
+			file_writer.write("  become: "+setup.become + "\r");
+		file_writer.write("  tasks:\r    - name: install task\r      command: dpkg -i " + packet + Packet_Handler.Extension + "\r");
+		file_writer.flush();
+		file_writer.close();
+		
+		new File(folder + "files").mkdir();
+		Files.copy(Paths.get(cr.getFolder() + Resolver.folder + packet + File.separator + packet + Packet_Handler.Extension),
+				Paths.get(folder + "files" + File.separator + packet + Packet_Handler.Extension));
+		
+		zip.zipIt(file, folder);
+		
+		RR_NodeType.createNodeType(cr, packet);
+		RR_ScriptArtifactTemplate.createScriptArtifact(cr, packet);
+		RR_PackageArtifactTemplate.createPackageArtifact(cr, packet);
+		RR_TypeImplementation.createNT_Impl(cr, packet);
 	}
 
 }

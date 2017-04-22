@@ -78,7 +78,7 @@ public class Control_references {
 	 */
 	public Control_references() {
 		metaFile = new MetaFile();
-		packet_handler = new Packet_Handler();
+		packet_handler = new Packet_Handler(this);
 		service_template = new Service_Template(this);
 	}
 
@@ -92,7 +92,7 @@ public class Control_references {
 	 * @throws IOException
 	 */
 	public String getPacket(Language language, String packet, String source) throws JAXBException, IOException {
-		return packet_handler.getPacket(language,packet, this, source);
+		return packet_handler.getPacket(language,packet, source);
 	}
 
 	/**
@@ -136,7 +136,7 @@ public class Control_references {
 			IOException {
 		metaFile = new MetaFile();
 		init(filename);
-		packet_handler = new Packet_Handler();
+		packet_handler = new Packet_Handler(this);
 		service_template = new Service_Template(this);
 	}
 
