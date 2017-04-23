@@ -191,13 +191,14 @@ public class Packet_Handler {
 				}
 
 				newName = Utils.correctName(packet);
-				language.createTOSCA_Node(cr, newName, sourcefile);
+				String nodename = language.createTOSCA_Node(cr, newName, sourcefile);
 				if(source.equals(sourcefile))
-					cr.AddDependenciesScript(Utils.correctName(source), newName);
+					cr.AddDependenciesScript(Utils.correctName(source), nodename);
 				else
-					cr.AddDependenciesPacket(Utils.correctName(source), newName, getDependencyType(source,packet));
+					cr.AddDependenciesPacket(Utils.correctName(language.getNodeName(source,sourcefile)), nodename, getDependencyType(source,packet));
 			
 				// check dependency recursively
+				//if(source.equals(sourcefile)) //TODO
 				for (String dPacket : dependensis) {
 
 					packets += getPacket(language, dPacket, listed, packet, sourcefile);

@@ -77,5 +77,8 @@ public abstract class Language {
 					for (PacketManager pm : packetManagers)
 						pm.proceed(cr.getFolder() + f, cr, f);
 	}
-	public abstract void createTOSCA_Node(Control_references cr, String packet, String source) throws IOException, JAXBException;
+
+	public abstract String getNodeName(String packet, String source);
+	
+	public abstract String createTOSCA_Node(Control_references cr, String packet, String source) throws IOException, JAXBException;
 }

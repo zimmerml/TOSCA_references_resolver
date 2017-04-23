@@ -32,7 +32,8 @@ import javax.xml.bind.JAXBException;
 import tosca.Control_references;
 import tosca.Abstract.Language;
 import tosca.Languages.Ansible.Ansible;
-//import tosca.Languages.Bash.Bash;
+import tosca.Languages.Bash.Bash;
+import tosca.xml_definitions.RR_AnsibleArtifactType;
 import tosca.xml_definitions.RR_DependsOn;
 import tosca.xml_definitions.RR_PackageArtifactType;
 import tosca.xml_definitions.RR_PreDependsOn;
@@ -58,10 +59,10 @@ public class Resolver {
 	 */
 	public static void main(String[] args) throws IOException {
 		String source, target;
-		//Bash bash = new Bash();
+		Bash bash = new Bash();
 		Ansible ansible = new Ansible();
 		Resolver resolver = new Resolver(ansible);
-		//resolver.addLanguage(ansible);
+		resolver.addLanguage(bash);
 		if (args.length >= 1)
 			source = args[0];
 		else {
@@ -133,6 +134,7 @@ public class Resolver {
 			new File(cr.getFolder() + Control_references.Definitions).mkdirs();
 			RR_PackageArtifactType.init(cr);
 			RR_ScriptArtifactType.init(cr);
+			RR_AnsibleArtifactType.init(cr);
 			RR_PreDependsOn.init(cr);
 			RR_DependsOn.init(cr);
 		} catch (FileNotFoundException e) {

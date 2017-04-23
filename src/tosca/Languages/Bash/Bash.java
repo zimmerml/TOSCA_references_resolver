@@ -56,14 +56,17 @@ public final class Bash extends Language {
 		packetManagers = new LinkedList<PacketManager>();
 		packetManagers.add(new PM_apt_get(this));
 	}
-	public void createTOSCA_Node(Control_references cr, String packet, String source) throws IOException, JAXBException{
+	public String createTOSCA_Node(Control_references cr, String packet, String source) throws IOException, JAXBException{
 		if(created_packages.contains(packet+"+"+source))
-			return;
+			return packet;
 		created_packages.add(packet+"+"+source);
 		RR_NodeType.createNodeType(cr, packet);
 		RR_ScriptArtifactTemplate.createScriptArtifact(cr, packet);
 		RR_PackageArtifactTemplate.createPackageArtifact(cr, packet);
 		RR_TypeImplementation.createNT_Impl(cr, packet);
+		return packet;
 	}
-
+	public String getNodeName(String packet, String source){
+		return packet;
+	}
 }

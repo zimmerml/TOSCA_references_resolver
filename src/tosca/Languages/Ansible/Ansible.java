@@ -36,9 +36,12 @@ import javax.xml.bind.JAXBException;
 import tosca.Control_references;
 import tosca.Packet_Handler;
 import tosca.Resolver;
+import tosca.Utils;
 import tosca.zip;
 import tosca.Abstract.Language;
 import tosca.Abstract.PacketManager;
+import tosca.xml_definitions.RR_AnsibleArtifactTemplate;
+import tosca.xml_definitions.RR_AnsibleTypeImplementation;
 import tosca.xml_definitions.RR_NodeType;
 import tosca.xml_definitions.RR_PackageArtifactTemplate;
 import tosca.xml_definitions.RR_ScriptArtifactTemplate;
@@ -89,7 +92,7 @@ public class Ansible extends Language {
 						boolean isChanged = false;
 						// String filename = new File(f).getName();
 						String folder = new File(cr.getFolder() + f).getParent()
-								+ File.separator;
+								+ File.separator+ "temp_RR_ansible_folder" + File.separator;
 						List<String> files = zip.unZipIt(cr.getFolder() + f,
 								folder);
 						for (String file : files)
@@ -99,7 +102,7 @@ public class Ansible extends Language {
 							new File(cr.getFolder() + f).delete();
 							zip.zipIt(cr.getFolder() + f, folder);
 						}
-						//TODO zip.delete(new File(folder));
+						zip.delete(new File(folder));
 					} else
 						proceed(f, cr, f);
 				}
@@ -145,18 +148,18 @@ public class Ansible extends Language {
 		setup.become = new Scanner(System.in).nextLine();
 		ansible_setup.put(source,setup);
 	}
-	
 
-	public void createTOSCA_Node(Control_references cr, String packet, String source) throws IOException, JAXBException{
+	public String createTOSCA_Node(Control_references cr, String packet, String source) throws IOException, JAXBException{
+
+		String artifact_name = getNodeName(packet, source) ;
 		if(created_packages.contains(packet+"+"+source))
-			return;
+			return artifact_name;
 		created_packages.add(packet+"+"+source);
 		if(!ansible_setup.containsKey(source))
 			create_ansible_setup(source);
 		Ansible_setup setup = ansible_setup.get(source);
-		String artifact_name = Name + "_" + packet + "_" + source.replace("/","_") ;
-		String file = cr.getFolder() + Resolver.folder + packet + File.separator + artifact_name;
-		String folder = file + "_temp"+ File.separator;
+		String file = Resolver.folder + packet + File.separator + artifact_name;
+		String folder = cr.getFolder() + file + "_temp"+ File.separator;
 		new File(folder).mkdir();
 		
 		FileWriter file_writer = new FileWriter(new File(folder + "ansible.cfg"));
@@ -180,12 +183,17 @@ public class Ansible extends Language {
 		Files.copy(Paths.get(cr.getFolder() + Resolver.folder + packet + File.separator + packet + Packet_Handler.Extension),
 				Paths.get(folder + "files" + File.separator + packet + Packet_Handler.Extension));
 		
-		zip.zipIt(file, folder);
+		zip.zipIt(cr.getFolder() + file, folder);
+		zip.delete(new File(folder));
+		cr.metaFile.addFileToMeta(Resolver.folder + "ansible_properties.xsd", "text/xml");
 		
-		RR_NodeType.createNodeType(cr, packet);
-		RR_ScriptArtifactTemplate.createScriptArtifact(cr, packet);
-		RR_PackageArtifactTemplate.createPackageArtifact(cr, packet);
-		RR_TypeImplementation.createNT_Impl(cr, packet);
+		RR_NodeType.createNodeType(cr, artifact_name);
+		RR_AnsibleArtifactTemplate.createScriptArtifact(cr, artifact_name, file);
+		RR_AnsibleTypeImplementation.createNT_Impl(cr, artifact_name);
+		return artifact_name;
+	}
+	public String getNodeName(String packet, String source){
+		return Name + "_" + packet + "_" + Utils.correctName(source.replace("/","_"));
 	}
 
 }
