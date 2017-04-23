@@ -35,17 +35,15 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import tosca.Control_references;
-import tosca.Packet_Handler;
-import tosca.Resolver;
 
 /**
- * @author Yaroslav 
- * Package Artifact Template for packages
+ * @author Yaroslav Script Artifact Template for packages
  */
-public class RR_PackageArtifactTemplate {
+public class RR_AnsibleArtifactTemplate {
+	public static final String extension = "_IA.tosca";
 
 	/**
-	 * @author Yaroslav Package Artifact Template description
+	 * @author Yaroslav Script Artifact Template description
 	 */
 	@XmlRootElement(name = "tosca:Definitions")
 	@XmlAccessorType(XmlAccessType.PUBLIC_MEMBER)
@@ -57,75 +55,93 @@ public class RR_PackageArtifactTemplate {
 		public ArtifactTemplate artifactTemplate;
 
 		@XmlAttribute(name = "xmlns:tosca", required = true)
-		public static final String tosca = "http://docs.oasis-open.org/tosca/ns/2011/12";
+		public static final String tosca="http://docs.oasis-open.org/tosca/ns/2011/12";
 		@XmlAttribute(name = "xmlns:winery", required = true)
-		public static final String winery = "http://www.opentosca.org/winery/extensions/tosca/2013/02/12";
+		public static final String winery="http://www.opentosca.org/winery/extensions/tosca/2013/02/12";
 		@XmlAttribute(name = "xmlns:ns1", required = true)
-		public static final String ns1 = "http://www.eclipse.org/winery/model/selfservice";
+		public static final String ns1="http://www.eclipse.org/winery/model/selfservice";
 		@XmlAttribute(name = "id", required = true)
 		public String id;
 		@XmlAttribute(name = "targetNamespace", required = true)
-		public static final String targetNamespace = "http://opentosca.org/artifacttemplates"; // TODO
-
+		public static final String targetNamespace="http://opentosca.org/artifacttemplates"; //TODO
+		
 		public Definitions() {
 			artifactTemplate = new ArtifactTemplate();
-			tImport = new Import(RR_PackageArtifactType.Definitions.ArtifactType.targetNamespace,
-					RR_PackageArtifactType.filename, "http://docs.oasis-open.org/tosca/ns/2011/12");
+			tImport = new Import(RR_AnsibleArtifactType.Definitions.ArtifactType.targetNamespace,
+					RR_AnsibleArtifactType.filename,"http://docs.oasis-open.org/tosca/ns/2011/12" );
 		}
 
 		public static class ArtifactTemplate {
 
+			@XmlElement(name = "tosca:Properties", required = true)
+			public Properties properties;
+			
 			@XmlElement(name = "tosca:ArtifactReferences", required = true)
 			public ArtifactReferences artifactReferences;
-
+			
 			@XmlAttribute(name = "xmlns:tbt", required = true)
-			public static final String tbt = RR_PackageArtifactType.Definitions.ArtifactType.targetNamespace;
+			public static final String tbt = RR_ScriptArtifactType.Definitions.ArtifactType.targetNamespace;
 			@XmlAttribute(name = "id", required = true)
 			public String id;
 			@XmlAttribute(name = "type", required = true)
-			public static final String type = RR_PackageArtifactType.Definitions.ArtifactType.name;
+			public static final String type = RR_ScriptArtifactType.Definitions.ArtifactType.name;
 
 			ArtifactTemplate() {
 				artifactReferences = new ArtifactReferences();
+				properties = new Properties();
 			}
 
+			public static class Properties {
+				@XmlElement(name = "ns21:Properties", required = true)
+				public Properties2 properties;
+				
+				public Properties(){
+					properties = new Properties2();
+				}
+
+				public static class Properties2 {
+					@XmlAttribute(name = "xmlns:ns21", required = true)
+					public static final String ns21 = "http://opentosca.org/artifacttypes/propertiesdefinition/winery";
+
+					@XmlAttribute(name = "xmlns", required = true)
+					public static final String xmlns = "http://opentosca.org/artifacttypes/propertiesdefinition/winery";
+
+					@XmlElement(name = "Playbook", required = true)
+					public static final String playbook = "main.yml";
+					@XmlElement(name = "Variables", required = true)
+					public static final String variables = "";
+				}
+				
+			}
 			public static class ArtifactReferences {
 
 				@XmlElement(name = "tosca:ArtifactReference", required = true)
 				public ArtifactReference artifactReference;
 
+
 				ArtifactReferences() {
 					artifactReference = new ArtifactReference();
 				}
 
-				public static class ArtifactReference {
+				public static class ArtifactReference{
 					@XmlAttribute(name = "reference", required = true)
 					public String reference;
-
 					ArtifactReference() {
 					}
 				}
-
+				
 			}
 		}
 	}
 
-	/**
-	 * Create ArtifactTemplate for package
-	 * 
-	 * @param cr
-	 * @param folder
-	 *            , where template will be created
-	 * @param dependensis
-	 *            , list with dependencies for package
-	 * @param packet
-	 *            , name of packet
+	/** Create template for package
+	 * @param cr 
 	 * @throws IOException
 	 * @throws JAXBException
 	 */
-	public static void createPackageArtifact(Control_references cr, String packet) throws IOException,
-			JAXBException {
-		System.out.println("creating Package Template for " + packet);
+	public static void createAnsibleArtifact(Control_references cr, String packet, String artifact)
+			throws IOException, JAXBException {
+		System.out.println("creating Ansible Template " );
 
 		File temp = new File(cr.getFolder() + Control_references.Definitions + getFileName(packet));
 		if (temp.exists())
@@ -136,30 +152,24 @@ public class RR_PackageArtifactTemplate {
 		JAXBContext jc = JAXBContext.newInstance(Definitions.class);
 
 		Definitions template = new Definitions();
-		template.id = getWineryID(packet);
-		template.artifactTemplate.id = getID(packet);
-		template.artifactTemplate.artifactReferences.artifactReference.reference = Resolver.folder + packet
-				+ File.separator + packet + Packet_Handler.Extension;
-
+		
+		template.id = "winery-defs-for_"+getIAName(packet);
+		template.artifactTemplate.id = getIAName(packet);
+		template.artifactTemplate.artifactReferences.artifactReference.reference = artifact;
+		
 		Marshaller marshaller = jc.createMarshaller();
 		marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
 		marshaller.marshal(template, output);
-		cr.metaFile.addFileToMeta(Control_references.Definitions + getFileName(packet),
-				"application/vnd.oasis.tosca.definitions");
+		
+		cr.metaFile.addFileToMeta(Control_references.Definitions + getFileName(packet), "application/vnd.oasis.tosca.definitions");
 
-	}
-
-	// Parameters created dynamically on packet name
 	
-	public static String getWineryID(String packet) {
-		return "winery-defs-for_" + packet + "_DA";
 	}
-
-	public static String getID(String packet) {
-		return "RR_" + packet + "_DA";
+	public static String getIAName(String packet){
+		return "RR_"+packet+"_IA";
 	}
-
-	public static String getFileName(String packet) {
-		return "RR_" + packet + "_DA.tosca";
+	
+	public static String getFileName(String packet){
+		return "RR_"+packet+"_IA" + ".tosca";
 	}
 }

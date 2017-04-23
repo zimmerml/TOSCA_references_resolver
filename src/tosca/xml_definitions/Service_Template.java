@@ -22,6 +22,7 @@ package tosca.xml_definitions;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -46,6 +47,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import tosca.Control_references;
+import tosca.Utils;
 
 /**
  * @author jery Service Template Handler
@@ -66,15 +68,11 @@ public class Service_Template {
 	// Reference from Script position to Node Type
 	HashMap<String, List<String>> RefToNodeType;
 
+	Control_references cr;
+
 	/**
 	 * simple Constructor
 	 */
-	public Service_Template() {
-		RefToArtID = new HashMap<String, List<String>>();
-		RefToNodeType = new HashMap<String, List<String>>();
-		NodeTypeToServiceTemplate = new HashMap<String, List<String>>();
-	}
-
 	/**
 	 * Constructor with initialization
 	 * 
@@ -94,6 +92,8 @@ public class Service_Template {
 	 * @param cr
 	 */
 	public void init(Control_references cr) {
+
+		this.cr = cr;
 
 		NodeTypeToServiceTemplate.clear();
 		RefToArtID.clear();
@@ -137,9 +137,13 @@ public class Service_Template {
 	 * @param target_packet
 	 *            packet to be created
 	 * @param dependencyType
+	 * @throws UnsupportedEncodingException
 	 */
-	public void addDependencyToPacket(Control_references cr,
-			String source_packet, String target_packet, String dependencyType) {
+	public void addDependencyToPacket(String source_packet,
+			String target_packet, String dependencyType)
+			throws UnsupportedEncodingException {
+		source_packet = encode(source_packet);
+		target_packet = encode(target_packet);
 		for (String filename : NodeTypeToServiceTemplate.get(source_packet)) {
 			try {
 				DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory
@@ -230,10 +234,12 @@ public class Service_Template {
 	 *            script position
 	 * @param target_packet
 	 *            packet to be added
+	 * @throws UnsupportedEncodingException
 	 */
-	public void addDependencyToScript(Control_references cr,
-			String script_filename, String target_packet) {
+	public void addDependencyToScript(String script_filename,
+			String target_packet) throws UnsupportedEncodingException {
 		List<String> files = getServiceTemplatesFromRef(script_filename);
+		target_packet = encode(target_packet);
 		for (String filename : files) {
 			try {
 				DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory
@@ -301,10 +307,17 @@ public class Service_Template {
 	 * @param packet
 	 *            packet name
 	 * @return ID
+	 * @throws UnsupportedEncodingException
 	 */
 	private String getID(String packet) {
-		return RR_NodeType.getTypeName(packet).replace('.', '_');// +
-																	// "_template";
+		return RR_NodeType.getTypeName(packet);// +
+		// "_template";
+	}
+
+	public static String encode(String packet)
+			throws UnsupportedEncodingException {
+		return java.net.URLEncoder.encode(packet, "UTF-8");// +
+		// "_template";
 	}
 
 	/**
@@ -316,9 +329,10 @@ public class Service_Template {
 	 *            Node Containing Topology of Service Template
 	 * @param packet
 	 *            packet name
+	 * @throws UnsupportedEncodingException
 	 */
 	private void createPacketTemplate(Document document, Node topology,
-			String packet) {
+			String packet) throws UnsupportedEncodingException {
 		NodeList nodes = document.getElementsByTagName("*");
 		for (int i = 0; i < nodes.getLength(); i++)
 			if (nodes.item(i).getNodeName().endsWith(":NodeTemplate")
@@ -334,24 +348,6 @@ public class Service_Template {
 		template.setAttribute("id", getID(packet));
 		template.setAttribute("name", packet);
 		template.setAttribute("type", "RRnt:" + RR_NodeType.getTypeName(packet));
-		Element deploymentArtifacts = document.createElement(myPrefix
-				+ "DeploymentArtifacts");
-		template.appendChild(deploymentArtifacts);
-		Element deploymentArtifact = document.createElement(myPrefix
-				+ "DeploymentArtifact");
-		deploymentArtifact
-				.setAttribute(
-						"xmlns:RRpt",
-						RR_PackageArtifactType.Definitions.ArtifactType.targetNamespace);
-		deploymentArtifact.setAttribute("xmlns:RRda",
-				RR_PackageArtifactTemplate.Definitions.targetNamespace);
-		deploymentArtifact.setAttribute("artifactType", "RRpt:"
-				+ RR_PackageArtifactType.Definitions.ArtifactType.name);
-		deploymentArtifact.setAttribute("name", packet + "_DA");
-		deploymentArtifact.setAttribute("artifactRef", "RRda:"
-				+ RR_PackageArtifactTemplate.getID(packet));
-
-		deploymentArtifacts.appendChild(deploymentArtifact);
 		topology.appendChild(template);
 	}
 
@@ -385,11 +381,16 @@ public class Service_Template {
 		relation.setAttribute("id", sourceID + "_" + targetID);
 		relation.setAttribute("name", sourceID + "_needs_" + targetID);
 		if (type.equals(RR_DependsOn.Name)) {
-			relation.setAttribute("xmlns:RRrt",RR_DependsOn.Definitions.RelationshipType.targetNamespace);
-			relation.setAttribute("type", "RRrt:"+ RR_DependsOn.Definitions.RelationshipType.name);
+			relation.setAttribute("xmlns:RRrt",
+					RR_DependsOn.Definitions.RelationshipType.targetNamespace);
+			relation.setAttribute("type", "RRrt:"
+					+ RR_DependsOn.Definitions.RelationshipType.name);
 		} else if (type.equals(RR_PreDependsOn.Name)) {
-			relation.setAttribute("xmlns:RRrt", RR_PreDependsOn.Definitions.RelationshipType.targetNamespace);
-			relation.setAttribute("type", "RRrt:"+ RR_PreDependsOn.Definitions.RelationshipType.name);
+			relation.setAttribute(
+					"xmlns:RRrt",
+					RR_PreDependsOn.Definitions.RelationshipType.targetNamespace);
+			relation.setAttribute("type", "RRrt:"
+					+ RR_PreDependsOn.Definitions.RelationshipType.name);
 		}
 		topology.appendChild(relation);
 		Element sourceElement = document.createElement(myPrefix
@@ -442,7 +443,8 @@ public class Service_Template {
 		}
 		NodeList nodes = document.getElementsByTagName("RR_tosca_ns:Import");
 		for (int i = 0; i < nodes.getLength(); i++)
-			if (((Element) (nodes.item(i))).getAttribute("location").equals(RR_NodeType.getFileName(packet)))
+			if (((Element) (nodes.item(i))).getAttribute("location").equals(
+					RR_NodeType.getFileName(packet)))
 				return;
 		tImport = document.createElement("RR_tosca_ns:Import");
 		tImport.setAttribute("importType",
@@ -450,15 +452,6 @@ public class Service_Template {
 		tImport.setAttribute("location", RR_NodeType.getFileName(packet));
 		tImport.setAttribute("namespace",
 				RR_NodeType.Definitions.NodeType.targetNamespace);
-		definitions.insertBefore(tImport, definitions.getFirstChild());
-
-		tImport = document.createElement("RR_tosca_ns:Import");
-		tImport.setAttribute("importType",
-				"http://docs.oasis-open.org/tosca/ns/2011/12");
-		tImport.setAttribute("location",
-				RR_PackageArtifactTemplate.getFilename(packet));
-		tImport.setAttribute("namespace",
-				RR_PackageArtifactTemplate.Definitions.targetNamespace);
 		definitions.insertBefore(tImport, definitions.getFirstChild());
 	}
 
@@ -502,14 +495,15 @@ public class Service_Template {
 											.getNodeType() == Node.ELEMENT_NODE) {
 										Element ref = (Element) ArtifactReferenceList
 												.item(j);
-										String REF = java.net.URLDecoder
-												.decode(ref
-														.getAttribute("reference"),
-														"UTF-8");
+										String REF = Utils
+												.correctName(java.net.URLDecoder.decode(
+														ref.getAttribute("reference"),
+														"UTF-8"));
 										if (!RefToArtID.containsKey(REF))
 											RefToArtID.put(REF,
 													new LinkedList<String>());
-										RefToArtID.get(REF).add(ID);
+										RefToArtID.get(REF).add(
+												Utils.correctName(ID));
 									}
 								}
 							}
@@ -551,7 +545,7 @@ public class Service_Template {
 							artifactRef = artifactRef.substring(
 									artifactRef.indexOf(':') + 1,
 									artifactRef.length());
-						addNodeTypeRef(nodeType, artifactRef);
+						addNodeTypeRef(nodeType, Utils.correctName(artifactRef));
 					}
 				}
 			}

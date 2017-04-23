@@ -38,6 +38,9 @@ public abstract class PacketManager {
 	// Name of manager
 	static public String Name;
 
+	protected Language language;
+	
+	protected Control_references cr;
 	/**
 	 * Proceed given file
 	 * 

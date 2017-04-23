@@ -33,6 +33,7 @@ import javax.xml.bind.JAXBException;
 
 import tosca.Control_references;
 import tosca.Utils;
+import tosca.Abstract.Language;
 import tosca.Abstract.PacketManager;
 
 public class Apt extends PacketManager {
@@ -40,6 +41,10 @@ public class Apt extends PacketManager {
 	// package manager name
 	static public final String Name = "apt";
 
+	public Apt(Language language, Control_references cr) {
+		this.language = language;
+		this.cr = cr;
+	}
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -71,8 +76,6 @@ public class Apt extends PacketManager {
 		String line = null;
 		String newFile = "";
 		int State = 0;
-		switch (cr.getResolving()) {
-		case ADDITION:
 			while ((line = br.readLine()) != null) {
 				switch (State) {
 				case 0:
@@ -95,8 +98,7 @@ public class Apt extends PacketManager {
 						if (m.find()) {
 							System.out.println("Found packet: " + m.group(2));
 							newFile += "#//References resolver//" + line + '\n';
-//							cr.AddDependenciesScript(source, m.group(2));
-							cr.getPacket(m.group(2), source);
+							cr.getPacket(language, m.group(2), source);
 							isChanged = true;
 							State = 0;
 						}
@@ -128,7 +130,7 @@ public class Apt extends PacketManager {
 							if (words[0].equals(""))
 								i = 1;
 							if (words.length == 2 + i && words[i].equals("-")) {
-								cr.getPacket(words[i + 1], source);
+								cr.getPacket(language, words[i + 1], source);
 								newFile += "#//References resolver//" + line
 										+ '\n';
 								isChanged = true;
@@ -148,8 +150,7 @@ public class Apt extends PacketManager {
 						Matcher m = p.matcher(line);
 						if (m.find()) {
 							System.out.println("Found packet: " + m.group(2));
-//							cr.AddDependenciesScript(source, m.group(2));
-							cr.getPacket(m.group(2), source);
+							cr.getPacket(language, m.group(2), source);
 							newFile += "#//References resolver//" + line + '\n';
 							isChanged = true;
 							State = 0;
@@ -161,112 +162,7 @@ public class Apt extends PacketManager {
 				}
 
 			}
-			break;
-		case EXPANDING:
-			while ((line = br.readLine()) != null) {
-				switch (State) {
-				case 0:
-					// Search for task name = start of tast
-					if (line.matches("-\\s*name.*"))
-						State = 1;
-					newFile += line + '\n';
-					break;
-				case 1:
-					// task name found,
-					// search for different possibilities of apt
-					if (line.matches("\\s*apt:.*pkg\\s*=\\s*\\{.*item.*\\}.*")) {
-						// apt = { item }
-						State = 2;
-						newFile += "  apt:\n    deb={{ item }}" + '\n';
-					} else if (line.matches("\\s*apt:.* pkg=.*")) {
-						Pattern p = Pattern
-								.compile("(apt:.*pkg=)\\s*(\\w*)\\s*.*");
-						Matcher m = p.matcher(line);
-						if (m.find()) {
-							System.out.println("Found packet: " + m.group(2));
-							newFile += "  apt: deb={{ item }}" + '\n'
-									+ "  with_items:" + '\n';
-							for (String packet : cr.getPacket(m.group(2), source)
-									.split("\\s+"))
-								newFile += prefix + packet + '\n';
-							isChanged = true;
-							State = 0;
-						}
-						break;
-					} else if (line.matches("\\s*apt:.*")) {
-						newFile += "  apt: deb={{ item }}" + '\n'
-								+ "  with_items:" + '\n';
-						State = 4;
-					} else
-						newFile += line + '\n';
-					break;
-				case 2:
-					if (line.matches("-\\s*name.*")) {
-						// next task
-						State = 1;
-						newFile += line + '\n';
-					} else if (line.matches("\\s*with_items:\\s*")) {
-						State = 3;
-						newFile += line + '\n';
-					}
-					break;
-				case 3:
-					if (line.matches("-\\s*name.*")) {
-						// next task
-						State = 1;
-						newFile += line + '\n';
-					} else {
-						String[] words = line.split("\\s+");
-						int i = 0;
-						if (words.length > 0) {
-							if (words[0].equals(""))
-								i = 1;
-							if (words.length == 2 + i && words[i].equals("-")) {
-								for (String packet : cr.getPacket(words[i + 1], source)
-										.split("\\s+"))
-									newFile += prefix + packet + '\n'; // TOCHECK
-								isChanged = true;
-							} else
-								newFile += line + '\n';
-						} else
-							newFile += line + '\n';
-					}
-					break;
-				case 4:
-					if (line.matches("-\\s*name.*")) {
-						// next task
-						State = 1;
-						newFile += line + '\n';
-					} else if (line.matches("\\s*pkg:.*")) {
-						Pattern p = Pattern.compile("(\\s*pkg:)\\s*(\\w*)\\s*");
-						Matcher m = p.matcher(line);
-						if (m.find()) {
-							System.out.println("Found packet: " + m.group(2));
-							for (String packet : cr.getPacket(m.group(2), source)
-									.split("\\s+"))
-								newFile += prefix + packet + '\n';
-							State = 0;
-							isChanged = true;
-						}
-					} else if (line.matches("\\s*deb:.*")) {
-						Pattern p = Pattern.compile("(\\s*deb:)\\s*(\\w*)\\s*");
-						Matcher m = p.matcher(line);
-						if (m.find()) {
-							System.out.println("Found deb packet: "
-									+ m.group(2));
-							newFile += prefix + m.group(2) + '\n';
-							State = 0;
-						}
-					}
-					break;
-				}
-
-			}
-			break;
-		default:
-			break;
-
-		}
+		
 		br.close();
 		if (isChanged) {
 			// references found, need to replace file

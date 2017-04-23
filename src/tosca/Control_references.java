@@ -37,13 +37,13 @@ import java.util.Scanner;
 
 import javax.xml.bind.JAXBException;
 
-import tosca.Abstract.Resolving;
+import tosca.Abstract.Language;
 import tosca.xml_definitions.Service_Template;
 
 //unpack 
 /**
  * @author jery
- *
+ * 
  */
 public class Control_references {
 
@@ -59,8 +59,6 @@ public class Control_references {
 	// architecture of packages
 	private String architecture;
 
-	private Resolving resolving = Resolving.UNDEFINED;
-
 	// Metafile description
 	public MetaFile metaFile;
 
@@ -71,17 +69,7 @@ public class Control_references {
 	private Service_Template service_template;
 
 	public static final String ArchitectureFileName = "arch";
-	public static final String ResolvingFileName = "resolv";
 	public static final String Definitions = "Definitions/";
-
-	/**
-	 * Constructor
-	 */
-	public Control_references() {
-		metaFile = new MetaFile();
-		packet_handler = new Packet_Handler();
-		service_template = new Service_Template(this);
-	}
 
 	/**
 	 * Download and add packet to csar
@@ -92,8 +80,9 @@ public class Control_references {
 	 * @throws JAXBException
 	 * @throws IOException
 	 */
-	public String getPacket(String packet, String source) throws JAXBException, IOException {
-		return packet_handler.getPacket(packet, this, source);
+	public void getPacket(Language language, String packet, String source)
+			throws JAXBException, IOException {
+		packet_handler.getPacket(language, packet, source);
 	}
 
 	/**
@@ -108,7 +97,7 @@ public class Control_references {
 	 */
 	public void AddDependenciesScript(String reference, String packet)
 			throws JAXBException, IOException {
-		service_template.addDependencyToScript(this, reference, packet);
+		service_template.addDependencyToScript(reference, packet);
 	}
 
 	/**
@@ -121,9 +110,9 @@ public class Control_references {
 	 * @throws JAXBException
 	 * @throws IOException
 	 */
-	public void AddDependenciesPacket(String source, String target, String dependencyType)
-			throws JAXBException, IOException {
-		service_template.addDependencyToPacket(this, source, target, dependencyType);
+	public void AddDependenciesPacket(String source, String target,
+			String dependencyType) throws JAXBException, IOException {
+		service_template.addDependencyToPacket(source, target, dependencyType);
 	}
 
 	/**
@@ -137,7 +126,7 @@ public class Control_references {
 			IOException {
 		metaFile = new MetaFile();
 		init(filename);
-		packet_handler = new Packet_Handler();
+		packet_handler = new Packet_Handler(this);
 		service_template = new Service_Template(this);
 	}
 
@@ -155,7 +144,6 @@ public class Control_references {
 		CSAR = filename;
 		unpack();
 		readArchitecture();
-		readResolving();
 	}
 
 	/**
@@ -227,11 +215,6 @@ public class Control_references {
 		return architecture;
 	}
 
-	// Do we still need resolving method?
-	public Resolving getResolving() {
-		return resolving;
-	}
-
 	/**
 	 * reads Architecture from extracted data or from user input
 	 * 
@@ -274,53 +257,6 @@ public class Control_references {
 	}
 
 	/**
-	 * reads Architecture from extracted data or from user input
-	 * 
-	 * @throws IOException
-	 */
-	// no need to close user input
-	@SuppressWarnings("resource")
-	public void readResolving() throws IOException {
-		File resolv = new File(folder + Resolver.folder + ResolvingFileName);
-		BufferedReader br;
-		try {
-			br = new BufferedReader(new FileReader(resolv));
-			String line = br.readLine();
-			br.close();
-			if (line != null && !line.equals("")
-					&& Resolving.fromString(line) != Resolving.UNDEFINED)
-				resolving = Resolving.fromString(line);
-			else {
-				new File(folder + Resolver.folder + ResolvingFileName).delete();
-				throw new FileNotFoundException();
-			}
-
-		} catch (FileNotFoundException e) {
-			new File(folder + Resolver.folder).mkdir();
-			FileWriter bw = new FileWriter(resolv);
-			System.out.println("Please enter resolving method.");
-			System.out.println("Example: \n"
-					+ Resolving.toInt(Resolving.EXPANDING)
-					+ ") Replacement(default)\n"
-					+ Resolving.toInt(Resolving.ADDITION) + ") Addition");
-			System.out.print("resolving:");
-			String temp = new Scanner(System.in).nextLine();
-			try {
-				if (Resolving.fromInt(Integer.parseInt(temp)) != Resolving.UNDEFINED)
-					resolving = Resolving.fromInt(Integer.parseInt(temp));
-				else
-					resolving = Resolving.ADDITION;
-			} catch (NumberFormatException ex) {
-				resolving = Resolving.ADDITION;
-
-			}
-			bw.write(resolving.toString());
-			bw.close();
-		}
-		metaFile.addFileToMeta(Resolver.folder + ResolvingFileName, "text/txt");
-	}
-
-	/**
 	 * Set specific architecture
 	 * 
 	 * @param arch
@@ -342,28 +278,4 @@ public class Control_references {
 		bw.close();
 	}
 
-	/**
-	 * Set specific Resolving method
-	 * 
-	 * @param resolving
-	 * @throws IOException
-	 */
-	public void setResolving(Resolving resolving) throws IOException {
-		if (resolving == null)
-			throw new NullPointerException();
-		if (resolving == Resolving.UNDEFINED) {
-			System.out.println("wrong resolving");
-			return;
-		}
-
-		// delete old file
-		File fResolv = new File(folder + Resolver.folder + ResolvingFileName);
-		fResolv.delete();
-
-		// create new file
-		FileWriter bw = new FileWriter(fResolv);
-		bw.write(Resolving.toString(resolving));
-		bw.flush();
-		bw.close();
-	}
 }

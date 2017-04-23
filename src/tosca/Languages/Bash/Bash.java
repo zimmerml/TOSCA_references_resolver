@@ -20,10 +20,19 @@ package tosca.Languages.Bash;
  * #L%
  */
 
+import java.io.IOException;
 import java.util.LinkedList;
 
+import javax.xml.bind.JAXBException;
+
+import tosca.Control_references;
+import tosca.Utils;
 import tosca.Abstract.Language;
 import tosca.Abstract.PacketManager;
+import tosca.xml_definitions.RR_NodeType;
+import tosca.xml_definitions.RR_PackageArtifactTemplate;
+import tosca.xml_definitions.RR_ScriptArtifactTemplate;
+import tosca.xml_definitions.RR_TypeImplementation;
 
 /**
  * Script Language
@@ -37,13 +46,38 @@ public final class Bash extends Language {
 	 * Constructor list right extensions and creates package managers
 	 * 
 	 */
-	public Bash() {
+	public Bash(Control_references cr) {
+		this.cr = cr;
 		Name = "Bash";
 		extensions = new LinkedList<String>();
 		extensions.add(".sh");
 		extensions.add(".bash");
+		
+		created_packages = new LinkedList<String>();
 
 		packetManagers = new LinkedList<PacketManager>();
-		packetManagers.add(new PM_apt_get());
+		packetManagers.add(new PM_apt_get(this, cr));
+	}
+	
+	/* (non-Javadoc)
+	 * @see tosca.Abstract.Language#createTOSCA_Node(java.lang.String, java.lang.String)
+	 */
+	public String createTOSCA_Node(String packet, String source) throws IOException, JAXBException{
+		if(created_packages.contains(packet+"+"+source))
+			return packet;
+		created_packages.add(packet+"+"+source);
+		packet = getNodeName(packet, source);
+		RR_NodeType.createNodeType(cr, packet);
+		RR_ScriptArtifactTemplate.createScriptArtifact(cr, packet);
+		RR_PackageArtifactTemplate.createPackageArtifact(cr, packet);
+		RR_TypeImplementation.createNT_Impl(cr, packet);
+		return packet;
+	}
+	
+	/* (non-Javadoc)
+	 * @see tosca.Abstract.Language#getNodeName(java.lang.String, java.lang.String)
+	 */
+	public String getNodeName(String packet, String source){
+		return Utils.correctName(packet);
 	}
 }

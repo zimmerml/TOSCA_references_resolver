@@ -31,6 +31,7 @@ import javax.xml.bind.JAXBException;
 
 import tosca.Control_references;
 import tosca.Utils;
+import tosca.Abstract.Language;
 import tosca.Abstract.PacketManager;
 
 public final class PM_apt_get extends PacketManager {
@@ -41,7 +42,9 @@ public final class PM_apt_get extends PacketManager {
 	/**
 	 * Constructor
 	 */
-	public PM_apt_get() {
+	public PM_apt_get(Language language, Control_references cr) {
+		this.language = language;
+		this.cr = cr;
 	}
 
 	/*
@@ -70,30 +73,6 @@ public final class PM_apt_get extends PacketManager {
 			if (words[i].equals(""))
 				i = 1;
 			// look for apt-get
-			switch (cr.getResolving()) {
-			case EXPANDING:
-				if (words.length >= 1 + i && words[i].equals("apt-get")) {
-					// apt-get found
-					if (words.length >= 3 + i && words[1 + i].equals("install")) {
-						// replace "apt-get install" by "dpkg -i"
-						System.out.println("apt-get found:" + line);
-						isChanged = true;
-						for (int packet = 2 + i; packet < words.length; packet++) {
-							System.out.println("packet: " + words[packet]);
-							newFile += "dpkg -i ";
-							for (String p : cr.getPacket(words[packet], source).split(
-									"\\s+"))
-								newFile += prefix + p + " ";
-							newFile += "\n";
-						}
-					} else {
-						// comment apt-get
-						newFile += "#//References resolver//" + line + '\n';
-					}
-				} else
-					newFile += line + '\n';
-				break;
-			case ADDITION:
 				if (words.length >= 1 + i && words[i].equals("apt-get")) {
 					// apt-get found
 					if (words.length >= 3 + i && words[1 + i].equals("install")) {
@@ -103,16 +82,12 @@ public final class PM_apt_get extends PacketManager {
 						for (int packet = 2 + i; packet < words.length; packet++) {
 							System.out.println("packet: " + words[packet]);
 //							cr.AddDependenciesScript(source, words[packet]);
-							cr.getPacket(words[packet], source);
+							cr.getPacket(language, words[packet], source);
 						}
 					}
 					newFile += "#//References resolver//" + line + '\n';
 				} else
 					newFile += line + '\n';
-				break;
-			default:
-				break;
-			}
 		}
 		br.close();
 		if (isChanged) {

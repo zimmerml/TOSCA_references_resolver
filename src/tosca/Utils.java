@@ -62,7 +62,8 @@ public class Utils {
 		bw.close();
 	}
 	
-	static String correctName(String name){
-		return name.replace(':', '_').replace('+', 'p');
+	public static String correctName(String name){
+//		return name;
+		return name.replace('%', 'P').replace(':', '_').replace('+', 'p').replace('/', '_').replace('.', '_');
 	}
 }

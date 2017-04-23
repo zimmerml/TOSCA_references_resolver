@@ -39,7 +39,7 @@ import tosca.Control_references;
 /**
  * @author Yaroslav Template Implementation for packages
  */
-public class RR_TypeImplementation {
+public class RR_AnsibleTypeImplementation {
 	public static final String extension = "_Impl.tosca";
 
 	/**
@@ -53,10 +53,6 @@ public class RR_TypeImplementation {
 		public Import import_script;
 		@XmlElement(name = "tosca:Import", required = true)
 		public Import import_IA;
-		@XmlElement(name = "tosca:Import", required = true)
-		public Import import_package;
-		@XmlElement(name = "tosca:Import", required = true)
-		public Import import_DA;
 		@XmlElement(name = "tosca:NodeTypeImplementation", required = true)
 		public NodeTypeImplementation nodeTypeImplementation;
 
@@ -75,8 +71,6 @@ public class RR_TypeImplementation {
 			nodeTypeImplementation = new NodeTypeImplementation();
 			import_script = new Import(RR_ScriptArtifactType.Definitions.ArtifactType.targetNamespace,
 					RR_ScriptArtifactType.filename,"http://docs.oasis-open.org/tosca/ns/2011/12" );
-			import_package= new Import(RR_PackageArtifactType.Definitions.ArtifactType.targetNamespace,
-					RR_PackageArtifactType.filename,"http://docs.oasis-open.org/tosca/ns/2011/12" );
 			}
 
 		
@@ -84,9 +78,6 @@ public class RR_TypeImplementation {
 
 			@XmlElement(name = "tosca:ImplementationArtifacts", required = true)
 			public ImplementationArtifacts implementationArtifacts;
-			
-			@XmlElement(name = "tosca:DeploymentArtifacts", required = true)
-			public DeploymentArtifacts deploymentArtifacts;
 			
 			@XmlAttribute(name = "xmlns:ns0", required = true)
 			public static final String ns0 = RR_NodeType.Definitions.targetNamespace;
@@ -99,7 +90,6 @@ public class RR_TypeImplementation {
 
 			NodeTypeImplementation() {
 				implementationArtifacts = new ImplementationArtifacts();
-				deploymentArtifacts = new DeploymentArtifacts();
 			}
 
 			public static class ImplementationArtifacts {
@@ -131,32 +121,6 @@ public class RR_TypeImplementation {
 					}
 				}
 			}
-
-			public static class DeploymentArtifacts {
-
-				@XmlElement(name = "tosca:DeploymentArtifact", required = true)
-				public DeploymentArtifact deploymentArtifact;
-
-
-				DeploymentArtifacts() {
-					deploymentArtifact = new DeploymentArtifact();
-				}
-
-				public static class DeploymentArtifact{
-					@XmlAttribute(name = "xmlns:tbt", required = true)
-					public static final String tbt = RR_ScriptArtifactTemplate.Definitions.ArtifactTemplate.tbt;
-					@XmlAttribute(name = "xmlns:ns6", required = true)
-					public static final String ns6 = RR_ScriptArtifactType.Definitions.targetNamespace;
-					@XmlAttribute(name = "name", required = true)
-					public String name;
-					@XmlAttribute(name = "artifactType", required = true)
-					public static final String artifactType = "tbt:" + RR_PackageArtifactTemplate.Definitions.ArtifactTemplate.type;
-					@XmlAttribute(name = "artifactRef", required = true)
-					public String artifactRef;
-					DeploymentArtifact() {
-					}
-				}
-			}
 		}
 	}
 
@@ -167,7 +131,7 @@ public class RR_TypeImplementation {
 	 */
 	public static void createNT_Impl(Control_references cr,String packet)
 			throws IOException, JAXBException {
-		System.out.println("creating Implementation");
+		System.out.println("creating ansible Implementation");
 
 		File temp = new File(cr.getFolder() + Control_references.Definitions + getFileName(packet));
 		if (temp.exists())
@@ -181,14 +145,10 @@ public class RR_TypeImplementation {
 		template.id = "winery-defs-for_" + getTypeName(packet);
 		template.import_IA = new Import(RR_ScriptArtifactTemplate.Definitions.targetNamespace,
 				RR_ScriptArtifactTemplate.getFileName(packet),"http://docs.oasis-open.org/tosca/ns/2011/12" );
-		template.import_DA = new Import(RR_PackageArtifactTemplate.Definitions.targetNamespace,
-				RR_PackageArtifactTemplate.getFileName(packet),"http://docs.oasis-open.org/tosca/ns/2011/12" );
 		template.nodeTypeImplementation.name = getTypeName(packet);
 		template.nodeTypeImplementation.nodeType = "ns0:" + RR_NodeType.getTypeName(packet);
-		template.nodeTypeImplementation.implementationArtifacts.implementationArtifact.name = RR_ScriptArtifactTemplate.getIAName(packet);
-		template.nodeTypeImplementation.implementationArtifacts.implementationArtifact.artifactRef = "ns6:" + RR_ScriptArtifactTemplate.getIAName(packet);
-		template.nodeTypeImplementation.deploymentArtifacts.deploymentArtifact.name = RR_PackageArtifactTemplate.getID(packet);
-		template.nodeTypeImplementation.deploymentArtifacts.deploymentArtifact.artifactRef = "ns6:" + RR_PackageArtifactTemplate.getID(packet);
+		template.nodeTypeImplementation.implementationArtifacts.implementationArtifact.name = RR_AnsibleArtifactTemplate.getIAName(packet);
+		template.nodeTypeImplementation.implementationArtifacts.implementationArtifact.artifactRef = "ns6:" + RR_AnsibleArtifactTemplate.getIAName(packet);
 		Marshaller marshaller = jc.createMarshaller();
 		marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
 		marshaller.marshal(template, output);
