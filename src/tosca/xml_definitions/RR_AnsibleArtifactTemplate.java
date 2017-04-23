@@ -139,7 +139,7 @@ public class RR_AnsibleArtifactTemplate {
 	 * @throws IOException
 	 * @throws JAXBException
 	 */
-	public static void createScriptArtifact(Control_references cr, String packet, String artifact)
+	public static void createAnsibleArtifact(Control_references cr, String packet, String artifact)
 			throws IOException, JAXBException {
 		System.out.println("creating Ansible Template " );
 

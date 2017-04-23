@@ -43,15 +43,12 @@ import tosca.Abstract.PacketManager;
 import tosca.xml_definitions.RR_AnsibleArtifactTemplate;
 import tosca.xml_definitions.RR_AnsibleTypeImplementation;
 import tosca.xml_definitions.RR_NodeType;
-import tosca.xml_definitions.RR_PackageArtifactTemplate;
-import tosca.xml_definitions.RR_ScriptArtifactTemplate;
-import tosca.xml_definitions.RR_TypeImplementation;
 
 public class Ansible extends Language {
-	
-	private HashMap<String,Ansible_setup> ansible_setup;
-	
-	public static class Ansible_setup{
+
+	private HashMap<String, Ansible_setup> ansible_setup;
+
+	public static class Ansible_setup {
 		String config;
 		String hosts;
 		String connection;
@@ -62,17 +59,18 @@ public class Ansible extends Language {
 	 * Constructor list right extensions and creates package managers
 	 * 
 	 */
-	public Ansible() {
+	public Ansible(Control_references cr) {
+		this.cr = cr;
 		Name = "Ansible";
 		extensions = new LinkedList<String>();
 		extensions.add(".zip");
 		extensions.add(".yml");
-		
-		ansible_setup = new HashMap<String,Ansible_setup>();
-		created_packages = new LinkedList <String>();
+
+		ansible_setup = new HashMap<String, Ansible_setup>();
+		created_packages = new LinkedList<String>();
 
 		packetManagers = new LinkedList<PacketManager>();
-		packetManagers.add(new Apt(this));
+		packetManagers.add(new Apt(this, cr));
 	}
 
 	/*
@@ -82,29 +80,16 @@ public class Ansible extends Language {
 	 * @see tosca.Abstract.Language#proceed(tosca.Control_references)
 	 */
 	public void proceed(Control_references cr) throws FileNotFoundException,
-			IOException, JAXBException {
+	IOException, JAXBException {
 		if (cr == null)
 			throw new NullPointerException();
 		for (String f : cr.getFiles())
 			for (String suf : extensions)
 				if (f.toLowerCase().endsWith(suf.toLowerCase())) {
 					if (suf.equals(".zip")) {
-						boolean isChanged = false;
-						// String filename = new File(f).getName();
-						String folder = new File(cr.getFolder() + f).getParent()
-								+ File.separator+ "temp_RR_ansible_folder" + File.separator;
-						List<String> files = zip.unZipIt(cr.getFolder() + f,
-								folder);
-						for (String file : files)
-							if (file.toLowerCase().endsWith("yml"))
-								proceed(folder + file, cr, f);
-						if (isChanged) {
-							new File(cr.getFolder() + f).delete();
-							zip.zipIt(cr.getFolder() + f, folder);
-						}
-						zip.delete(new File(folder));
+						proceedZIP(f);
 					} else
-						proceed(f, cr, f);
+						proceed(f, f);
 				}
 	}
 
@@ -119,26 +104,59 @@ public class Ansible extends Language {
 	 * @throws IOException
 	 * @throws JAXBException
 	 */
-	public void proceed(String filename, Control_references cr, String source)
+	public void proceed(String filename, String source)
 			throws FileNotFoundException, IOException, JAXBException {
 		for (PacketManager pm : packetManagers)
 			pm.proceed(filename, cr, source);
 	}
 
+	/**
+	 * Handle ZIP package
+	 * 
+	 * @param zipfile
+	 * @throws FileNotFoundException
+	 * @throws IOException
+	 * @throws JAXBException
+	 */
+	private void proceedZIP(String zipfile) throws FileNotFoundException,
+	IOException, JAXBException {
+		boolean isChanged = false;
+		// String filename = new File(f).getName();
+		String folder = new File(cr.getFolder() + zipfile).getParent()
+				+ File.separator + "temp_RR_ansible_folder" + File.separator;
+		List<String> files = zip.unZipIt(cr.getFolder() + zipfile, folder);
+		for (String file : files)
+			if (file.toLowerCase().endsWith("yml"))
+				proceed(folder + file, zipfile);
+		if (isChanged) {
+			new File(cr.getFolder() + zipfile).delete();
+			zip.zipIt(cr.getFolder() + zipfile, folder);
+		}
+		zip.delete(new File(folder));
+
+	}
+
+	/**
+	 * Create Ansible setup to generate own ansible packages
+	 * 
+	 * @param source
+	 * @throws IOException
+	 */
 	@SuppressWarnings("resource")
-	private void create_ansible_setup(String source) throws IOException{
+	private void create_ansible_setup(String source) throws IOException {
 		Ansible_setup setup = new Ansible_setup();
 		setup.config = "";
-		//i hope that everything what needed for ansible - correct config file.
-		if(source.endsWith(".zip")){
-			String config = source.substring(0,source.length()-4) + File.separator + "ansible.cfg";
-			if(! new File(config).exists()){
+		// i hope that everything what needed for ansible - correct config file.
+		if (source.endsWith(".zip")) {
+			String config = source.substring(0, source.length() - 4)
+					+ File.separator + "ansible.cfg";
+			if (!new File(config).exists()) {
 				throw new FileNotFoundException(config + " not found");
 			}
 			List<String> lines = Files.readAllLines(Paths.get(config));
-			for(String s: lines) {
-				setup.config+=(s)+"\r";
-		    }
+			for (String s : lines) {
+				setup.config += (s) + "\r";
+			}
 		}
 		System.out.println("Please, entrer hosts for " + source);
 		setup.hosts = new Scanner(System.in).nextLine();
@@ -146,54 +164,65 @@ public class Ansible extends Language {
 		setup.connection = new Scanner(System.in).nextLine();
 		System.out.println("Please, entrer become for " + source);
 		setup.become = new Scanner(System.in).nextLine();
-		ansible_setup.put(source,setup);
+		ansible_setup.put(source, setup);
 	}
 
-	public String createTOSCA_Node(Control_references cr, String packet, String source) throws IOException, JAXBException{
+	public String createTOSCA_Node(String packet, String source)
+			throws IOException, JAXBException {
 
-		String artifact_name = getNodeName(packet, source) ;
-		if(created_packages.contains(packet+"+"+source))
+		String artifact_name = getNodeName(packet, source);
+		if (created_packages.contains(packet + "+" + source))
 			return artifact_name;
-		created_packages.add(packet+"+"+source);
-		if(!ansible_setup.containsKey(source))
+		created_packages.add(packet + "+" + source);
+		if (!ansible_setup.containsKey(source))
 			create_ansible_setup(source);
 		Ansible_setup setup = ansible_setup.get(source);
 		String file = Resolver.folder + packet + File.separator + artifact_name;
-		String folder = cr.getFolder() + file + "_temp"+ File.separator;
+		String folder = cr.getFolder() + file + "_temp" + File.separator;
 		new File(folder).mkdir();
-		
-		FileWriter file_writer = new FileWriter(new File(folder + "ansible.cfg"));
+
+		FileWriter file_writer = new FileWriter(
+				new File(folder + "ansible.cfg"));
 		file_writer.write(setup.config);
 		file_writer.flush();
 		file_writer.close();
-		
+
 		file_writer = new FileWriter(new File(folder + "main.yml"));
 		file_writer.write("- name: install package\r");
-		if(!setup.hosts.equals(""))
-			file_writer.write("  hosts: "+setup.hosts + "\r");
-		if(!setup.connection.equals(""))
-			file_writer.write("  connection: "+setup.connection + "\r");
-		if(!setup.become.equals(""))
-			file_writer.write("  become: "+setup.become + "\r");
-		file_writer.write("  tasks:\r    - name: install task\r      command: dpkg -i " + packet + Packet_Handler.Extension + "\r");
+		if (!setup.hosts.equals(""))
+			file_writer.write("  hosts: " + setup.hosts + "\r");
+		if (!setup.connection.equals(""))
+			file_writer.write("  connection: " + setup.connection + "\r");
+		if (!setup.become.equals(""))
+			file_writer.write("  become: " + setup.become + "\r");
+		file_writer
+		.write("  tasks:\r    - name: install task\r      command: dpkg -i "
+				+ packet + Packet_Handler.Extension + "\r");
 		file_writer.flush();
 		file_writer.close();
-		
+
 		new File(folder + "files").mkdir();
-		Files.copy(Paths.get(cr.getFolder() + Resolver.folder + packet + File.separator + packet + Packet_Handler.Extension),
-				Paths.get(folder + "files" + File.separator + packet + Packet_Handler.Extension));
-		
+		Files.copy(
+				Paths.get(cr.getFolder() + Resolver.folder + packet
+						+ File.separator + packet + Packet_Handler.Extension),
+						Paths.get(folder + "files" + File.separator + packet
+								+ Packet_Handler.Extension));
+
 		zip.zipIt(cr.getFolder() + file, folder);
 		zip.delete(new File(folder));
-		cr.metaFile.addFileToMeta(Resolver.folder + "ansible_properties.xsd", "text/xml");
-		
+		cr.metaFile.addFileToMeta(Resolver.folder + "ansible_properties.xsd",
+				"text/xml");
+
 		RR_NodeType.createNodeType(cr, artifact_name);
-		RR_AnsibleArtifactTemplate.createScriptArtifact(cr, artifact_name, file);
+		RR_AnsibleArtifactTemplate
+		.createAnsibleArtifact(cr, artifact_name, file);
 		RR_AnsibleTypeImplementation.createNT_Impl(cr, artifact_name);
 		return artifact_name;
 	}
-	public String getNodeName(String packet, String source){
-		return Name + "_" + packet + "_" + Utils.correctName(source.replace("/","_"));
+
+	public String getNodeName(String packet, String source) {
+		return Utils.correctName(Name + "_" + packet + "_"
+				+ source.replace("/", "_"));
 	}
 
 }

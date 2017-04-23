@@ -39,7 +39,12 @@ public abstract class Language {
 	// Language Name
 	protected String Name;
 
+	// To access package topology
+	protected Control_references cr;
+
+	// List with already created packages
 	protected List <String> created_packages;
+	
 	/**
 	 * get Language name
 	 * 
@@ -78,7 +83,20 @@ public abstract class Language {
 						pm.proceed(cr.getFolder() + f, cr, f);
 	}
 
+	/**	Generate node name for specific packages
+	 * @param packet
+	 * @param source
+	 * @return
+	 */
 	public abstract String getNodeName(String packet, String source);
 	
-	public abstract String createTOSCA_Node(Control_references cr, String packet, String source) throws IOException, JAXBException;
+	
+	/**	Generate Node for TOSCA Topology
+	 * @param packet
+	 * @param source
+	 * @return
+	 * @throws IOException
+	 * @throws JAXBException
+	 */
+	public abstract String createTOSCA_Node(String packet, String source) throws IOException, JAXBException;
 }

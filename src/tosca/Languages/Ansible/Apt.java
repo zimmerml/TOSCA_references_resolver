@@ -41,8 +41,9 @@ public class Apt extends PacketManager {
 	// package manager name
 	static public final String Name = "apt";
 
-	public Apt(Language language) {
+	public Apt(Language language, Control_references cr) {
 		this.language = language;
+		this.cr = cr;
 	}
 	/*
 	 * (non-Javadoc)
@@ -97,7 +98,6 @@ public class Apt extends PacketManager {
 						if (m.find()) {
 							System.out.println("Found packet: " + m.group(2));
 							newFile += "#//References resolver//" + line + '\n';
-//							cr.AddDependenciesScript(source, m.group(2));
 							cr.getPacket(language, m.group(2), source);
 							isChanged = true;
 							State = 0;
@@ -150,7 +150,6 @@ public class Apt extends PacketManager {
 						Matcher m = p.matcher(line);
 						if (m.find()) {
 							System.out.println("Found packet: " + m.group(2));
-//							cr.AddDependenciesScript(source, m.group(2));
 							cr.getPacket(language, m.group(2), source);
 							newFile += "#//References resolver//" + line + '\n';
 							isChanged = true;

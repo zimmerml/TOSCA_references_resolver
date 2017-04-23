@@ -43,7 +43,7 @@ import tosca.xml_definitions.Service_Template;
 //unpack 
 /**
  * @author jery
- *
+ * 
  */
 public class Control_references {
 
@@ -59,7 +59,6 @@ public class Control_references {
 	// architecture of packages
 	private String architecture;
 
-
 	// Metafile description
 	public MetaFile metaFile;
 
@@ -70,17 +69,7 @@ public class Control_references {
 	private Service_Template service_template;
 
 	public static final String ArchitectureFileName = "arch";
-	public static final String ResolvingFileName = "resolv";
 	public static final String Definitions = "Definitions/";
-
-	/**
-	 * Constructor
-	 */
-	public Control_references() {
-		metaFile = new MetaFile();
-		packet_handler = new Packet_Handler(this);
-		service_template = new Service_Template(this);
-	}
 
 	/**
 	 * Download and add packet to csar
@@ -91,8 +80,9 @@ public class Control_references {
 	 * @throws JAXBException
 	 * @throws IOException
 	 */
-	public String getPacket(Language language, String packet, String source) throws JAXBException, IOException {
-		return packet_handler.getPacket(language,packet, source);
+	public void getPacket(Language language, String packet, String source)
+			throws JAXBException, IOException {
+		packet_handler.getPacket(language, packet, source);
 	}
 
 	/**
@@ -107,7 +97,7 @@ public class Control_references {
 	 */
 	public void AddDependenciesScript(String reference, String packet)
 			throws JAXBException, IOException {
-		service_template.addDependencyToScript(this, reference, packet);
+		service_template.addDependencyToScript(reference, packet);
 	}
 
 	/**
@@ -120,9 +110,9 @@ public class Control_references {
 	 * @throws JAXBException
 	 * @throws IOException
 	 */
-	public void AddDependenciesPacket(String source, String target, String dependencyType)
-			throws JAXBException, IOException {
-		service_template.addDependencyToPacket(this, source, target, dependencyType);
+	public void AddDependenciesPacket(String source, String target,
+			String dependencyType) throws JAXBException, IOException {
+		service_template.addDependencyToPacket(source, target, dependencyType);
 	}
 
 	/**
@@ -225,7 +215,6 @@ public class Control_references {
 		return architecture;
 	}
 
-
 	/**
 	 * reads Architecture from extracted data or from user input
 	 * 
@@ -266,7 +255,6 @@ public class Control_references {
 		metaFile.addFileToMeta(Resolver.folder + ArchitectureFileName,
 				"text/txt");
 	}
-
 
 	/**
 	 * Set specific architecture

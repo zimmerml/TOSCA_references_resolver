@@ -42,8 +42,9 @@ public final class PM_apt_get extends PacketManager {
 	/**
 	 * Constructor
 	 */
-	public PM_apt_get(Language language) {
+	public PM_apt_get(Language language, Control_references cr) {
 		this.language = language;
+		this.cr = cr;
 	}
 
 	/*

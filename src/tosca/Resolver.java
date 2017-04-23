@@ -59,10 +59,7 @@ public class Resolver {
 	 */
 	public static void main(String[] args) throws IOException {
 		String source, target;
-		Bash bash = new Bash();
-		Ansible ansible = new Ansible();
-		Resolver resolver = new Resolver(ansible);
-		resolver.addLanguage(bash);
+		Resolver resolver = new Resolver();
 		if (args.length >= 1)
 			source = args[0];
 		else {
@@ -88,25 +85,7 @@ public class Resolver {
 	 * Constructor
 	 */
 	public Resolver() {
-	}
-
-	/**
-	 * Construct resolver and assign one language
-	 * 
-	 * @param newLanguage
-	 */
-	public Resolver(Language newLanguage) {
-		setLanguage(newLanguage);
-	}
-
-	/**
-	 * COnstruct resolver and assign list with languages
-	 * 
-	 * @param newLanguages
-	 *            , list with languages
-	 */
-	public Resolver(List<Language> newLanguages) {
-		setLanguages(newLanguages);
+		languages = new LinkedList<Language>();
 	}
 
 	/**
@@ -127,6 +106,10 @@ public class Resolver {
 		try {
 			// create CSAR manager and unpack archive
 			cr = new Control_references(filename);
+			
+			//init Languages
+			languages.add(new Ansible(cr));
+			languages.add(new Bash(cr));
 			/*
 			 * TODO Node type. done Artifact Type for package. done Relationship
 			 * Type for dependencies change service template
@@ -163,60 +146,5 @@ public class Resolver {
 			System.out.println("File: not found during packing to: " + output);
 			return;
 		}
-	}
-
-	/**
-	 * Set new Languages
-	 * 
-	 * @param newLanguages
-	 */
-	public void setLanguages(List<Language> newLanguages) {
-		if (newLanguages == null)
-			throw new NullPointerException();
-		for (Language l : newLanguages)
-			System.out
-					.println("Language " + l.getName() + " added to resolver");
-		languages = newLanguages;
-	}
-
-	/**
-	 * Add new Languages
-	 * 
-	 * @param newLanguages
-	 */
-	public void addLanguages(List<Language> newLanguages) {
-		if (newLanguages == null)
-			throw new NullPointerException();
-		for (Language l : newLanguages)
-			System.out
-					.println("Language " + l.getName() + " added to resolver");
-		languages.addAll(newLanguages);
-	}
-
-	/**
-	 * Set new Language
-	 * 
-	 * @param newLanguage
-	 */
-	public void setLanguage(Language newLanguage) {
-		if (newLanguage == null)
-			throw new NullPointerException();
-		languages = new LinkedList<Language>();
-		languages.add(newLanguage);
-		System.out.println("Language " + newLanguage.getName()
-				+ " added to resolver");
-	}
-
-	/**
-	 * Add new Language
-	 * 
-	 * @param newLanguage
-	 */
-	public void addLanguage(Language newLanguage) {
-		if (newLanguage == null)
-			throw new NullPointerException();
-		languages.add(newLanguage);
-		System.out.println("Language " + newLanguage.getName()
-				+ " added to resolver");
 	}
 }

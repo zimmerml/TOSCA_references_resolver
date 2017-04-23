@@ -39,6 +39,8 @@ public abstract class PacketManager {
 	static public String Name;
 
 	protected Language language;
+	
+	protected Control_references cr;
 	/**
 	 * Proceed given file
 	 * 

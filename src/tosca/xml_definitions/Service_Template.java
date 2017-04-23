@@ -68,15 +68,11 @@ public class Service_Template {
 	// Reference from Script position to Node Type
 	HashMap<String, List<String>> RefToNodeType;
 
+	Control_references cr;
+
 	/**
 	 * simple Constructor
 	 */
-	public Service_Template() {
-		RefToArtID = new HashMap<String, List<String>>();
-		RefToNodeType = new HashMap<String, List<String>>();
-		NodeTypeToServiceTemplate = new HashMap<String, List<String>>();
-	}
-
 	/**
 	 * Constructor with initialization
 	 * 
@@ -96,6 +92,8 @@ public class Service_Template {
 	 * @param cr
 	 */
 	public void init(Control_references cr) {
+
+		this.cr = cr;
 
 		NodeTypeToServiceTemplate.clear();
 		RefToArtID.clear();
@@ -139,10 +137,11 @@ public class Service_Template {
 	 * @param target_packet
 	 *            packet to be created
 	 * @param dependencyType
-	 * @throws UnsupportedEncodingException 
+	 * @throws UnsupportedEncodingException
 	 */
-	public void addDependencyToPacket(Control_references cr,
-			String source_packet, String target_packet, String dependencyType) throws UnsupportedEncodingException {
+	public void addDependencyToPacket(String source_packet,
+			String target_packet, String dependencyType)
+			throws UnsupportedEncodingException {
 		source_packet = encode(source_packet);
 		target_packet = encode(target_packet);
 		for (String filename : NodeTypeToServiceTemplate.get(source_packet)) {
@@ -235,10 +234,10 @@ public class Service_Template {
 	 *            script position
 	 * @param target_packet
 	 *            packet to be added
-	 * @throws UnsupportedEncodingException 
+	 * @throws UnsupportedEncodingException
 	 */
-	public void addDependencyToScript(Control_references cr,
-			String script_filename, String target_packet) throws UnsupportedEncodingException {
+	public void addDependencyToScript(String script_filename,
+			String target_packet) throws UnsupportedEncodingException {
 		List<String> files = getServiceTemplatesFromRef(script_filename);
 		target_packet = encode(target_packet);
 		for (String filename : files) {
@@ -308,17 +307,18 @@ public class Service_Template {
 	 * @param packet
 	 *            packet name
 	 * @return ID
-	 * @throws UnsupportedEncodingException 
+	 * @throws UnsupportedEncodingException
 	 */
-	private String getID(String packet){
+	private String getID(String packet) {
 		return RR_NodeType.getTypeName(packet);// +
-																	// "_template";
-	}
-	
-	public static String encode(String packet)throws UnsupportedEncodingException {
-		return java.net.URLEncoder.encode(packet,"UTF-8");// +
 		// "_template";
-}
+	}
+
+	public static String encode(String packet)
+			throws UnsupportedEncodingException {
+		return java.net.URLEncoder.encode(packet, "UTF-8");// +
+		// "_template";
+	}
 
 	/**
 	 * Creates NodeTemplate
@@ -329,7 +329,7 @@ public class Service_Template {
 	 *            Node Containing Topology of Service Template
 	 * @param packet
 	 *            packet name
-	 * @throws UnsupportedEncodingException 
+	 * @throws UnsupportedEncodingException
 	 */
 	private void createPacketTemplate(Document document, Node topology,
 			String packet) throws UnsupportedEncodingException {
@@ -381,11 +381,16 @@ public class Service_Template {
 		relation.setAttribute("id", sourceID + "_" + targetID);
 		relation.setAttribute("name", sourceID + "_needs_" + targetID);
 		if (type.equals(RR_DependsOn.Name)) {
-			relation.setAttribute("xmlns:RRrt",RR_DependsOn.Definitions.RelationshipType.targetNamespace);
-			relation.setAttribute("type", "RRrt:"+ RR_DependsOn.Definitions.RelationshipType.name);
+			relation.setAttribute("xmlns:RRrt",
+					RR_DependsOn.Definitions.RelationshipType.targetNamespace);
+			relation.setAttribute("type", "RRrt:"
+					+ RR_DependsOn.Definitions.RelationshipType.name);
 		} else if (type.equals(RR_PreDependsOn.Name)) {
-			relation.setAttribute("xmlns:RRrt", RR_PreDependsOn.Definitions.RelationshipType.targetNamespace);
-			relation.setAttribute("type", "RRrt:"+ RR_PreDependsOn.Definitions.RelationshipType.name);
+			relation.setAttribute(
+					"xmlns:RRrt",
+					RR_PreDependsOn.Definitions.RelationshipType.targetNamespace);
+			relation.setAttribute("type", "RRrt:"
+					+ RR_PreDependsOn.Definitions.RelationshipType.name);
 		}
 		topology.appendChild(relation);
 		Element sourceElement = document.createElement(myPrefix
@@ -438,7 +443,8 @@ public class Service_Template {
 		}
 		NodeList nodes = document.getElementsByTagName("RR_tosca_ns:Import");
 		for (int i = 0; i < nodes.getLength(); i++)
-			if (((Element) (nodes.item(i))).getAttribute("location").equals(RR_NodeType.getFileName(packet)))
+			if (((Element) (nodes.item(i))).getAttribute("location").equals(
+					RR_NodeType.getFileName(packet)))
 				return;
 		tImport = document.createElement("RR_tosca_ns:Import");
 		tImport.setAttribute("importType",
@@ -489,14 +495,15 @@ public class Service_Template {
 											.getNodeType() == Node.ELEMENT_NODE) {
 										Element ref = (Element) ArtifactReferenceList
 												.item(j);
-										String REF = Utils.correctName(java.net.URLDecoder
-												.decode(ref
-														.getAttribute("reference"),
+										String REF = Utils
+												.correctName(java.net.URLDecoder.decode(
+														ref.getAttribute("reference"),
 														"UTF-8"));
 										if (!RefToArtID.containsKey(REF))
 											RefToArtID.put(REF,
 													new LinkedList<String>());
-										RefToArtID.get(REF).add(Utils.correctName(ID));
+										RefToArtID.get(REF).add(
+												Utils.correctName(ID));
 									}
 								}
 							}
