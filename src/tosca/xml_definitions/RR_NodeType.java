@@ -50,7 +50,7 @@ public class RR_NodeType {
 	public static class Definitions {
 
 		@XmlElement(name = "tosca:Import", required = true)
-		public Import import_impl;
+		public RR_Import import_impl;
 		
 		@XmlElement(name = "tosca:NodeType", required = true)
 		public NodeType nodeType;
@@ -137,7 +137,7 @@ public class RR_NodeType {
 
 
 		shema.id = "winery-defs-for_" + getTypeName(packet);
-		shema.import_impl = new Import("http://opentosca.org/nodetypeimplementations",
+		shema.import_impl = new RR_Import("http://opentosca.org/nodetypeimplementations",
 				RR_TypeImplementation.getFileName(packet), "http://docs.oasis-open.org/tosca/ns/2011/12");
 		shema.nodeType.name = getTypeName(packet);
 		

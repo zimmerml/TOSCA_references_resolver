@@ -41,19 +41,6 @@ public abstract class PacketManager {
 	protected Language language;
 	
 	protected Control_references cr;
-	/**
-	 * Proceed given file
-	 * 
-	 * @param filename
-	 *            file to proceed
-	 * @param cr
-	 *            CSAR manager
-	 * @throws FileNotFoundException
-	 * @throws IOExceptions
-	 * @throws JAXBException
-	 */
-	public abstract void proceed(String filename, Control_references cr)
-			throws FileNotFoundException, IOException, JAXBException;
 
 	/**
 	 * Proceed given file with different source (like archive)
@@ -65,7 +52,6 @@ public abstract class PacketManager {
 	 * @throws IOException
 	 * @throws JAXBException
 	 */
-	public abstract void proceed(String filename, Control_references cr,
-			String source) throws FileNotFoundException, IOException,
+	public abstract void proceed(String filename, String source) throws FileNotFoundException, IOException,
 			JAXBException;
 }

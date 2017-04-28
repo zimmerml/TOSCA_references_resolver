@@ -52,7 +52,7 @@ public class RR_PackageArtifactTemplate {
 	public static class Definitions {
 
 		@XmlElement(name = "tosca:Import", required = true)
-		public Import tImport;
+		public RR_Import tImport;
 		@XmlElement(name = "tosca:ArtifactTemplate", required = true)
 		public ArtifactTemplate artifactTemplate;
 
@@ -69,7 +69,7 @@ public class RR_PackageArtifactTemplate {
 
 		public Definitions() {
 			artifactTemplate = new ArtifactTemplate();
-			tImport = new Import(RR_PackageArtifactType.Definitions.ArtifactType.targetNamespace,
+			tImport = new RR_Import(RR_PackageArtifactType.Definitions.ArtifactType.targetNamespace,
 					RR_PackageArtifactType.filename, "http://docs.oasis-open.org/tosca/ns/2011/12");
 		}
 

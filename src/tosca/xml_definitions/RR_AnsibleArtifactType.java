@@ -48,7 +48,7 @@ public class RR_AnsibleArtifactType {
 	public static class Definitions {
 
 		@XmlElement(name = "tosca:Import", required = true)
-		public static final Import import_impl = new Import("http://opentosca.org/artifacttypes/propertiesdefinition/winery",
+		public static final RR_Import import_impl = new RR_Import("http://opentosca.org/artifacttypes/propertiesdefinition/winery",
 				Resolver.folder + "ansible_properties.xsd", "http://www.w3.org/2001/XMLSchema");
 		
 		@XmlElement(name = "tosca:ArtifactType", required = true)

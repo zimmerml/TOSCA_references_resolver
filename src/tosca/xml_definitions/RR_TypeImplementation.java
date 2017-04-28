@@ -50,13 +50,13 @@ public class RR_TypeImplementation {
 	public static class Definitions {
 
 		@XmlElement(name = "tosca:Import", required = true)
-		public Import import_script;
+		public RR_Import import_script;
 		@XmlElement(name = "tosca:Import", required = true)
-		public Import import_IA;
+		public RR_Import import_IA;
 		@XmlElement(name = "tosca:Import", required = true)
-		public Import import_package;
+		public RR_Import import_package;
 		@XmlElement(name = "tosca:Import", required = true)
-		public Import import_DA;
+		public RR_Import import_DA;
 		@XmlElement(name = "tosca:NodeTypeImplementation", required = true)
 		public NodeTypeImplementation nodeTypeImplementation;
 
@@ -73,9 +73,9 @@ public class RR_TypeImplementation {
 		
 		public Definitions() {
 			nodeTypeImplementation = new NodeTypeImplementation();
-			import_script = new Import(RR_ScriptArtifactType.Definitions.ArtifactType.targetNamespace,
+			import_script = new RR_Import(RR_ScriptArtifactType.Definitions.ArtifactType.targetNamespace,
 					RR_ScriptArtifactType.filename,"http://docs.oasis-open.org/tosca/ns/2011/12" );
-			import_package= new Import(RR_PackageArtifactType.Definitions.ArtifactType.targetNamespace,
+			import_package= new RR_Import(RR_PackageArtifactType.Definitions.ArtifactType.targetNamespace,
 					RR_PackageArtifactType.filename,"http://docs.oasis-open.org/tosca/ns/2011/12" );
 			}
 
@@ -179,9 +179,9 @@ public class RR_TypeImplementation {
 
 		Definitions template = new Definitions();
 		template.id = "winery-defs-for_" + getTypeName(packet);
-		template.import_IA = new Import(RR_ScriptArtifactTemplate.Definitions.targetNamespace,
+		template.import_IA = new RR_Import(RR_ScriptArtifactTemplate.Definitions.targetNamespace,
 				RR_ScriptArtifactTemplate.getFileName(packet),"http://docs.oasis-open.org/tosca/ns/2011/12" );
-		template.import_DA = new Import(RR_PackageArtifactTemplate.Definitions.targetNamespace,
+		template.import_DA = new RR_Import(RR_PackageArtifactTemplate.Definitions.targetNamespace,
 				RR_PackageArtifactTemplate.getFileName(packet),"http://docs.oasis-open.org/tosca/ns/2011/12" );
 		template.nodeTypeImplementation.name = getTypeName(packet);
 		template.nodeTypeImplementation.nodeType = "ns0:" + RR_NodeType.getTypeName(packet);

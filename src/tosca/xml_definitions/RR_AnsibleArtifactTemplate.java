@@ -50,7 +50,7 @@ public class RR_AnsibleArtifactTemplate {
 	public static class Definitions {
 
 		@XmlElement(name = "tosca:Import", required = true)
-		public Import tImport;
+		public RR_Import tImport;
 		@XmlElement(name = "tosca:ArtifactTemplate", required = true)
 		public ArtifactTemplate artifactTemplate;
 
@@ -67,7 +67,7 @@ public class RR_AnsibleArtifactTemplate {
 		
 		public Definitions() {
 			artifactTemplate = new ArtifactTemplate();
-			tImport = new Import(RR_AnsibleArtifactType.Definitions.ArtifactType.targetNamespace,
+			tImport = new RR_Import(RR_AnsibleArtifactType.Definitions.ArtifactType.targetNamespace,
 					RR_AnsibleArtifactType.filename,"http://docs.oasis-open.org/tosca/ns/2011/12" );
 		}
 
