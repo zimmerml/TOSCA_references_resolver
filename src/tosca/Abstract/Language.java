@@ -80,7 +80,7 @@ public abstract class Language {
 			for (String suf : extensions)
 				if (f.toLowerCase().endsWith(suf.toLowerCase()))
 					for (PacketManager pm : packetManagers)
-						pm.proceed(cr.getFolder() + f, cr, f);
+						pm.proceed(cr.getFolder() + f, f);
 	}
 
 	/**	Generate node name for specific packages

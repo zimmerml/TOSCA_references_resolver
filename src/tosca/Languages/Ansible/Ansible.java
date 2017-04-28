@@ -107,7 +107,7 @@ public class Ansible extends Language {
 	public void proceed(String filename, String source)
 			throws FileNotFoundException, IOException, JAXBException {
 		for (PacketManager pm : packetManagers)
-			pm.proceed(filename, cr, source);
+			pm.proceed(filename, source);
 	}
 
 	/**

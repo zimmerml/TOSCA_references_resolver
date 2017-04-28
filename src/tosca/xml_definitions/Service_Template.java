@@ -168,20 +168,7 @@ public class Service_Template {
 							// need to create new Node Template
 							// and reference
 							Node topology = nodes.item(i).getParentNode();
-							createPacketTemplate(document, topology,
-									target_packet);
-							createPacketDependency(document, topology,
-									getID(source_packet), getID(target_packet),
-									dependencyType);
-
-							if (!NodeTypeToServiceTemplate
-									.containsKey(target_packet))
-								NodeTypeToServiceTemplate.put(target_packet,
-										new LinkedList<String>());
-							if (!NodeTypeToServiceTemplate.get(target_packet)
-									.contains(filename))
-								NodeTypeToServiceTemplate.get(target_packet)
-										.add(filename);
+							updateTopology(document, topology, filename, sourceID, target_packet, dependencyType);
 						}
 					}
 				addRRImport(document, target_packet);
@@ -203,6 +190,24 @@ public class Service_Template {
 			}
 		}
 
+	}
+	
+	
+	private void updateTopology(Document document, Node topology, String filename, String sourceID, String target_packet, String dependencyType) throws UnsupportedEncodingException{
+		createPacketTemplate(document, topology,
+				target_packet);
+		createPacketDependency(document, topology,
+				sourceID, getID(target_packet),
+				dependencyType);
+
+		if (!NodeTypeToServiceTemplate
+				.containsKey(target_packet))
+			NodeTypeToServiceTemplate.put(target_packet,
+					new LinkedList<String>());
+		if (!NodeTypeToServiceTemplate.get(target_packet)
+				.contains(filename))
+			NodeTypeToServiceTemplate.get(target_packet)
+					.add(filename);
 	}
 
 	/**
@@ -265,21 +270,7 @@ public class Service_Template {
 								// need to create new Node Template
 								// and reference
 								Node topology = nodes.item(i).getParentNode();
-								createPacketTemplate(document, topology,
-										target_packet);
-								createPacketDependency(document, topology,
-										sourceID, getID(target_packet),
-										RR_PreDependsOn.Name);
-
-								if (!NodeTypeToServiceTemplate
-										.containsKey(target_packet))
-									NodeTypeToServiceTemplate.put(
-											target_packet,
-											new LinkedList<String>());
-								if (!NodeTypeToServiceTemplate.get(
-										target_packet).contains(filename))
-									NodeTypeToServiceTemplate
-											.get(target_packet).add(filename);
+								updateTopology(document, topology, filename, sourceID, target_packet, RR_PreDependsOn.Name);
 							}
 					}
 				addRRImport(document, target_packet);

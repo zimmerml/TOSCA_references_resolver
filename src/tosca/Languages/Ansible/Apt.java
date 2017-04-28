@@ -45,16 +45,6 @@ public class Apt extends PacketManager {
 		this.language = language;
 		this.cr = cr;
 	}
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see tosca.Abstract.PacketManager#proceed(java.lang.String,
-	 * tosca.Control_references)
-	 */
-	public void proceed(String filename, Control_references cr)
-			throws FileNotFoundException, IOException, JAXBException {
-		proceed(filename, cr, filename);
-	}
 
 	/*
 	 * Ansible reader (non-Javadoc)
@@ -63,7 +53,7 @@ public class Apt extends PacketManager {
 	 * tosca.Control_references, java.lang.String)
 	 */
 	@Override
-	public void proceed(String filename, Control_references cr, String source)
+	public void proceed(String filename, String source)
 			throws FileNotFoundException, IOException, JAXBException {
 		String prefix = "    - ";
 		for (int i = 0; i < Utils.getPathLength(filename) - 1; i++)
