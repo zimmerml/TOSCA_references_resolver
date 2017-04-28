@@ -39,7 +39,6 @@ import javax.xml.bind.JAXBException;
 
 import tosca.Abstract.Language;
 import tosca.Packet_Handler;
-import tosca.xml_definitions.Service_Template;
 
 //unpack 
 /**
@@ -67,7 +66,7 @@ public class Control_references {
 	private Packet_Handler packet_handler;
 
 	// Updates service templates
-	private Service_Template service_template;
+	private Topology_Handler service_template;
 
 	public static final String ArchitectureFileName = "arch";
 	public static final String Definitions = "Definitions/";
@@ -128,7 +127,7 @@ public class Control_references {
 		metaFile = new MetaFile();
 		init(filename);
 		packet_handler = new Packet_Handler(this);
-		service_template = new Service_Template(this);
+		service_template = new Topology_Handler(this);
 	}
 
 	/**
