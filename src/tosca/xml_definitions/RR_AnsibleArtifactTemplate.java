@@ -34,7 +34,7 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import tosca.Control_references;
+import tosca.CSAR_handler;
 
 /**
  * @author Yaroslav Script Artifact Template for packages
@@ -135,15 +135,15 @@ public class RR_AnsibleArtifactTemplate {
 	}
 
 	/** Create template for package
-	 * @param cr 
+	 * @param ch 
 	 * @throws IOException
 	 * @throws JAXBException
 	 */
-	public static void createAnsibleArtifact(Control_references cr, String packet, String artifact)
+	public static void createAnsibleArtifact(CSAR_handler ch, String packet, String artifact)
 			throws IOException, JAXBException {
 		System.out.println("creating Ansible Template " );
 
-		File temp = new File(cr.getFolder() + Control_references.Definitions + getFileName(packet));
+		File temp = new File(ch.getFolder() + CSAR_handler.Definitions + getFileName(packet));
 		if (temp.exists())
 			temp.delete();
 		temp.createNewFile();
@@ -161,7 +161,7 @@ public class RR_AnsibleArtifactTemplate {
 		marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
 		marshaller.marshal(template, output);
 		
-		cr.metaFile.addFileToMeta(Control_references.Definitions + getFileName(packet), "application/vnd.oasis.tosca.definitions");
+		ch.metaFile.addFileToMeta(CSAR_handler.Definitions + getFileName(packet), "application/vnd.oasis.tosca.definitions");
 
 	
 	}

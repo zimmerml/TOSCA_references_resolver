@@ -34,7 +34,7 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import tosca.Control_references;
+import tosca.CSAR_handler;
 
 /**
  * @author Yaroslav Template Implementation for packages
@@ -125,15 +125,15 @@ public class RR_AnsibleTypeImplementation {
 	}
 
 	/** Create Type Implementation for my Node Type
-	 * @param cr 
+	 * @param ch 
 	 * @throws IOException
 	 * @throws JAXBException
 	 */
-	public static void createNT_Impl(Control_references cr,String packet)
+	public static void createNT_Impl(CSAR_handler ch,String packet)
 			throws IOException, JAXBException {
 		System.out.println("creating ansible Implementation");
 
-		File temp = new File(cr.getFolder() + Control_references.Definitions + getFileName(packet));
+		File temp = new File(ch.getFolder() + CSAR_handler.Definitions + getFileName(packet));
 		if (temp.exists())
 			temp.delete();
 		temp.createNewFile();
@@ -152,7 +152,7 @@ public class RR_AnsibleTypeImplementation {
 		Marshaller marshaller = jc.createMarshaller();
 		marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
 		marshaller.marshal(template, output);
-		cr.metaFile.addFileToMeta(Control_references.Definitions + getFileName(packet), "application/vnd.oasis.tosca.definitions");
+		ch.metaFile.addFileToMeta(CSAR_handler.Definitions + getFileName(packet), "application/vnd.oasis.tosca.definitions");
 	}
 	
 	public static String getTypeName(String packet){

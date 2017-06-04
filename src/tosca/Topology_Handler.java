@@ -60,6 +60,7 @@ public class Topology_Handler {
 	private static final String ToscaNS = "xmlns:RR_tosca_ns";
 	private static final String myPrefix = "RR_tosca_ns:";
 	public static final String Definitions = "Definitions/";
+	private static final String Type_glue = "_update_RR_";
 
 	// Reference from NodeType to files with Service Templates
 	HashMap<String, List<String>> NodeTypeToServiceTemplate;
@@ -70,7 +71,7 @@ public class Topology_Handler {
 	// Reference from Script position to Node Type
 	HashMap<String, List<String>> RefToNodeType;
 
-	Control_references cr;
+	CSAR_handler ch;
 
 	/**
 	 * simple Constructor
@@ -78,30 +79,30 @@ public class Topology_Handler {
 	/**
 	 * Constructor with initialization
 	 * 
-	 * @param cr
+	 * @param ch
 	 */
-	public Topology_Handler(Control_references cr) {
+	public Topology_Handler(CSAR_handler new_ch) {
 		NodeTypeToServiceTemplate = new HashMap<String, List<String>>();
 		RefToArtID = new HashMap<String, List<String>>();
 		RefToNodeType = new HashMap<String, List<String>>();
-		init(cr);
+		init(new_ch);
 	}
 
 	/**
 	 * Init all local references, search for script positions and dependent Node
 	 * Types
 	 * 
-	 * @param cr
+	 * @param ch
 	 */
-	public void init(Control_references cr) {
+	public void init(CSAR_handler new_ch) {
 
-		this.cr = cr;
+		ch = new_ch;
 
 		NodeTypeToServiceTemplate.clear();
 		RefToArtID.clear();
 		RefToNodeType.clear();
 
-		File folder = new File(cr.getFolder() + Definitions);
+		File folder = new File(ch.getFolder() + Definitions);
 		if (!folder.exists())
 			return;
 		System.out.println("Parse Artifacts");
@@ -133,7 +134,6 @@ public class Topology_Handler {
 	/**
 	 * Add Node Template for new packet, and depends it to packet created by me
 	 * 
-	 * @param cr
 	 * @param source_packet
 	 *            packet already in Service Template
 	 * @param target_packet
@@ -152,8 +152,8 @@ public class Topology_Handler {
 						.newInstance();
 				DocumentBuilder documentBuilder;
 				documentBuilder = documentBuilderFactory.newDocumentBuilder();
-				Document document = documentBuilder.parse(cr.getFolder()
-						+ Control_references.Definitions + filename);
+				Document document = documentBuilder.parse(ch.getFolder()
+						+ CSAR_handler.Definitions + filename);
 				NodeList nodes = document.getElementsByTagName("*");
 				for (int i = 0; i < nodes.getLength(); i++)
 					if (nodes.item(i).getNodeName().endsWith(":NodeTemplate")
@@ -165,7 +165,7 @@ public class Topology_Handler {
 								.getAttribute("id");
 						if ((type.equals("RRnt:"
 								+ RR_NodeType.getTypeName(source_packet)))
-								&& sourceID.equals(getID(source_packet))) {
+								&& sourceID.startsWith(getID(source_packet) + Type_glue)) {
 							// right NodeTemplate found
 							// need to create new Node Template
 							// and reference
@@ -179,8 +179,8 @@ public class Topology_Handler {
 				transformer.setOutputProperty(OutputKeys.INDENT, "yes");
 				transformer.setOutputProperty(
 						"{http://xml.apache.org/xslt}indent-amount", "4");
-				Result output = new StreamResult(new File(cr.getFolder()
-						+ Control_references.Definitions + filename));
+				Result output = new StreamResult(new File(ch.getFolder()
+						+ CSAR_handler.Definitions + filename));
 				Source input = new DOMSource(document);
 				transformer.transform(input, output);
 
@@ -197,7 +197,7 @@ public class Topology_Handler {
 	
 	private void updateTopology(Document document, Node topology, String filename, String sourceID, String target_packet, String dependencyType) throws UnsupportedEncodingException{
 		createPacketTemplate(document, topology,
-				target_packet);
+				target_packet, sourceID);
 		createPacketDependency(document, topology,
 				sourceID, getID(target_packet),
 				dependencyType);
@@ -236,7 +236,6 @@ public class Topology_Handler {
 	 * Add new NodeTemplate and dependency to existing NodeTemplate by given
 	 * script position
 	 * 
-	 * @param cr
 	 * @param script_filename
 	 *            script position
 	 * @param target_packet
@@ -253,8 +252,8 @@ public class Topology_Handler {
 						.newInstance();
 				DocumentBuilder documentBuilder;
 				documentBuilder = documentBuilderFactory.newDocumentBuilder();
-				Document document = documentBuilder.parse(cr.getFolder()
-						+ Control_references.Definitions + filename);
+				Document document = documentBuilder.parse(ch.getFolder()
+						+ CSAR_handler.Definitions + filename);
 				NodeList nodes = document.getElementsByTagName("*");
 				for (int i = 0; i < nodes.getLength(); i++)
 					if (nodes.item(i).getNodeName().endsWith(":NodeTemplate")
@@ -281,8 +280,8 @@ public class Topology_Handler {
 				transformer.setOutputProperty(OutputKeys.INDENT, "yes");
 				transformer.setOutputProperty(
 						"{http://xml.apache.org/xslt}indent-amount", "4");
-				Result output = new StreamResult(new File(cr.getFolder()
-						+ Control_references.Definitions + filename));
+				Result output = new StreamResult(new File(ch.getFolder()
+						+ CSAR_handler.Definitions + filename));
 				Source input = new DOMSource(document);
 				transformer.transform(input, output);
 
@@ -325,7 +324,7 @@ public class Topology_Handler {
 	 * @throws UnsupportedEncodingException
 	 */
 	private void createPacketTemplate(Document document, Node topology,
-			String packet) throws UnsupportedEncodingException {
+			String packet, String source) throws UnsupportedEncodingException {
 		NodeList nodes = document.getElementsByTagName("*");
 		for (int i = 0; i < nodes.getLength(); i++)
 			if (nodes.item(i).getNodeName().endsWith(":NodeTemplate")
@@ -338,7 +337,7 @@ public class Topology_Handler {
 		Element template = document.createElement(myPrefix + "NodeTemplate");
 		template.setAttribute("xmlns:RRnt",
 				RR_NodeType.Definitions.NodeType.targetNamespace);
-		template.setAttribute("id", getID(packet));
+		template.setAttribute("id", getID(packet + Type_glue + source));
 		template.setAttribute("name", packet);
 		template.setAttribute("type", "RRnt:" + RR_NodeType.getTypeName(packet));
 		topology.appendChild(template);
@@ -392,7 +391,7 @@ public class Topology_Handler {
 		relation.appendChild(sourceElement);
 		Element targetElement = document.createElement(myPrefix
 				+ "TargetElement");
-		targetElement.setAttribute("ref", targetID);
+		targetElement.setAttribute("ref", targetID + Type_glue + sourceID);
 		relation.appendChild(targetElement);
 	}
 

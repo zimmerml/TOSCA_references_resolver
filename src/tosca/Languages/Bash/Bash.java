@@ -25,10 +25,10 @@ import java.util.LinkedList;
 
 import javax.xml.bind.JAXBException;
 
-import tosca.Control_references;
+import tosca.CSAR_handler;
 import tosca.Utils;
 import tosca.Abstract.Language;
-import tosca.Abstract.PacketManager;
+import tosca.Abstract.PackageManager;
 import tosca.xml_definitions.RR_NodeType;
 import tosca.xml_definitions.RR_PackageArtifactTemplate;
 import tosca.xml_definitions.RR_ScriptArtifactTemplate;
@@ -46,8 +46,8 @@ public final class Bash extends Language {
 	 * Constructor list right extensions and creates package managers
 	 * 
 	 */
-	public Bash(Control_references cr) {
-		this.cr = cr;
+	public Bash(CSAR_handler new_ch) {
+		ch = new_ch;
 		Name = "Bash";
 		extensions = new LinkedList<String>();
 		extensions.add(".sh");
@@ -55,8 +55,9 @@ public final class Bash extends Language {
 		
 		created_packages = new LinkedList<String>();
 
-		packetManagers = new LinkedList<PacketManager>();
-		packetManagers.add(new PM_apt_get(this, cr));
+		packetManagers = new LinkedList<PackageManager>();
+		packetManagers.add(new PM_apt_get(this, ch));
+		packetManagers.add(new PM_aptitude(this, ch));
 	}
 	
 	/* (non-Javadoc)
@@ -67,10 +68,10 @@ public final class Bash extends Language {
 			return packet;
 		created_packages.add(packet+"+"+source);
 		packet = getNodeName(packet, source);
-		RR_NodeType.createNodeType(cr, packet);
-		RR_ScriptArtifactTemplate.createScriptArtifact(cr, packet);
-		RR_PackageArtifactTemplate.createPackageArtifact(cr, packet);
-		RR_TypeImplementation.createNT_Impl(cr, packet);
+		RR_NodeType.createNodeType(ch, packet);
+		RR_ScriptArtifactTemplate.createScriptArtifact(ch, packet);
+		RR_PackageArtifactTemplate.createPackageArtifact(ch, packet);
+		RR_TypeImplementation.createNT_Impl(ch, packet);
 		return packet;
 	}
 	

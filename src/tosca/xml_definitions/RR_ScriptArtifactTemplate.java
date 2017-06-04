@@ -34,8 +34,8 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import tosca.Control_references;
-import tosca.Packet_Handler;
+import tosca.CSAR_handler;
+import tosca.Package_Handler;
 import tosca.Resolver;
 import tosca.Utils;
 
@@ -112,15 +112,15 @@ public class RR_ScriptArtifactTemplate {
 	}
 
 	/** Create template for package
-	 * @param cr 
+	 * @param ch 
 	 * @throws IOException
 	 * @throws JAXBException
 	 */
-	public static void createScriptArtifact(Control_references cr, String packet)
+	public static void createScriptArtifact(CSAR_handler ch, String packet)
 			throws IOException, JAXBException {
 		System.out.println("creating Script Template " );
 
-		File temp = new File(cr.getFolder() + Control_references.Definitions + getFileName(packet));
+		File temp = new File(ch.getFolder() + CSAR_handler.Definitions + getFileName(packet));
 		if (temp.exists())
 			temp.delete();
 		temp.createNewFile();
@@ -138,11 +138,11 @@ public class RR_ScriptArtifactTemplate {
 		marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
 		marshaller.marshal(template, output);
 		
-		cr.metaFile.addFileToMeta(Control_references.Definitions + getFileName(packet), "application/vnd.oasis.tosca.definitions");
+		ch.metaFile.addFileToMeta(CSAR_handler.Definitions + getFileName(packet), "application/vnd.oasis.tosca.definitions");
 	
-		Utils.createFile(cr.getFolder() + getScriptPosition(packet), ScriptContent(packet));
-		Runtime.getRuntime().exec("chmod +x " + cr.getFolder() + getScriptPosition(packet));
-		cr.metaFile.addFileToMeta(cr.getFolder() +  getScriptPosition(packet), "application/x-sh");
+		Utils.createFile(ch.getFolder() + getScriptPosition(packet), ScriptContent(packet));
+		Runtime.getRuntime().exec("chmod +x " + ch.getFolder() + getScriptPosition(packet));
+		ch.metaFile.addFileToMeta(ch.getFolder() +  getScriptPosition(packet), "application/x-sh");
 	
 	}
 	public static String getIAName(String packet){
@@ -160,7 +160,7 @@ public class RR_ScriptArtifactTemplate {
 	public static String ScriptContent(String packet){
 		return (String) "#!/bin/bash\n"+
 				"\n"+
-				"dpkg -i " + packet + Packet_Handler.Extension + "\n";
+				"dpkg -i " + packet + Package_Handler.Extension + "\n";
 	}
 	
 	public static String getScriptPosition(String packet){

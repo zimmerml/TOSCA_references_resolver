@@ -25,7 +25,7 @@ import java.io.IOException;
 
 import javax.xml.bind.JAXBException;
 
-import tosca.Control_references;
+import tosca.CSAR_handler;
 
 /**
  * Package manager used by language
@@ -33,20 +33,20 @@ import tosca.Control_references;
  * @author jery
  *
  */
-public abstract class PacketManager {
+public abstract class PackageManager {
 
 	// Name of manager
 	static public String Name;
 
 	protected Language language;
 	
-	protected Control_references cr;
+	protected CSAR_handler ch;
 
 	/**
 	 * Proceed given file with different source (like archive)
 	 * 
 	 * @param filename
-	 * @param cr
+	 * @param ch
 	 * @param source
 	 * @throws FileNotFoundException
 	 * @throws IOException

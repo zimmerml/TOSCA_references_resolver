@@ -29,7 +29,7 @@ import java.util.Scanner;
 
 import javax.xml.bind.JAXBException;
 
-import tosca.Control_references;
+import tosca.CSAR_handler;
 import tosca.Abstract.Language;
 import tosca.Languages.Ansible.Ansible;
 import tosca.Languages.Bash.Bash;
@@ -102,24 +102,24 @@ public class Resolver {
 			throw new NullPointerException();
 
 		System.out.println("Proceeding file " + filename);
-		Control_references cr;
+		CSAR_handler ch;
 		try {
 			// create CSAR manager and unpack archive
-			cr = new Control_references(filename);
+			ch = new CSAR_handler(filename);
 			
 			//init Languages
-			languages.add(new Ansible(cr));
-			languages.add(new Bash(cr));
+			languages.add(new Ansible(ch));
+			languages.add(new Bash(ch));
 			/*
 			 * TODO Node type. done Artifact Type for package. done Relationship
 			 * Type for dependencies change service template
 			 */
-			new File(cr.getFolder() + Control_references.Definitions).mkdirs();
-			RR_PackageArtifactType.init(cr);
-			RR_ScriptArtifactType.init(cr);
-			RR_AnsibleArtifactType.init(cr);
-			RR_PreDependsOn.init(cr);
-			RR_DependsOn.init(cr);
+			new File(ch.getFolder() + CSAR_handler.Definitions).mkdirs();
+			RR_PackageArtifactType.init(ch);
+			RR_ScriptArtifactType.init(ch);
+			RR_AnsibleArtifactType.init(ch);
+			RR_PreDependsOn.init(ch);
+			RR_DependsOn.init(ch);
 		} catch (FileNotFoundException e) {
 			System.out.println("Error by unpacking " + filename
 					+ ", file not found");
@@ -133,14 +133,14 @@ public class Resolver {
 		// proceed all extracted files using each available language
 		try {
 			for (Language l : languages)
-				l.proceed(cr);
+				l.proceed();
 		} catch (JAXBException e1) {
 			System.out.println("Unable to create xml annotation to package");
 			e1.printStackTrace();
 		}
 		// pack CSAR
 		try {
-			cr.pack(output);
+			ch.pack(output);
 			System.out.println("packed to: " + output);
 		} catch (FileNotFoundException e) {
 			System.out.println("File: not found during packing to: " + output);

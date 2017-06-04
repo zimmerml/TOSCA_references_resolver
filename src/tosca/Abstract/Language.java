@@ -26,12 +26,12 @@ import java.util.List;
 
 import javax.xml.bind.JAXBException;
 
-import tosca.Control_references;
+import tosca.CSAR_handler;
 
 public abstract class Language {
 
 	// List of package managers supported by language
-	protected List<PacketManager> packetManagers;
+	protected List<PackageManager> packetManagers;
 
 	// Extensions for this language
 	protected List<String> extensions;
@@ -40,7 +40,7 @@ public abstract class Language {
 	protected String Name;
 
 	// To access package topology
-	protected Control_references cr;
+	protected CSAR_handler ch;
 
 	// List with already created packages
 	protected List <String> created_packages;
@@ -66,21 +66,21 @@ public abstract class Language {
 	/**
 	 * Proceed file, transfer it to package managers
 	 * 
-	 * @param cr
+	 * @param new_ch
 	 *            CSAR manager
 	 * @throws FileNotFoundException
 	 * @throws IOException
 	 * @throws JAXBException
 	 */
-	public void proceed(Control_references cr) throws FileNotFoundException,
+	public void proceed() throws FileNotFoundException,
 			IOException, JAXBException {
-		if (cr == null)
+		if (ch == null)
 			throw new NullPointerException();
-		for (String f : cr.getFiles())
+		for (String f : ch.getFiles())
 			for (String suf : extensions)
 				if (f.toLowerCase().endsWith(suf.toLowerCase()))
-					for (PacketManager pm : packetManagers)
-						pm.proceed(cr.getFolder() + f, f);
+					for (PackageManager pm : packetManagers)
+						pm.proceed(ch.getFolder() + f, f);
 	}
 
 	/**	Generate node name for specific packages

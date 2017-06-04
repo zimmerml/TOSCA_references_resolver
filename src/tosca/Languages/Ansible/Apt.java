@@ -31,19 +31,19 @@ import java.util.regex.Pattern;
 
 import javax.xml.bind.JAXBException;
 
-import tosca.Control_references;
+import tosca.CSAR_handler;
 import tosca.Utils;
 import tosca.Abstract.Language;
-import tosca.Abstract.PacketManager;
+import tosca.Abstract.PackageManager;
 
-public class Apt extends PacketManager {
+public class Apt extends PackageManager {
 
 	// package manager name
 	static public final String Name = "apt";
 
-	public Apt(Language language, Control_references cr) {
+	public Apt(Language language, CSAR_handler new_ch) {
 		this.language = language;
-		this.cr = cr;
+		this.ch = new_ch;
 	}
 
 	/*
@@ -58,7 +58,7 @@ public class Apt extends PacketManager {
 		String prefix = "    - ";
 		for (int i = 0; i < Utils.getPathLength(filename) - 1; i++)
 			prefix = prefix + "../";
-		if (cr == null)
+		if (ch == null)
 			throw new NullPointerException();
 		System.out.println(Name + " proceed " + filename);
 		BufferedReader br = new BufferedReader(new FileReader(filename));
@@ -88,7 +88,7 @@ public class Apt extends PacketManager {
 						if (m.find()) {
 							System.out.println("Found packet: " + m.group(2));
 							newFile += "#//References resolver//" + line + '\n';
-							cr.getPacket(language, m.group(2), source);
+							ch.getPacket(language, m.group(2), source);
 							isChanged = true;
 							State = 0;
 						}
@@ -120,7 +120,7 @@ public class Apt extends PacketManager {
 							if (words[0].equals(""))
 								i = 1;
 							if (words.length == 2 + i && words[i].equals("-")) {
-								cr.getPacket(language, words[i + 1], source);
+								ch.getPacket(language, words[i + 1], source);
 								newFile += "#//References resolver//" + line
 										+ '\n';
 								isChanged = true;
@@ -140,7 +140,7 @@ public class Apt extends PacketManager {
 						Matcher m = p.matcher(line);
 						if (m.find()) {
 							System.out.println("Found packet: " + m.group(2));
-							cr.getPacket(language, m.group(2), source);
+							ch.getPacket(language, m.group(2), source);
 							newFile += "#//References resolver//" + line + '\n';
 							isChanged = true;
 							State = 0;

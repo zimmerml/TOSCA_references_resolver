@@ -34,7 +34,7 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import tosca.Control_references;
+import tosca.CSAR_handler;
 
 /**
  * @author jery
@@ -118,18 +118,18 @@ public class RR_NodeType {
 	/**
 	 * Creates xml description for my NodeType
 	 * 
-	 * @param cr
+	 * @param ch
 	 * @throws JAXBException
 	 * @throws IOException
 	 */
-	public static void createNodeType(Control_references cr, String packet) throws JAXBException, IOException {
-		File dir = new File(cr.getFolder() + Control_references.Definitions);
+	public static void createNodeType(CSAR_handler ch, String packet) throws JAXBException, IOException {
+		File dir = new File(ch.getFolder() + CSAR_handler.Definitions);
 		dir.mkdirs();
-		File temp = new File(cr.getFolder() + Control_references.Definitions + getFileName(packet));
+		File temp = new File(ch.getFolder() + CSAR_handler.Definitions + getFileName(packet));
 		if (temp.exists())
 			temp.delete();
 		temp.createNewFile();
-		OutputStream output = new FileOutputStream(cr.getFolder() + Control_references.Definitions + getFileName(packet));
+		OutputStream output = new FileOutputStream(ch.getFolder() + CSAR_handler.Definitions + getFileName(packet));
 
 		JAXBContext jc = JAXBContext.newInstance(Definitions.class);
 
@@ -145,7 +145,7 @@ public class RR_NodeType {
 		Marshaller marshaller = jc.createMarshaller();
 		marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
 		marshaller.marshal(shema, output);
-		cr.metaFile.addFileToMeta(Control_references.Definitions + getFileName(packet),
+		ch.metaFile.addFileToMeta(CSAR_handler.Definitions + getFileName(packet),
 				"application/vnd.oasis.tosca.definitions");
 	}
 	public static String getTypeName(String packet){

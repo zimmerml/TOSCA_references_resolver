@@ -34,7 +34,7 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import tosca.Control_references;
+import tosca.CSAR_handler;
 
 /**
  * @author jery PackageArtifactType description
@@ -83,18 +83,18 @@ public class RR_PackageArtifactType {
 	/**
 	 * Create PackageArtifactType xml description
 	 * 
-	 * @param cr
+	 * @param ch
 	 * @throws JAXBException
 	 * @throws IOException
 	 */
-	public static void init(Control_references cr) throws JAXBException, IOException {
-		File dir = new File(cr.getFolder() + Control_references.Definitions);
+	public static void init(CSAR_handler ch) throws JAXBException, IOException {
+		File dir = new File(ch.getFolder() + CSAR_handler.Definitions);
 		dir.mkdirs();
-		File temp = new File(cr.getFolder() + Control_references.Definitions + filename);
+		File temp = new File(ch.getFolder() + CSAR_handler.Definitions + filename);
 		if (temp.exists())
 			temp.delete();
 		temp.createNewFile();
-		OutputStream output = new FileOutputStream(cr.getFolder() + Control_references.Definitions + filename);
+		OutputStream output = new FileOutputStream(ch.getFolder() + CSAR_handler.Definitions + filename);
 
 		JAXBContext jc = JAXBContext.newInstance(Definitions.class);
 
@@ -103,7 +103,7 @@ public class RR_PackageArtifactType {
 		Marshaller marshaller = jc.createMarshaller();
 		marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
 		marshaller.marshal(shema, output);
-		cr.metaFile.addFileToMeta(Control_references.Definitions + filename,
+		ch.metaFile.addFileToMeta(CSAR_handler.Definitions + filename,
 				"application/vnd.oasis.tosca.definitions");
 
 	}

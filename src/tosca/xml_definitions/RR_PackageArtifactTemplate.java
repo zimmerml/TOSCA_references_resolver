@@ -34,8 +34,8 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import tosca.Control_references;
-import tosca.Packet_Handler;
+import tosca.CSAR_handler;
+import tosca.Package_Handler;
 import tosca.Resolver;
 
 /**
@@ -113,7 +113,7 @@ public class RR_PackageArtifactTemplate {
 	/**
 	 * Create ArtifactTemplate for package
 	 * 
-	 * @param cr
+	 * @param ch
 	 * @param folder
 	 *            , where template will be created
 	 * @param dependensis
@@ -123,11 +123,11 @@ public class RR_PackageArtifactTemplate {
 	 * @throws IOException
 	 * @throws JAXBException
 	 */
-	public static void createPackageArtifact(Control_references cr, String packet) throws IOException,
+	public static void createPackageArtifact(CSAR_handler ch, String packet) throws IOException,
 			JAXBException {
 		System.out.println("creating Package Template for " + packet);
 
-		File temp = new File(cr.getFolder() + Control_references.Definitions + getFileName(packet));
+		File temp = new File(ch.getFolder() + CSAR_handler.Definitions + getFileName(packet));
 		if (temp.exists())
 			temp.delete();
 		temp.createNewFile();
@@ -139,12 +139,12 @@ public class RR_PackageArtifactTemplate {
 		template.id = getWineryID(packet);
 		template.artifactTemplate.id = getID(packet);
 		template.artifactTemplate.artifactReferences.artifactReference.reference = Resolver.folder + packet
-				+ File.separator + packet + Packet_Handler.Extension;
+				+ File.separator + packet + Package_Handler.Extension;
 
 		Marshaller marshaller = jc.createMarshaller();
 		marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
 		marshaller.marshal(template, output);
-		cr.metaFile.addFileToMeta(Control_references.Definitions + getFileName(packet),
+		ch.metaFile.addFileToMeta(CSAR_handler.Definitions + getFileName(packet),
 				"application/vnd.oasis.tosca.definitions");
 
 	}

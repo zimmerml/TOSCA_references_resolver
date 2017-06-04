@@ -38,14 +38,14 @@ import java.util.Scanner;
 import javax.xml.bind.JAXBException;
 
 import tosca.Abstract.Language;
-import tosca.Packet_Handler;
+import tosca.Package_Handler;
 
 //unpack 
 /**
  * @author jery
  * 
  */
-public class Control_references {
+public class CSAR_handler {
 
 	// input CSAR file name
 	private String CSAR;
@@ -63,7 +63,7 @@ public class Control_references {
 	public MetaFile metaFile;
 
 	// Download and proceed packets
-	private Packet_Handler packet_handler;
+	private Package_Handler packet_handler;
 
 	// Updates service templates
 	private Topology_Handler service_template;
@@ -122,11 +122,11 @@ public class Control_references {
 	 *            CSAR archive
 	 * @throws IOException
 	 */
-	public Control_references(String filename) throws FileNotFoundException,
+	public CSAR_handler(String filename) throws FileNotFoundException,
 			IOException {
 		metaFile = new MetaFile();
 		init(filename);
-		packet_handler = new Packet_Handler(this);
+		packet_handler = new Package_Handler(this);
 		service_template = new Topology_Handler(this);
 	}
 

@@ -33,13 +33,13 @@ import java.util.Scanner;
 
 import javax.xml.bind.JAXBException;
 
-import tosca.Control_references;
-import tosca.Packet_Handler;
+import tosca.CSAR_handler;
+import tosca.Package_Handler;
 import tosca.Resolver;
 import tosca.Utils;
 import tosca.zip;
 import tosca.Abstract.Language;
-import tosca.Abstract.PacketManager;
+import tosca.Abstract.PackageManager;
 import tosca.xml_definitions.RR_AnsibleArtifactTemplate;
 import tosca.xml_definitions.RR_AnsibleTypeImplementation;
 import tosca.xml_definitions.RR_NodeType;
@@ -59,8 +59,8 @@ public class Ansible extends Language {
 	 * Constructor list right extensions and creates package managers
 	 * 
 	 */
-	public Ansible(Control_references cr) {
-		this.cr = cr;
+	public Ansible(CSAR_handler new_ch) {
+		this.ch = new_ch;
 		Name = "Ansible";
 		extensions = new LinkedList<String>();
 		extensions.add(".zip");
@@ -69,8 +69,8 @@ public class Ansible extends Language {
 		ansible_setup = new HashMap<String, Ansible_setup>();
 		created_packages = new LinkedList<String>();
 
-		packetManagers = new LinkedList<PacketManager>();
-		packetManagers.add(new Apt(this, cr));
+		packetManagers = new LinkedList<PackageManager>();
+		packetManagers.add(new Apt(this, new_ch));
 	}
 
 	/*
@@ -79,11 +79,11 @@ public class Ansible extends Language {
 	 * 
 	 * @see tosca.Abstract.Language#proceed(tosca.Control_references)
 	 */
-	public void proceed(Control_references cr) throws FileNotFoundException,
+	public void proceed() throws FileNotFoundException,
 	IOException, JAXBException {
-		if (cr == null)
+		if (ch == null)
 			throw new NullPointerException();
-		for (String f : cr.getFiles())
+		for (String f : ch.getFiles())
 			for (String suf : extensions)
 				if (f.toLowerCase().endsWith(suf.toLowerCase())) {
 					if (suf.equals(".zip")) {
@@ -97,7 +97,7 @@ public class Ansible extends Language {
 	 * proceed given file
 	 * 
 	 * @param filename
-	 * @param cr
+	 * @param ch
 	 * @param source
 	 *            of file, example - archive
 	 * @throws FileNotFoundException
@@ -106,7 +106,7 @@ public class Ansible extends Language {
 	 */
 	public void proceed(String filename, String source)
 			throws FileNotFoundException, IOException, JAXBException {
-		for (PacketManager pm : packetManagers)
+		for (PackageManager pm : packetManagers)
 			pm.proceed(filename, source);
 	}
 
@@ -122,15 +122,15 @@ public class Ansible extends Language {
 	IOException, JAXBException {
 		boolean isChanged = false;
 		// String filename = new File(f).getName();
-		String folder = new File(cr.getFolder() + zipfile).getParent()
+		String folder = new File(ch.getFolder() + zipfile).getParent()
 				+ File.separator + "temp_RR_ansible_folder" + File.separator;
-		List<String> files = zip.unZipIt(cr.getFolder() + zipfile, folder);
+		List<String> files = zip.unZipIt(ch.getFolder() + zipfile, folder);
 		for (String file : files)
 			if (file.toLowerCase().endsWith("yml"))
 				proceed(folder + file, zipfile);
 		if (isChanged) {
-			new File(cr.getFolder() + zipfile).delete();
-			zip.zipIt(cr.getFolder() + zipfile, folder);
+			new File(ch.getFolder() + zipfile).delete();
+			zip.zipIt(ch.getFolder() + zipfile, folder);
 		}
 		zip.delete(new File(folder));
 
@@ -178,7 +178,7 @@ public class Ansible extends Language {
 			create_ansible_setup(source);
 		Ansible_setup setup = ansible_setup.get(source);
 		String file = Resolver.folder + packet + File.separator + artifact_name;
-		String folder = cr.getFolder() + file + "_temp" + File.separator;
+		String folder = ch.getFolder() + file + "_temp" + File.separator;
 		new File(folder).mkdir();
 
 		FileWriter file_writer = new FileWriter(
@@ -197,26 +197,26 @@ public class Ansible extends Language {
 			file_writer.write("  become: " + setup.become + "\r");
 		file_writer
 		.write("  tasks:\r    - name: install task\r      command: dpkg -i "
-				+ packet + Packet_Handler.Extension + "\r");
+				+ packet + Package_Handler.Extension + "\r");
 		file_writer.flush();
 		file_writer.close();
 
 		new File(folder + "files").mkdir();
 		Files.copy(
-				Paths.get(cr.getFolder() + Resolver.folder + packet
-						+ File.separator + packet + Packet_Handler.Extension),
+				Paths.get(ch.getFolder() + Resolver.folder + packet
+						+ File.separator + packet + Package_Handler.Extension),
 						Paths.get(folder + "files" + File.separator + packet
-								+ Packet_Handler.Extension));
+								+ Package_Handler.Extension));
 
-		zip.zipIt(cr.getFolder() + file, folder);
+		zip.zipIt(ch.getFolder() + file + ".zip", folder);
 		zip.delete(new File(folder));
-		cr.metaFile.addFileToMeta(Resolver.folder + "ansible_properties.xsd",
+		ch.metaFile.addFileToMeta(Resolver.folder + "ansible_properties.xsd",
 				"text/xml");
 
-		RR_NodeType.createNodeType(cr, artifact_name);
+		RR_NodeType.createNodeType(ch, artifact_name);
 		RR_AnsibleArtifactTemplate
-		.createAnsibleArtifact(cr, artifact_name, file);
-		RR_AnsibleTypeImplementation.createNT_Impl(cr, artifact_name);
+		.createAnsibleArtifact(ch, artifact_name, file + ".zip");
+		RR_AnsibleTypeImplementation.createNT_Impl(ch, artifact_name);
 		return artifact_name;
 	}
 

@@ -35,7 +35,7 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import tosca.Control_references;
+import tosca.CSAR_handler;
 import tosca.Resolver;
 
 public class RR_AnsibleArtifactType {
@@ -127,35 +127,35 @@ public class RR_AnsibleArtifactType {
 	/**
 	 * Create ScriptType xml description
 	 * 
-	 * @param cr
+	 * @param ch
 	 * @throws JAXBException
 	 * @throws IOException
 	 */
-	public static void init(Control_references cr) throws JAXBException,
+	public static void init(CSAR_handler ch) throws JAXBException,
 			IOException {
-		File dir = new File(cr.getFolder() + Control_references.Definitions);
+		File dir = new File(ch.getFolder() + CSAR_handler.Definitions);
 		dir.mkdirs();
-		File temp = new File(cr.getFolder() + Control_references.Definitions + filename);
+		File temp = new File(ch.getFolder() + CSAR_handler.Definitions + filename);
 		if (temp.exists())
 			temp.delete();
 		temp.createNewFile();
-		OutputStream output = new FileOutputStream(cr.getFolder()
-				+ Control_references.Definitions + filename);
+		OutputStream output = new FileOutputStream(ch.getFolder()
+				+ CSAR_handler.Definitions + filename);
 
 		JAXBContext jc = JAXBContext.newInstance(Definitions.class);
 
 		Definitions shema = new Definitions();
 
-		FileWriter file_writer = new FileWriter(new File(cr.getFolder() + Resolver.folder + "ansible_properties.xsd"));
+		FileWriter file_writer = new FileWriter(new File(ch.getFolder() + Resolver.folder + "ansible_properties.xsd"));
 		file_writer.write(ansible_prop);
 		file_writer.flush();
 		file_writer.close();
-		cr.metaFile.addFileToMeta(Resolver.folder + "ansible_properties.xsd", "text/xml");
+		ch.metaFile.addFileToMeta(Resolver.folder + "ansible_properties.xsd", "text/xml");
 		
 		Marshaller marshaller = jc.createMarshaller();
 		marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
 		marshaller.marshal(shema, output);
-		cr.metaFile.addFileToMeta(Control_references.Definitions + filename, "application/vnd.oasis.tosca.definitions");
+		ch.metaFile.addFileToMeta(CSAR_handler.Definitions + filename, "application/vnd.oasis.tosca.definitions");
 	}
 	
 	private static final String ansible_prop = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?><schema attributeFormDefault=\"unqualified\" elementFormDefault=\"qualified\" targetNamespace=\"http://opentosca.org/artifacttypes/propertiesdefinition/winery\" xmlns=\"http://www.w3.org/2001/XMLSchema\"><element name=\"Properties\"><complexType><sequence xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"><element name=\"Playbook\" type=\"xsd:string\"/><element name=\"Variables\" type=\"xsd:string\"/></sequence></complexType></element></schema>";

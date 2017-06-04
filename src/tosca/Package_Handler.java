@@ -38,7 +38,7 @@ import tosca.xml_definitions.RR_PreDependsOn;
 
 //import tosca.xml_definitions.PackageTemplate;
 
-public class Packet_Handler {
+public class Package_Handler {
 
 	static public final String Extension = ".deb";
 	static public final String ScriptExtension = ".sh";
@@ -52,26 +52,23 @@ public class Packet_Handler {
 	// packets to be ignored
 	private List<String> ignore;
 
-	private Control_references cr;
+	private CSAR_handler ch;
 
 	/**
 	 * Constructor
 	 */
-	public Packet_Handler(Control_references cr) {
+	public Package_Handler(CSAR_handler new_ch) {
 		downloaded = new LinkedList<String>();
 		ignore = new LinkedList<String>();
 		rename = new HashMap<String, String>();
-		this.cr = cr;
+		ch = new_ch;
 	}
 
 	/**
 	 * Downloads packet, public functions. Calls private recursive function
-	 * 
-	 * @param packet
-	 *            to be download
-	 * @param cr
-	 *            CSAR handler
-	 * @return
+	 * @param language
+	 * @param packet to be download
+	 * @param source
 	 * @throws JAXBException
 	 * @throws IOException
 	 */
@@ -81,17 +78,11 @@ public class Packet_Handler {
 	}
 
 	/**
-	 * Download package and check its dependency
-	 * 
+	 * @param language
 	 * @param packet
-	 *            package name
-	 * @param cr
-	 *            CSAR manager
-	 * @param depth
-	 *            dependency level to be checked
 	 * @param listed
-	 *            list with already included packages
-	 * @return list of packages
+	 * @param source
+	 * @param sourcefile
 	 * @throws JAXBException
 	 * @throws IOException
 	 */
@@ -108,8 +99,8 @@ public class Packet_Handler {
 		// architecture to package
 		// but some packages are multyarchitecture, need to check it.
 		if (source.equals(sourcefile)) {
-			if (packetExists(packet + cr.getArchitecture()))
-				packet = packet + cr.getArchitecture();
+			if (packetExists(packet + ch.getArchitecture()))
+				packet = packet + ch.getArchitecture();
 		}
 		while (!packetExists(packet)) {
 			packet = getSolution(packet);
@@ -132,9 +123,9 @@ public class Packet_Handler {
 		newName = Utils.correctName(packet);
 		String nodename = language.createTOSCA_Node(newName, sourcefile);
 		if (source.equals(sourcefile))
-			cr.AddDependenciesScript(Utils.correctName(source), nodename);
+			ch.AddDependenciesScript(Utils.correctName(source), nodename);
 		else
-			cr.AddDependenciesPacket(
+			ch.AddDependenciesPacket(
 					language.getNodeName(source, sourcefile),
 					nodename, getDependencyType(source, packet));
 
@@ -186,13 +177,13 @@ public class Packet_Handler {
 								+ entry.getName());
 						newName = Utils.correctName(packet);
 						dir_name = Resolver.folder + newName + File.separator;
-						new File(cr.getFolder() + dir_name).mkdirs();
-						entry.renameTo(new File(cr.getFolder() + dir_name
+						new File(ch.getFolder() + dir_name).mkdirs();
+						entry.renameTo(new File(ch.getFolder() + dir_name
 								+ newName + Extension));
 						downloaded = true;
 						if (sourceName != packet)
 							rename.put(sourceName, packet);
-						cr.metaFile.addFileToMeta(dir_name + newName
+						ch.metaFile.addFileToMeta(dir_name + newName
 								+ Extension, "application/deb");
 						break;
 					}
@@ -218,7 +209,7 @@ public class Packet_Handler {
 
 	private Boolean file_downloaded(String packet, File file) {
 		return file.getName().endsWith(
-				cr.getArchitecture().replaceAll(":", "") + Extension)
+				ch.getArchitecture().replaceAll(":", "") + Extension)
 				&& ((packet.contains(":") && file.getName().startsWith(
 						packet.substring(0, packet.indexOf(':')))))
 						|| (!packet.contains(":") && file.getName().startsWith(packet));
