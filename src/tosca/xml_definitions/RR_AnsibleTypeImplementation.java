@@ -69,8 +69,8 @@ public class RR_AnsibleTypeImplementation {
 		
 		public Definitions() {
 			nodeTypeImplementation = new NodeTypeImplementation();
-			import_script = new RR_Import(RR_ScriptArtifactType.Definitions.ArtifactType.targetNamespace,
-					RR_ScriptArtifactType.filename,"http://docs.oasis-open.org/tosca/ns/2011/12" );
+			import_script = new RR_Import(RR_AnsibleArtifactType.Definitions.ArtifactType.targetNamespace,
+					RR_AnsibleArtifactType.filename,"http://docs.oasis-open.org/tosca/ns/2011/12" );
 			}
 
 		
@@ -104,9 +104,9 @@ public class RR_AnsibleTypeImplementation {
 
 				public static class ImplementationArtifact{
 					@XmlAttribute(name = "xmlns:tbt", required = true)
-					public static final String tbt = RR_ScriptArtifactTemplate.Definitions.ArtifactTemplate.tbt;
+					public static final String tbt = RR_AnsibleArtifactTemplate.Definitions.ArtifactTemplate.tbt;
 					@XmlAttribute(name = "xmlns:ns6", required = true)
-					public static final String ns6 = RR_ScriptArtifactType.Definitions.targetNamespace;
+					public static final String ns6 = RR_AnsibleArtifactTemplate.Definitions.targetNamespace;
 					@XmlAttribute(name = "name", required = true)
 					public String name;
 					@XmlAttribute(name = "interfaceName", required = true)
@@ -114,7 +114,7 @@ public class RR_AnsibleTypeImplementation {
 					@XmlAttribute(name = "operationName", required = true)
 					public static final String operationName = RR_NodeType.Definitions.NodeType.Interfaces.Interface.Operation.name;
 					@XmlAttribute(name = "artifactType", required = true)
-					public static final String artifactType = "tbt:" + RR_ScriptArtifactTemplate.Definitions.ArtifactTemplate.type;
+					public static final String artifactType = "tbt:" + RR_AnsibleArtifactTemplate.Definitions.ArtifactTemplate.type;
 					@XmlAttribute(name = "artifactRef", required = true)
 					public String artifactRef;
 					ImplementationArtifact() {
@@ -143,8 +143,8 @@ public class RR_AnsibleTypeImplementation {
 
 		Definitions template = new Definitions();
 		template.id = "winery-defs-for_" + getTypeName(packet);
-		template.import_IA = new RR_Import(RR_ScriptArtifactTemplate.Definitions.targetNamespace,
-				RR_ScriptArtifactTemplate.getFileName(packet),"http://docs.oasis-open.org/tosca/ns/2011/12" );
+		template.import_IA = new RR_Import(RR_AnsibleArtifactTemplate.Definitions.targetNamespace,
+				RR_AnsibleArtifactTemplate.getFileName(packet),"http://docs.oasis-open.org/tosca/ns/2011/12" );
 		template.nodeTypeImplementation.name = getTypeName(packet);
 		template.nodeTypeImplementation.nodeType = "ns0:" + RR_NodeType.getTypeName(packet);
 		template.nodeTypeImplementation.implementationArtifacts.implementationArtifact.name = RR_AnsibleArtifactTemplate.getIAName(packet);

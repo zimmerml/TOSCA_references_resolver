@@ -116,7 +116,7 @@ public class RR_TypeImplementation {
 					@XmlAttribute(name = "xmlns:tbt", required = true)
 					public static final String tbt = RR_ScriptArtifactTemplate.Definitions.ArtifactTemplate.tbt;
 					@XmlAttribute(name = "xmlns:ns6", required = true)
-					public static final String ns6 = RR_ScriptArtifactType.Definitions.targetNamespace;
+					public static final String ns6 = RR_ScriptArtifactTemplate.Definitions.targetNamespace;
 					@XmlAttribute(name = "name", required = true)
 					public String name;
 					@XmlAttribute(name = "interfaceName", required = true)
@@ -144,9 +144,9 @@ public class RR_TypeImplementation {
 
 				public static class DeploymentArtifact{
 					@XmlAttribute(name = "xmlns:tbt", required = true)
-					public static final String tbt = RR_ScriptArtifactTemplate.Definitions.ArtifactTemplate.tbt;
+					public static final String tbt = RR_PackageArtifactTemplate.Definitions.ArtifactTemplate.tbt;
 					@XmlAttribute(name = "xmlns:ns6", required = true)
-					public static final String ns6 = RR_ScriptArtifactType.Definitions.targetNamespace;
+					public static final String ns6 = RR_PackageArtifactTemplate.Definitions.targetNamespace;
 					@XmlAttribute(name = "name", required = true)
 					public String name;
 					@XmlAttribute(name = "artifactType", required = true)
