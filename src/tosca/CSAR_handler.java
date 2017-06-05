@@ -240,9 +240,9 @@ public class CSAR_handler {
 		} catch (FileNotFoundException e) {
 			new File(folder + Resolver.folder).mkdir();
 			FileWriter bw = new FileWriter(arch);
-			System.out.println("Please enter architecure.");
-			System.out.println("Example: i386(default), amd64, arm, noarch.");
-			System.out.print("architecture:");
+			System.out.println("Please enter the architecure.");
+			System.out.println("Example: i386, amd64, arm, noarch.");
+			System.out.print("architecture: ");
 			architecture = new Scanner(System.in).nextLine();
 			if (architecture.equals(""))
 				architecture = "i386";

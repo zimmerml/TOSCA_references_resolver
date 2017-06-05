@@ -63,7 +63,7 @@ public class Resolver {
 		if (args.length >= 1)
 			source = args[0];
 		else {
-			System.out.print("input:");
+			System.out.print("enter the input CSAR name: ");
 			source = new Scanner(System.in).nextLine();
 			if (source.equals(""))
 				source = "example.csar";
@@ -71,7 +71,7 @@ public class Resolver {
 		if (args.length >= 2)
 			target = args[1];
 		else {
-			System.out.print("output:");
+			System.out.print("enter the output CSAR name: ");
 			target = new Scanner(System.in).nextLine();
 			if (target.equals(""))
 				target = "newexample.csar";
