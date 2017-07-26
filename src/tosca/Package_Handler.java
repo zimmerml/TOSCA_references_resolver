@@ -72,9 +72,11 @@ public class Package_Handler {
 	 * @throws JAXBException
 	 * @throws IOException
 	 */
-	public void getPacket(Language language, String packet, String source)
+	public List<String> getPacket(Language language, String packet, String source)
 			throws JAXBException, IOException {
-		getPacket(language, packet, new LinkedList<String>(), source, source);
+		List<String> listed = new LinkedList<String>();
+		getPacket(language, packet, listed, source, source);
+		return listed;
 	}
 
 	/**
@@ -121,20 +123,20 @@ public class Package_Handler {
 				return;
 		}
 		newName = Utils.correctName(packet);
-		String nodename = language.createTOSCA_Node(newName, sourcefile);
-		if (source.equals(sourcefile))
-			ch.AddDependenciesScript(Utils.correctName(source), nodename);
-		else
-			ch.AddDependenciesPacket(
-					language.getNodeName(source, sourcefile),
-					nodename, getDependencyType(source, packet));
+		if(ch.getResolving() == CSAR_handler.Resolving.Mirror)
+		{
+			String nodename = language.createTOSCA_Node(newName, sourcefile);
+			if (source.equals(sourcefile))
+				ch.AddDependenciesScript(Utils.correctName(source), nodename);
+			else
+				ch.AddDependenciesPacket(
+						language.getNodeName(source, sourcefile),
+						nodename, getDependencyType(source, packet));
+		}
+		for (String dPacket : dependensis) {
 
-		// check dependency recursively
-//		if (source.equals(sourcefile)) // TODO
-			for (String dPacket : dependensis) {
-
-				getPacket(language, dPacket, listed, packet, sourcefile);
-			}
+			getPacket(language, dPacket, listed, packet, sourcefile);
+		}
 
 		return;
 	}
@@ -147,6 +149,11 @@ public class Package_Handler {
 		Process proc;
 		while (!downloaded) {
 			try {
+				if(ch.debug){
+					System.out.println("debug imitation: " + packet);
+					Utils.createFile(ch.getFolder()+ Resolver.folder + Utils.correctName(packet) + File.separator +Utils.correctName(packet) + Extension, "");
+					break;
+				}
 				// "apt-get download" downloads only to current folder
 				System.out.println("apt-get download " + packet);
 				Runtime rt = Runtime.getRuntime();
@@ -252,6 +259,10 @@ public class Package_Handler {
 			}
 		}
 		System.out.println("");
+		if(ch.debug){
+			while(depend.size() > 1)
+				depend.remove(0);
+		}
 		return depend;
 	}
 

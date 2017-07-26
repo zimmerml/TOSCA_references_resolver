@@ -86,10 +86,18 @@ public class Ansible extends Language {
 		for (String f : ch.getFiles())
 			for (String suf : extensions)
 				if (f.toLowerCase().endsWith(suf.toLowerCase())) {
-					if (suf.equals(".zip")) {
-						proceedZIP(f);
-					} else
-						proceed(f, f);
+					if(ch.getResolving() == CSAR_handler.Resolving.Single){
+						if (suf.equals(".zip")) 
+							createTOSCA_Node(proceedZIP(f),f);
+						 else
+							createTOSCA_Node(proceed(f, f),f);
+					}
+					else{
+						if (suf.equals(".zip")) {
+							proceedZIP(f);
+						} else
+							proceed(f, f);
+					}
 				}
 	}
 
@@ -104,10 +112,15 @@ public class Ansible extends Language {
 	 * @throws IOException
 	 * @throws JAXBException
 	 */
-	public void proceed(String filename, String source)
+	public List<String> proceed(String filename, String source)
 			throws FileNotFoundException, IOException, JAXBException {
+		List<String> packages = new LinkedList<String>();
 		for (PackageManager pm : packetManagers)
-			pm.proceed(filename, source);
+			packages.addAll(pm.proceed(filename, source));
+		List<String> templist = new LinkedList<String>();
+		for(String temp:packages)
+			templist.add(Utils.correctName(temp));
+		return templist;
 	}
 
 	/**
@@ -118,22 +131,23 @@ public class Ansible extends Language {
 	 * @throws IOException
 	 * @throws JAXBException
 	 */
-	private void proceedZIP(String zipfile) throws FileNotFoundException,
+	private List<String> proceedZIP(String zipfile) throws FileNotFoundException,
 	IOException, JAXBException {
 		boolean isChanged = false;
+		List<String> packages = new LinkedList<String>();
 		// String filename = new File(f).getName();
 		String folder = new File(ch.getFolder() + zipfile).getParent()
 				+ File.separator + "temp_RR_ansible_folder" + File.separator;
 		List<String> files = zip.unZipIt(ch.getFolder() + zipfile, folder);
 		for (String file : files)
 			if (file.toLowerCase().endsWith("yml"))
-				proceed(folder + file, zipfile);
+				packages.addAll(proceed(folder + file, zipfile));
 		if (isChanged) {
 			new File(ch.getFolder() + zipfile).delete();
 			zip.zipIt(ch.getFolder() + zipfile, folder);
 		}
 		zip.delete(new File(folder));
-
+		return packages;
 	}
 
 	/**
@@ -158,12 +172,19 @@ public class Ansible extends Language {
 				setup.config += (s) + "\r";
 			}
 		}
-		System.out.println("Please, entrer hosts for " + source);
-		setup.hosts = new Scanner(System.in).nextLine();
-		System.out.println("Please, entrer connection for " + source);
-		setup.connection = new Scanner(System.in).nextLine();
-		System.out.println("Please, entrer become for " + source);
-		setup.become = new Scanner(System.in).nextLine();
+		if(ch.debug){
+			setup.hosts = "";
+			setup.connection = "";
+			setup.become = "";
+		}
+		else{
+			System.out.println("Please, entrer hosts for " + source);
+			setup.hosts = new Scanner(System.in).nextLine();
+			System.out.println("Please, entrer connection for " + source);
+			setup.connection = new Scanner(System.in).nextLine();
+			System.out.println("Please, entrer become for " + source);
+			setup.become = new Scanner(System.in).nextLine();
+		}
 		ansible_setup.put(source, setup);
 	}
 
@@ -220,9 +241,60 @@ public class Ansible extends Language {
 		return artifact_name;
 	}
 
-	public String getNodeName(String packet, String source) {
-		return Utils.correctName(Name + "_" + packet + "_"
-				+ source.replace("/", "_"));
+
+	@Override
+	public String createTOSCA_Node(List<String> packages, String source)
+			throws IOException, JAXBException {
+		String artifact_name = getNodeName(source);
+		if(packages.size() == 0)
+			return artifact_name;
+		if (!ansible_setup.containsKey(source))
+			create_ansible_setup(source);
+		Ansible_setup setup = ansible_setup.get(source);
+		ch.AddDependenciesScript(Utils.correctName(source), getNodeName(source));
+		source = Utils.correctName(source);
+		String file = Resolver.folder + source + File.separator + artifact_name;
+		String folder = ch.getFolder() + file + "_temp" + File.separator;
+		new File(folder).mkdirs();
+
+		FileWriter file_writer = new FileWriter(
+				new File(folder + "ansible.cfg"));
+		file_writer.write(setup.config);
+		file_writer.flush();
+		file_writer.close();
+
+		file_writer = new FileWriter(new File(folder + "main.yml"));
+		file_writer.write("- name: install package\r");
+		if (!setup.hosts.equals(""))
+			file_writer.write("  hosts: " + setup.hosts + "\r");
+		if (!setup.connection.equals(""))
+			file_writer.write("  connection: " + setup.connection + "\r");
+		if (!setup.become.equals(""))
+			file_writer.write("  become: " + setup.become + "\r");
+		file_writer.write("  tasks:\r    - name: install task\r      command: dpkg -i ");
+		for(String temp:packages)
+			file_writer.write(" " +temp + Package_Handler.Extension);
+		file_writer.write("\r");
+		file_writer.flush();
+		file_writer.close();
+
+		new File(folder + "files").mkdir();
+		for(String temp:packages)
+		Files.copy( Paths.get(ch.getFolder() + Resolver.folder + temp
+						+ File.separator + temp + Package_Handler.Extension),
+						Paths.get(folder + "files" + File.separator + temp
+								+ Package_Handler.Extension));
+
+		zip.zipIt(ch.getFolder() + file + ".zip", folder);
+		zip.delete(new File(folder));
+		ch.metaFile.addFileToMeta(Resolver.folder + "ansible_properties.xsd",
+				"text/xml");
+
+		RR_NodeType.createNodeType(ch, artifact_name);
+		RR_AnsibleArtifactTemplate
+		.createAnsibleArtifact(ch, artifact_name, file + ".zip");
+		RR_AnsibleTypeImplementation.createNT_Impl(ch, artifact_name);
+		return artifact_name;
 	}
 
 }

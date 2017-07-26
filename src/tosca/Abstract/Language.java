@@ -22,11 +22,13 @@ package tosca.Abstract;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.LinkedList;
 import java.util.List;
 
 import javax.xml.bind.JAXBException;
 
 import tosca.CSAR_handler;
+import tosca.Utils;
 
 public abstract class Language {
 
@@ -79,8 +81,18 @@ public abstract class Language {
 		for (String f : ch.getFiles())
 			for (String suf : extensions)
 				if (f.toLowerCase().endsWith(suf.toLowerCase()))
+				{
+					List<String> packages = new LinkedList<String>();
 					for (PackageManager pm : packetManagers)
-						pm.proceed(ch.getFolder() + f, f);
+						packages.addAll(pm.proceed(ch.getFolder() + f, f));
+					if(packages.size() > 0 && ch.getResolving() == CSAR_handler.Resolving.Single){
+						List<String> templist = new LinkedList<String>();
+						for(String temp:packages)
+							templist.add(Utils.correctName(temp));
+						createTOSCA_Node(templist, f);
+						ch.AddDependenciesScript(Utils.correctName(f), getNodeName(f));
+					}
+				}
 	}
 
 	/**	Generate node name for specific packages
@@ -88,7 +100,20 @@ public abstract class Language {
 	 * @param source
 	 * @return
 	 */
-	public abstract String getNodeName(String packet, String source);
+	public  String getNodeName(String packet, String source)
+	{
+		return Utils.correctName(Name + "_" + packet + "_"
+				+ source.replace("/", "_"));
+	}
+
+	/**	Generate node name for specific packages
+	 * @param source
+	 * @return
+	 */
+	public String getNodeName(String source){	
+		return Utils.correctName(Name + "_for_" + source.replace("/", "_"));
+		
+	}
 	
 	
 	/**	Generate Node for TOSCA Topology
@@ -99,4 +124,5 @@ public abstract class Language {
 	 * @throws JAXBException
 	 */
 	public abstract String createTOSCA_Node(String packet, String source) throws IOException, JAXBException;
+	public abstract String createTOSCA_Node(List<String> packages, String source) throws IOException, JAXBException;
 }

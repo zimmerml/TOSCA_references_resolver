@@ -24,6 +24,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.LinkedList;
+import java.util.List;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -35,6 +37,8 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import tosca.CSAR_handler;
+import tosca.Utils;
+import tosca.xml_definitions.RR_TypeImplementation.Definitions.NodeTypeImplementation.DeploymentArtifacts.DeploymentArtifact;
 
 /**
  * @author Yaroslav Template Implementation for packages
@@ -56,7 +60,7 @@ public class RR_TypeImplementation {
 		@XmlElement(name = "tosca:Import", required = true)
 		public RR_Import import_package;
 		@XmlElement(name = "tosca:Import", required = true)
-		public RR_Import import_DA;
+		public List<RR_Import> import_DA;
 		@XmlElement(name = "tosca:NodeTypeImplementation", required = true)
 		public NodeTypeImplementation nodeTypeImplementation;
 
@@ -73,6 +77,7 @@ public class RR_TypeImplementation {
 		
 		public Definitions() {
 			nodeTypeImplementation = new NodeTypeImplementation();
+			import_DA = new LinkedList<RR_Import>();
 			import_script = new RR_Import(RR_ScriptArtifactType.Definitions.ArtifactType.targetNamespace,
 					RR_ScriptArtifactType.filename,"http://docs.oasis-open.org/tosca/ns/2011/12" );
 			import_package= new RR_Import(RR_PackageArtifactType.Definitions.ArtifactType.targetNamespace,
@@ -135,11 +140,11 @@ public class RR_TypeImplementation {
 			public static class DeploymentArtifacts {
 
 				@XmlElement(name = "tosca:DeploymentArtifact", required = true)
-				public DeploymentArtifact deploymentArtifact;
+				public List<DeploymentArtifact> deploymentArtifact;
 
 
 				DeploymentArtifacts() {
-					deploymentArtifact = new DeploymentArtifact();
+					deploymentArtifact = new LinkedList <DeploymentArtifact>();
 				}
 
 				public static class DeploymentArtifact{
@@ -181,20 +186,66 @@ public class RR_TypeImplementation {
 		template.id = "winery-defs-for_" + getTypeName(packet);
 		template.import_IA = new RR_Import(RR_ScriptArtifactTemplate.Definitions.targetNamespace,
 				RR_ScriptArtifactTemplate.getFileName(packet),"http://docs.oasis-open.org/tosca/ns/2011/12" );
-		template.import_DA = new RR_Import(RR_PackageArtifactTemplate.Definitions.targetNamespace,
-				RR_PackageArtifactTemplate.getFileName(packet),"http://docs.oasis-open.org/tosca/ns/2011/12" );
+		template.import_DA.add(new RR_Import(RR_PackageArtifactTemplate.Definitions.targetNamespace,
+				RR_PackageArtifactTemplate.getFileName(packet),"http://docs.oasis-open.org/tosca/ns/2011/12" ));
 		template.nodeTypeImplementation.name = getTypeName(packet);
 		template.nodeTypeImplementation.nodeType = "ns0:" + RR_NodeType.getTypeName(packet);
 		template.nodeTypeImplementation.implementationArtifacts.implementationArtifact.name = RR_ScriptArtifactTemplate.getIAName(packet);
 		template.nodeTypeImplementation.implementationArtifacts.implementationArtifact.artifactRef = "ns6:" + RR_ScriptArtifactTemplate.getIAName(packet);
-		template.nodeTypeImplementation.deploymentArtifacts.deploymentArtifact.name = RR_PackageArtifactTemplate.getID(packet);
-		template.nodeTypeImplementation.deploymentArtifacts.deploymentArtifact.artifactRef = "ns6:" + RR_PackageArtifactTemplate.getID(packet);
+
+		DeploymentArtifact tempart = new DeploymentArtifact();
+		tempart.name = RR_PackageArtifactTemplate.getID(packet);
+		tempart.artifactRef = "ns6:" + RR_PackageArtifactTemplate.getID(packet);
+		template.nodeTypeImplementation.deploymentArtifacts.deploymentArtifact.add(tempart);
+		
 		Marshaller marshaller = jc.createMarshaller();
 		marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
 		marshaller.marshal(template, output);
 		ch.metaFile.addFileToMeta(CSAR_handler.Definitions + getFileName(packet), "application/vnd.oasis.tosca.definitions");
 	}
-	
+
+	/** Create Type Implementation for my Node Type
+	 * @param ch 
+	 * @throws IOException
+	 * @throws JAXBException
+	 */
+	public static void createNT_Impl(CSAR_handler ch,String source, List<String> packages)
+			throws IOException, JAXBException { 
+		System.out.println("creating Implementation");
+
+		File temp = new File(ch.getFolder() + CSAR_handler.Definitions + getFileName(source));
+		if (temp.exists())
+			temp.delete();
+		temp.createNewFile();
+		OutputStream output = new FileOutputStream(temp);
+
+		JAXBContext jc = JAXBContext.newInstance(Definitions.class);
+
+		Definitions template = new Definitions();
+		template.id = "winery-defs-for_" + getTypeName(source);
+		template.import_IA = new RR_Import(RR_ScriptArtifactTemplate.Definitions.targetNamespace,
+				RR_ScriptArtifactTemplate.getFileName(source),"http://docs.oasis-open.org/tosca/ns/2011/12" );
+
+		for(String tempstr: packages){
+			template.import_DA.add(new RR_Import(RR_PackageArtifactTemplate.Definitions.targetNamespace,
+					RR_PackageArtifactTemplate.getFileName(Utils.correctName(tempstr)),"http://docs.oasis-open.org/tosca/ns/2011/12" ));
+		}
+		template.nodeTypeImplementation.name = getTypeName(source);
+		template.nodeTypeImplementation.nodeType = "ns0:" + RR_NodeType.getTypeName(source);
+		template.nodeTypeImplementation.implementationArtifacts.implementationArtifact.name = RR_ScriptArtifactTemplate.getIAName(source);
+		template.nodeTypeImplementation.implementationArtifacts.implementationArtifact.artifactRef = "ns6:" + RR_ScriptArtifactTemplate.getIAName(source);
+
+		for(String tempstr: packages){
+			DeploymentArtifact tempart = new DeploymentArtifact();
+			tempart.name = RR_PackageArtifactTemplate.getID(Utils.correctName(tempstr));
+			tempart.artifactRef = "ns6:" + RR_PackageArtifactTemplate.getID(Utils.correctName(tempstr));
+			template.nodeTypeImplementation.deploymentArtifacts.deploymentArtifact.add(tempart);
+		}
+		Marshaller marshaller = jc.createMarshaller();
+		marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+		marshaller.marshal(template, output);
+		ch.metaFile.addFileToMeta(CSAR_handler.Definitions + getFileName(source), "application/vnd.oasis.tosca.definitions");
+	}
 	public static String getTypeName(String packet){
 		return "RR_NT_"+packet + "_Impl";
 	}

@@ -24,6 +24,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.List;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -143,7 +144,40 @@ public class RR_ScriptArtifactTemplate {
 		Utils.createFile(ch.getFolder() + getScriptPosition(packet), ScriptContent(packet));
 		Runtime.getRuntime().exec("chmod +x " + ch.getFolder() + getScriptPosition(packet));
 		ch.metaFile.addFileToMeta(ch.getFolder() +  getScriptPosition(packet), "application/x-sh");
+	}
+
+	/** Create template for package
+	 * @param ch 
+	 * @throws IOException
+	 * @throws JAXBException
+	 */
+	public static void createScriptArtifact(CSAR_handler ch, String source, List<String> packages)
+			throws IOException, JAXBException {
+		System.out.println("creating Script Template " );
+
+		File temp = new File(ch.getFolder() + CSAR_handler.Definitions + getFileName(source));
+		if (temp.exists())
+			temp.delete();
+		temp.createNewFile();
+		OutputStream output = new FileOutputStream(temp);
+
+		JAXBContext jc = JAXBContext.newInstance(Definitions.class);
+
+		Definitions template = new Definitions();
+		
+		template.id = "winery-defs-for_"+getIAName(source);
+		template.artifactTemplate.id = getIAName(source);
+		template.artifactTemplate.artifactReferences.artifactReference.reference = getScriptPosition(source);
+		
+		Marshaller marshaller = jc.createMarshaller();
+		marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+		marshaller.marshal(template, output);
+		
+		ch.metaFile.addFileToMeta(CSAR_handler.Definitions + getFileName(source), "application/vnd.oasis.tosca.definitions");
 	
+		Utils.createFile(ch.getFolder() + getScriptPosition(source), ScriptContent(packages));
+		Runtime.getRuntime().exec("chmod +x " + ch.getFolder() + getScriptPosition(source));
+		ch.metaFile.addFileToMeta(ch.getFolder() +  getScriptPosition(source), "application/x-sh");
 	}
 	public static String getIAName(String packet){
 		return "RR_"+packet+"_IA";
@@ -161,6 +195,15 @@ public class RR_ScriptArtifactTemplate {
 		return (String) "#!/bin/bash\n"+
 				"\n"+
 				"dpkg -i " + packet + Package_Handler.Extension + "\n";
+	}
+	public static String ScriptContent(List<String> packages){
+		String output =  "#!/bin/bash\n"+
+				"\n"+
+				"dpkg -i ";
+		for(String temp:packages)
+			output +=" "+ temp + Package_Handler.Extension;
+		output += "\n";
+		return output;
 	}
 	
 	public static String getScriptPosition(String packet){

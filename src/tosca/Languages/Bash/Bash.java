@@ -22,6 +22,7 @@ package tosca.Languages.Bash;
 
 import java.io.IOException;
 import java.util.LinkedList;
+import java.util.List;
 
 import javax.xml.bind.JAXBException;
 
@@ -80,5 +81,18 @@ public final class Bash extends Language {
 	 */
 	public String getNodeName(String packet, String source){
 		return Utils.correctName(packet);
+	} 
+
+	@Override
+	public String createTOSCA_Node(List<String> packages, String source)
+			throws IOException, JAXBException { 
+		String name = getNodeName(source);
+		RR_NodeType.createNodeType(ch, name);
+		for(String packet:packages){
+			RR_PackageArtifactTemplate.createPackageArtifact(ch, packet);
+		}
+		RR_ScriptArtifactTemplate.createScriptArtifact(ch, name, packages);
+		RR_TypeImplementation.createNT_Impl(ch, name, packages);
+		return name;
 	}
 }

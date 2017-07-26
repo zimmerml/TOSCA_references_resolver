@@ -23,6 +23,8 @@ package tosca.Languages.Bash;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
 
 import javax.xml.bind.JAXBException;
 
@@ -50,10 +52,11 @@ public final class PM_apt_get extends PackageManager {
 	 * @see TOSCA.PacketManager#proceed(java.lang.String,
 	 * TOSCA.Control_references)
 	 */
-	public void proceed(String filename, String source)
+	public List<String> proceed(String filename, String source)
 			throws IOException, JAXBException {
 		if (ch == null)
 			throw new NullPointerException();
+		List<String> output = new LinkedList<String>();
 		System.out.println(Name + " proceed " + filename);
 		BufferedReader br = new BufferedReader(new FileReader(filename));
 		boolean isChanged = false;
@@ -74,7 +77,7 @@ public final class PM_apt_get extends PackageManager {
 					isChanged = true;
 					for (int packet = 2 + i; packet < words.length; packet++) {
 						System.out.println("packet: " + words[packet]);
-						ch.getPacket(language, words[packet], source);
+						output = ch.getPacket(language, words[packet], source);
 					}
 				}
 				newFile += "#//References resolver//" + line + '\n';
@@ -84,5 +87,6 @@ public final class PM_apt_get extends PackageManager {
 		br.close();
 		if (isChanged)
 			Utils.createFile(filename,newFile);
+		return output;
 	}
 }

@@ -22,6 +22,7 @@ package tosca.Abstract;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.List;
 
 import javax.xml.bind.JAXBException;
 
@@ -48,10 +49,11 @@ public abstract class PackageManager {
 	 * @param filename
 	 * @param ch
 	 * @param source
+	 * @return TODO
 	 * @throws FileNotFoundException
 	 * @throws IOException
 	 * @throws JAXBException
 	 */
-	public abstract void proceed(String filename, String source) throws FileNotFoundException, IOException,
+	public abstract List<String> proceed(String filename, String source) throws FileNotFoundException, IOException,
 			JAXBException;
 }

@@ -26,6 +26,8 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -53,13 +55,14 @@ public class Apt extends PackageManager {
 	 * tosca.Control_references, java.lang.String)
 	 */
 	@Override
-	public void proceed(String filename, String source)
+	public List<String> proceed(String filename, String source)
 			throws FileNotFoundException, IOException, JAXBException {
+		if (ch == null)
+			throw new NullPointerException();
+		List<String> output = new LinkedList<String>();
 		String prefix = "    - ";
 		for (int i = 0; i < Utils.getPathLength(filename) - 1; i++)
 			prefix = prefix + "../";
-		if (ch == null)
-			throw new NullPointerException();
 		System.out.println(Name + " proceed " + filename);
 		BufferedReader br = new BufferedReader(new FileReader(filename));
 		boolean isChanged = false;
@@ -88,7 +91,7 @@ public class Apt extends PackageManager {
 						if (m.find()) {
 							System.out.println("Found packet: " + m.group(2));
 							newFile += "#//References resolver//" + line + '\n';
-							ch.getPacket(language, m.group(2), source);
+							output = ch.getPacket(language, m.group(2), source);
 							isChanged = true;
 							State = 0;
 						}
@@ -120,7 +123,7 @@ public class Apt extends PackageManager {
 							if (words[0].equals(""))
 								i = 1;
 							if (words.length == 2 + i && words[i].equals("-")) {
-								ch.getPacket(language, words[i + 1], source);
+								output = ch.getPacket(language, words[i + 1], source);
 								newFile += "#//References resolver//" + line
 										+ '\n';
 								isChanged = true;
@@ -140,7 +143,7 @@ public class Apt extends PackageManager {
 						Matcher m = p.matcher(line);
 						if (m.find()) {
 							System.out.println("Found packet: " + m.group(2));
-							ch.getPacket(language, m.group(2), source);
+							output = ch.getPacket(language, m.group(2), source);
 							newFile += "#//References resolver//" + line + '\n';
 							isChanged = true;
 							State = 0;
@@ -165,5 +168,6 @@ public class Apt extends PackageManager {
 			wScript.write(newFile, 0, newFile.length());
 			wScript.close();
 		}
+		return output;
 	}
 }

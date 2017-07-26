@@ -71,6 +71,17 @@ public class CSAR_handler {
 	public static final String ArchitectureFileName = "arch";
 	public static final String Definitions = "Definitions/";
 
+	public Boolean debug = false;
+	
+	public static enum Resolving{
+		Mirror, 
+		Single
+	}
+	private Resolving resolving;
+	
+	public Resolving getResolving(){
+		return resolving;
+	}
 	/**
 	 * Download and add packet to csar
 	 * 
@@ -80,9 +91,9 @@ public class CSAR_handler {
 	 * @throws JAXBException
 	 * @throws IOException
 	 */
-	public void getPacket(Language language, String packet, String source)
+	public List<String> getPacket(Language language, String packet, String source)
 			throws JAXBException, IOException {
-		packet_handler.getPacket(language, packet, source);
+		return packet_handler.getPacket(language, packet, source);
 	}
 
 	/**
@@ -144,6 +155,7 @@ public class CSAR_handler {
 		CSAR = filename;
 		unpack();
 		readArchitecture();
+		chooseResolving();
 	}
 
 	/**
@@ -278,4 +290,20 @@ public class CSAR_handler {
 		bw.close();
 	}
 
+	public void chooseResolving(){
+		System.out.println("Please the type of resolving");
+		System.out.println("Example: single, mirror");
+		System.out.print("resolving: ");
+		String temp = new Scanner(System.in).nextLine();
+//		if (architecture.equals("") || architecture.equals(""))
+//			resolving = Resolving.Mirror;
+		if (temp.equals("single")){
+			resolving = Resolving.Single;
+			System.out.println("Resolving accepted: single");
+		}
+		else{
+			resolving = Resolving.Mirror;
+			System.out.println("Resolving accepted: mirror");
+		}
+	}
 }
