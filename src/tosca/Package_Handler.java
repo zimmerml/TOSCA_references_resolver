@@ -94,6 +94,8 @@ public class Package_Handler {
 		if (rename.containsKey(packet))
 			packet = rename.get(packet);
 		System.out.println("Get packet: " + packet);
+		//if(packet.equals("initscripts:i386"))
+		//	System.out.println("alilua");
 		// if package is already listed: nothing to do
 		if (listed.contains(packet) || ignore.contains(packet))
 			return;
@@ -101,7 +103,7 @@ public class Package_Handler {
 		// architecture to package
 		// but some packages are multyarchitecture, need to check it.
 		if (source.equals(sourcefile)) {
-			if (packetExists(packet + ch.getArchitecture()))
+			if (packetExists(packet + ch.getArchitecture()) && !isVirtual(packet + ch.getArchitecture()))
 				packet = packet + ch.getArchitecture();
 		}
 		while (!packetExists(packet)) {
@@ -244,19 +246,7 @@ public class Package_Handler {
 		String s = null;
 		// TODO Predepends
 		while ((s = stdInput.readLine()) != null) {
-			// TOCHECK
-			String[] words = s.replaceAll("[;&]", "").split("\\s+");
-			if (words.length == 3
-					&& (words[1].equals("Depends:") || words[1]
-							.equals("PreDepends:"))) {
-				String to_add;
-				if (words[2].startsWith("<") && words[2].endsWith(">"))
-					to_add = stdInput.readLine().replaceAll("\\s+", "");
-				else
-					to_add = words[2];
-				depend.add(to_add);
-				System.out.print(to_add + ",");
-			}
+			addDependensyString(s, stdInput,depend);
 		}
 		System.out.println("");
 		if(ch.debug){
@@ -266,6 +256,59 @@ public class Package_Handler {
 		return depend;
 	}
 
+	private void addDependensyString(String s, BufferedReader stdInput, List<String> depend) throws IOException
+	{
+		if(s == null)
+			return;
+		String[] words = s.replaceAll("[;&]", "").split("\\s+");
+		if (words.length == 3
+				&& (words[1].equals("Depends:") || words[1]
+						.equals("PreDepends:"))) {
+			if (words[2].startsWith("<") && words[2].endsWith(">"))
+			{
+			}
+			else
+			{
+				depend.add(words[2]);
+				System.out.print(words[2] + ",");
+			}
+			addDependensySubString(stdInput.readLine(), stdInput, depend);
+		}
+	}
+	private void addDependensySubString(String s, BufferedReader stdInput, List<String> depend) throws IOException
+	{
+		if(s == null)
+			return;
+		String[] words = s.replaceAll("[;&]", "").split("\\s+");
+		if (words.length == 3
+				&& (words[1].equals("Depends:") || words[1]
+						.equals("PreDepends:"))) {
+
+			if (words[2].startsWith("<") && words[2].endsWith(">"))
+			{
+			}
+			else
+			{
+				depend.add(words[2]);
+				System.out.print(words[2] + ",");
+			}
+			addDependensySubString(stdInput.readLine(), stdInput, depend);
+		}
+
+		if (words.length == 2) {
+
+			if (words[1].startsWith("<") && words[1].endsWith(">"))
+			{
+			}
+			else
+			{
+				depend.add(words[1]);
+				System.out.print(words[1] + ",");
+			}
+			addDependensySubString(stdInput.readLine(), stdInput, depend);
+		}
+	}
+	
 	/**
 	 * Checks if packet can be download
 	 * 
@@ -368,5 +411,21 @@ public class Package_Handler {
 		if (rename.containsKey(target) && target != rename.get(target))
 			return getDependencyType(source, rename.get(target));
 		return null;
+	}
+	
+	private boolean isVirtual(String packet) throws IOException{
+		if (rename.containsKey(packet))
+			packet = rename.get(packet);
+		Runtime rt = Runtime.getRuntime();
+		Process proc = rt.exec("apt-cache show " + packet);
+
+		BufferedReader stdInput = new BufferedReader(new InputStreamReader(
+				proc.getInputStream()));
+
+		System.out.print("dependensis : ");
+		String s = stdInput.readLine();
+		if(s == null || s.startsWith("N:"))
+			return true;
+		return false;
 	}
 }

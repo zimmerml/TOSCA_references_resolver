@@ -76,6 +76,8 @@ public final class PM_apt_get extends PackageManager {
 					System.out.println("apt-get found:" + line);
 					isChanged = true;
 					for (int packet = 2 + i; packet < words.length; packet++) {
+						if(words[packet].startsWith("-"))
+							continue;
 						System.out.println("packet: " + words[packet]);
 						output = ch.getPacket(language, words[packet], source);
 					}
