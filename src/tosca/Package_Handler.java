@@ -217,11 +217,12 @@ public class Package_Handler {
 	}
 
 	private Boolean file_downloaded(String packet, File file) {
-		return file.getName().endsWith(
+		return (file.getName().endsWith(
 				ch.getArchitecture().replaceAll(":", "") + Extension)
-				&& ((packet.contains(":") && file.getName().startsWith(
+				||file.getName().endsWith("all" + Extension))
+				&& (((packet.contains(":") && file.getName().startsWith(
 						packet.substring(0, packet.indexOf(':')))))
-						|| (!packet.contains(":") && file.getName().startsWith(packet));
+						|| (!packet.contains(":") && file.getName().startsWith(packet)));
 	}
 
 	/**
@@ -242,7 +243,7 @@ public class Package_Handler {
 		BufferedReader stdInput = new BufferedReader(new InputStreamReader(
 				proc.getInputStream()));
 
-		System.out.print("dependensis : ");
+		System.out.print("temp dependensis : ");
 		String s = null;
 		// TODO Predepends
 		while ((s = stdInput.readLine()) != null) {
@@ -253,6 +254,9 @@ public class Package_Handler {
 			while(depend.size() > 1)
 				depend.remove(0);
 		}
+		System.out.print("final dependensis : ");
+		for(String dependency:depend)
+			System.out.print(dependency + ",");
 		return depend;
 	}
 
@@ -263,52 +267,88 @@ public class Package_Handler {
 		String[] words = s.replaceAll("[;&]", "").split("\\s+");
 		if (words.length == 3
 				&& (words[1].equals("Depends:") || words[1]
-						.equals("PreDepends:"))) {
+						.equals("PreDepends:"))) 
+		{
+			List<String> currentDepend = new LinkedList<String>();
 			if (words[2].startsWith("<") && words[2].endsWith(">"))
 			{
 			}
 			else
 			{
-				depend.add(words[2]);
+				currentDepend.add(words[2]);
 				System.out.print(words[2] + ",");
 			}
-			addDependensySubString(stdInput.readLine(), stdInput, depend);
+			addDependensySubString(stdInput.readLine(), stdInput, depend, currentDepend);
 		}
 	}
-	private void addDependensySubString(String s, BufferedReader stdInput, List<String> depend) throws IOException
+	private void addDependensySubString(String s, BufferedReader stdInput, List<String> depend, List<String> currentDepend) throws IOException
 	{
 		if(s == null)
+		{
+			processCurrentDepend(depend, currentDepend);
 			return;
+		}
 		String[] words = s.replaceAll("[;&]", "").split("\\s+");
 		if (words.length == 3
 				&& (words[1].equals("Depends:") || words[1]
-						.equals("PreDepends:"))) {
-
+						.equals("PreDepends:"))) 
+		{
+			processCurrentDepend(depend, currentDepend);
 			if (words[2].startsWith("<") && words[2].endsWith(">"))
 			{
 			}
 			else
 			{
-				depend.add(words[2]);
+				currentDepend.add(words[2]);
 				System.out.print(words[2] + ",");
 			}
-			addDependensySubString(stdInput.readLine(), stdInput, depend);
+			addDependensySubString(stdInput.readLine(), stdInput, depend, currentDepend);
 		}
-
-		if (words.length == 2) {
-
+		else 
+		if (words.length == 2) 
+		{
 			if (words[1].startsWith("<") && words[1].endsWith(">"))
 			{
 			}
 			else
 			{
-				depend.add(words[1]);
+				currentDepend.add(words[1]);
 				System.out.print(words[1] + ",");
 			}
-			addDependensySubString(stdInput.readLine(), stdInput, depend);
+			addDependensySubString(stdInput.readLine(), stdInput, depend, currentDepend);
 		}
 	}
 	
+	private void processCurrentDepend(List<String> depend, List<String> currentDepend )
+	{
+		if(currentDepend == null || currentDepend.size() == 0)
+		{
+			return;
+		}
+		
+		if(currentDepend.size() == 1)
+		{
+			depend.addAll(currentDepend);
+			currentDepend.clear();
+			return;
+		}
+		
+		for(String dependency:currentDepend)
+			if(dependency.endsWith(ch.getArchitecture()))
+			{
+				depend.add(dependency);
+				currentDepend.clear();
+				return;
+			}
+		
+		for(String dependency:currentDepend)
+			if(!dependency.contains(":"))
+			{
+				depend.add(dependency);
+				currentDepend.clear();
+				return;
+			}
+	}
 	/**
 	 * Checks if packet can be download
 	 * 
