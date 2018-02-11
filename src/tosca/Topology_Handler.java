@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
+import javax.xml.bind.JAXBException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -48,6 +49,7 @@ import org.xml.sax.SAXException;
 
 import tosca.xml_definitions.RR_DependsOn;
 import tosca.xml_definitions.RR_NodeType;
+import tosca.xml_definitions.RR_PackageArtifactTemplate;
 import tosca.xml_definitions.RR_PackageArtifactType;
 import tosca.xml_definitions.RR_PreDependsOn;
 
@@ -173,7 +175,7 @@ public class Topology_Handler {
 							updateTopology(document, topology, filename, sourceID, target_packet, dependencyType);
 						}
 					}
-				addRRImport(document, target_packet);
+				addRRImport_NT(document, target_packet);
 				Transformer transformer = TransformerFactory.newInstance()
 						.newTransformer();
 				transformer.setOutputProperty(OutputKeys.INDENT, "yes");
@@ -274,7 +276,7 @@ public class Topology_Handler {
 								updateTopology(document, topology, filename, sourceID, target_packet, RR_PreDependsOn.Name);
 							}
 					}
-				addRRImport(document, target_packet);
+				addRRImport_NT(document, target_packet);
 				Transformer transformer = TransformerFactory.newInstance()
 						.newTransformer();
 				transformer.setOutputProperty(OutputKeys.INDENT, "yes");
@@ -400,7 +402,7 @@ public class Topology_Handler {
 	 * 
 	 * @param document
 	 */
-	private void addRRImport(Document document, String packet) { // TODO
+	private void addRRImport_Base(Document document, String packet) { // TODO
 		Element tImport;
 		Node definitions = document.getFirstChild();
 		if (definitions.getAttributes().getNamedItem(ToscaNS) == null) {
@@ -433,6 +435,12 @@ public class Topology_Handler {
 					RR_PackageArtifactType.Definitions.ArtifactType.targetNamespace);
 			definitions.insertBefore(tImport, definitions.getFirstChild());
 		}
+	}
+
+	private void addRRImport_NT(Document document, String packet) { // TODO
+		Element tImport;
+		Node definitions = document.getFirstChild();
+		addRRImport_Base(document, packet);
 		NodeList nodes = document.getElementsByTagName("RR_tosca_ns:Import");
 		for (int i = 0; i < nodes.getLength(); i++)
 			if (((Element) (nodes.item(i))).getAttribute("location").equals(
@@ -444,6 +452,23 @@ public class Topology_Handler {
 		tImport.setAttribute("location", RR_NodeType.getFileName(packet));
 		tImport.setAttribute("namespace",
 				RR_NodeType.Definitions.NodeType.targetNamespace);
+		definitions.insertBefore(tImport, definitions.getFirstChild());
+	}
+	private void addRRImport_DA(Document document, String packet) { // TODO
+		Element tImport;
+		Node definitions = document.getFirstChild();
+		addRRImport_Base(document, packet);
+		NodeList nodes = document.getElementsByTagName("RR_tosca_ns:Import");
+		for (int i = 0; i < nodes.getLength(); i++)
+			if (((Element) (nodes.item(i))).getAttribute("location").equals(
+					RR_PackageArtifactTemplate.getFileName(packet)))
+				return;
+		tImport = document.createElement("RR_tosca_ns:Import");
+		tImport.setAttribute("importType",
+				"http://docs.oasis-open.org/tosca/ns/2011/12");
+		tImport.setAttribute("location", RR_PackageArtifactTemplate.getFileName(packet));
+		tImport.setAttribute("namespace",
+				RR_PackageArtifactTemplate.Definitions.targetNamespace);
 		definitions.insertBefore(tImport, definitions.getFirstChild());
 	}
 
@@ -543,7 +568,129 @@ public class Topology_Handler {
 			}
 		}
 	}
+	public void expandTOSCA_Nodes(List<String> packages, String source) throws IOException, JAXBException
+	{
+		source = encode(source);
+		if(RefToNodeType.get(source) == null)
+		{
+			System.out.println("not found");
+			return;
+		}
+			
+		for(String nodeType:RefToNodeType.get(source))
+		{
+			System.out.println("Found Node Type: " + nodeType);
+			for(String serviceTemplate:NodeTypeToServiceTemplate.get(nodeType))
+			{
+				System.out.println("Found Service Template: " + serviceTemplate);
+				expandTOSCA_Node(packages, nodeType, serviceTemplate);
+			}
+		}
+		
+	}
+	public void expandTOSCA_Node(List<String> packages, String nodeType, String serviceTemplate) throws IOException, JAXBException
+	{
+		Element deploymentArtifacts = null;
+		try {
+			DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory
+					.newInstance();
+			DocumentBuilder documentBuilder;
+			documentBuilder = documentBuilderFactory.newDocumentBuilder();
+			Document document = documentBuilder.parse(ch.getFolder()
+					+ CSAR_handler.Definitions + serviceTemplate);
+			NodeList nodes = document.getElementsByTagName("*");
+			for (int i = 0; i < nodes.getLength(); i++)
+				if (nodes.item(i).getNodeName().endsWith(":NodeTemplate")
+						|| nodes.item(i).getNodeName()
+								.equals("NodeTemplate")) {
+					String type = ((Element) nodes.item(i))
+							.getAttribute("type");
+					if (type.endsWith(":" + nodeType)
+							|| type.equals(nodeType)) {
+						// right NodeTemplate found
+						// need to add deployment artifacts
+						Element e = (Element) nodes.item(i);
+						NodeList nodeTypeChildren = e
+								.getChildNodes();
+						for (int j = 0; j < nodeTypeChildren
+								.getLength(); j++) 
+						{
+							if (nodeTypeChildren.item(j)
+									.getNodeType() == Node.ELEMENT_NODE) {
+								if(nodeTypeChildren.item(j).getNodeName().endsWith(":DeploymentArtifacts")
+										||nodeTypeChildren.item(j).getNodeName()
+										.equals("DeploymentArtifacts"))
+								{
 
+									deploymentArtifacts = (Element) nodeTypeChildren.item(j);
+									NodeList deploymentArtifactsList = deploymentArtifacts
+											.getChildNodes();
+									for (int d = 0; d < deploymentArtifactsList
+											.getLength(); d++) 
+									{
+
+										if (deploymentArtifactsList.item(d)
+												.getNodeType() == Node.ELEMENT_NODE) 
+										{
+											if(deploymentArtifactsList.item(d).getNodeName().endsWith(":DeploymentArtifact")
+													||deploymentArtifactsList.item(d).getNodeName()
+													.equals("DeploymentArtifact"))
+											{
+												String depArtID = ((Element) deploymentArtifactsList.item(d))
+														.getAttribute("artifactRef");
+												if(packages.contains(depArtID))
+												{
+													System.out.println("artifact exists: " + depArtID);
+													packages.remove(depArtID);
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+						if(deploymentArtifacts == null)
+						{
+							deploymentArtifacts = document.createElement(myPrefix
+									+ "DeploymentArtifacts");
+							e.appendChild(deploymentArtifacts);
+						}
+						for(String packet:packages)
+						{
+							Element deploymentArtifact = document.createElement(myPrefix
+									+ "DeploymentArtifact");
+							deploymentArtifact.setAttribute("xmlns:tbt",
+									RR_PackageArtifactType.Definitions.ArtifactType.targetNamespace);
+							deploymentArtifact.setAttribute("xmlns:art",
+									RR_PackageArtifactTemplate.Definitions.targetNamespace);
+							deploymentArtifact.setAttribute("name",packet);
+							deploymentArtifact.setAttribute("artifactType","tbt:" + RR_PackageArtifactType.Definitions.ArtifactType.name);
+							deploymentArtifact.setAttribute("artifactRef","art:" + RR_PackageArtifactTemplate.getID(packet));
+							deploymentArtifacts.appendChild(deploymentArtifact);
+						}
+					}
+				}
+			for(String packet:packages){
+				addRRImport_DA(document, packet); 
+			}
+			Transformer transformer = TransformerFactory.newInstance()
+					.newTransformer();
+			transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+			transformer.setOutputProperty(
+					"{http://xml.apache.org/xslt}indent-amount", "4");
+			Result output = new StreamResult(new File(ch.getFolder()
+					+ CSAR_handler.Definitions + serviceTemplate));
+			Source input = new DOMSource(document);
+			transformer.transform(input, output);
+
+		} catch (ParserConfigurationException | SAXException | IOException
+				| TransformerFactoryConfigurationError
+				| TransformerException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
 	/**
 	 * Parsing Implementation nodes, looking for NodeType
 	 * 

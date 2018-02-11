@@ -34,9 +34,11 @@ import java.util.regex.Pattern;
 import javax.xml.bind.JAXBException;
 
 import tosca.CSAR_handler;
+import tosca.Package_Handler;
 import tosca.Utils;
 import tosca.Abstract.Language;
 import tosca.Abstract.PackageManager;
+import tosca.xml_definitions.RR_PackageArtifactTemplate;
 
 public class Apt extends PackageManager {
 
@@ -92,6 +94,21 @@ public class Apt extends PackageManager {
 							System.out.println("Found packet: " + m.group(2));
 							newFile += "#//References resolver//" + line + '\n';
 							output = ch.getPacket(language, m.group(2), source);
+							if(ch.getResolving() == CSAR_handler.Resolving.Expand && output.size() > 0){
+								List<String> templist = new LinkedList<String>();
+								for(String temp:output)
+									templist.add(Utils.correctName(temp));
+								
+								newFile +=  "dpkg -i ";
+								for(String temp:templist)
+									newFile +=" "+ temp + Package_Handler.Extension;
+								newFile += "\n";
+								
+								for(String packet:templist){
+									RR_PackageArtifactTemplate.createPackageArtifact(ch, packet);
+								}
+								language.expandTOSCA_Node(templist, source);
+							}
 							isChanged = true;
 							State = 0;
 						}
@@ -126,6 +143,21 @@ public class Apt extends PackageManager {
 								output = ch.getPacket(language, words[i + 1], source);
 								newFile += "#//References resolver//" + line
 										+ '\n';
+								if(ch.getResolving() == CSAR_handler.Resolving.Expand && output.size() > 0){
+									List<String> templist = new LinkedList<String>();
+									for(String temp:output)
+										templist.add(Utils.correctName(temp));
+									
+									newFile +=  "dpkg -i ";
+									for(String temp:templist)
+										newFile +=" "+ temp + Package_Handler.Extension;
+									newFile += "\n";
+									
+									for(String packet:templist){
+										RR_PackageArtifactTemplate.createPackageArtifact(ch, packet);
+									}
+									language.expandTOSCA_Node(templist, source);
+								}
 								isChanged = true;
 							} else
 								newFile += line + '\n';
@@ -145,6 +177,21 @@ public class Apt extends PackageManager {
 							System.out.println("Found packet: " + m.group(2));
 							output = ch.getPacket(language, m.group(2), source);
 							newFile += "#//References resolver//" + line + '\n';
+							if(ch.getResolving() == CSAR_handler.Resolving.Expand && output.size() > 0){
+								List<String> templist = new LinkedList<String>();
+								for(String temp:output)
+									templist.add(Utils.correctName(temp));
+								
+								newFile +=  "dpkg -i ";
+								for(String temp:templist)
+									newFile +=" "+ temp + Package_Handler.Extension;
+								newFile += "\n";
+								
+								for(String packet:templist){
+									RR_PackageArtifactTemplate.createPackageArtifact(ch, packet);
+								}
+								language.expandTOSCA_Node(templist, source);
+							}
 							isChanged = true;
 							State = 0;
 						}

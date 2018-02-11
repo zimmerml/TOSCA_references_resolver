@@ -125,4 +125,8 @@ public abstract class Language {
 	 */
 	public abstract String createTOSCA_Node(String packet, String source) throws IOException, JAXBException;
 	public abstract String createTOSCA_Node(List<String> packages, String source) throws IOException, JAXBException;
+	public void expandTOSCA_Node(List<String> packages, String source) throws IOException, JAXBException
+	{
+		ch.expandTOSCA_Node(packages, Utils.correctName(source.replace("/", "_")));
+	}
 }

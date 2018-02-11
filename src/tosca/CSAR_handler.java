@@ -75,7 +75,8 @@ public class CSAR_handler {
 	
 	public static enum Resolving{
 		Mirror, 
-		Single
+		Single,
+		Expand
 	}
 	private Resolving resolving;
 	
@@ -125,7 +126,11 @@ public class CSAR_handler {
 			String dependencyType) throws JAXBException, IOException {
 		service_template.addDependencyToPacket(source, target, dependencyType);
 	}
-
+	
+	public void expandTOSCA_Node(List<String> packages, String source) throws IOException, JAXBException
+	{
+		service_template.expandTOSCA_Nodes(packages, source);
+	}
 	/**
 	 * init system
 	 * 
@@ -292,18 +297,20 @@ public class CSAR_handler {
 
 	public void chooseResolving(){
 		System.out.println("Please the type of resolving");
-		System.out.println("Example: single, mirror");
+		System.out.println("Example: single, mirror, expand");
 		System.out.print("resolving: ");
 		String temp = new Scanner(System.in).nextLine();
-//		if (architecture.equals("") || architecture.equals(""))
-//			resolving = Resolving.Mirror;
 		if (temp.equals("single")){
 			resolving = Resolving.Single;
 			System.out.println("Resolving accepted: single");
 		}
-		else{
+		else if(temp.equals("mirror")){
 			resolving = Resolving.Mirror;
 			System.out.println("Resolving accepted: mirror");
+		}
+		else{
+			resolving = Resolving.Expand;
+			System.out.println("Resolving accepted: expand");
 		}
 	}
 }

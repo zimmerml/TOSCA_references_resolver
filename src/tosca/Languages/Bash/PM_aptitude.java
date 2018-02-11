@@ -10,9 +10,11 @@ import java.util.List;
 import javax.xml.bind.JAXBException;
 
 import tosca.CSAR_handler;
+import tosca.Package_Handler;
 import tosca.Utils;
 import tosca.Abstract.Language;
 import tosca.Abstract.PackageManager;
+import tosca.xml_definitions.RR_PackageArtifactTemplate;
 
 public final class PM_aptitude extends PackageManager {
 
@@ -55,7 +57,30 @@ public final class PM_aptitude extends PackageManager {
 						output = ch.getPacket(language, words[packet], source);
 					}
 				}
-				newFile += "#//References resolver//" + line + '\n';
+				switch(ch.getResolving()){
+				case Expand:
+					newFile += "#//References resolver//" + line + '\n';
+					if(output.size() > 0){
+						
+						List<String> templist = new LinkedList<String>();
+						for(String temp:output)
+							templist.add(Utils.correctName(temp));
+						
+						newFile +=  "command: dpkg -i ";
+						for(String temp:templist)
+							newFile +=  " " +temp + Package_Handler.Extension;
+						newFile +=  "\r";
+						
+						for(String packet:templist){
+							RR_PackageArtifactTemplate.createPackageArtifact(ch, packet);
+						}
+						language.expandTOSCA_Node(templist, source);
+					}
+					break;
+				default:
+					newFile += "#//References resolver//" + line + '\n';
+					break;
+				}
 			} else
 				newFile += line + '\n';
 		}
