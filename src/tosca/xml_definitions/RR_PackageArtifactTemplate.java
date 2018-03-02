@@ -39,8 +39,7 @@ import tosca.Package_Handler;
 import tosca.Resolver;
 
 /**
- * @author Yaroslav 
- * Package Artifact Template for packages
+ * @author Yaroslav Package Artifact Template for packages
  */
 public class RR_PackageArtifactTemplate {
 
@@ -83,7 +82,7 @@ public class RR_PackageArtifactTemplate {
 			@XmlAttribute(name = "id", required = true)
 			public String id;
 			@XmlAttribute(name = "type", required = true)
-			public static final String type = RR_PackageArtifactType.Definitions.ArtifactType.name;
+			public static final String type = "tbt:" + RR_PackageArtifactType.Definitions.ArtifactType.name;
 
 			ArtifactTemplate() {
 				artifactReferences = new ArtifactReferences();
@@ -123,8 +122,7 @@ public class RR_PackageArtifactTemplate {
 	 * @throws IOException
 	 * @throws JAXBException
 	 */
-	public static void createPackageArtifact(CSAR_handler ch, String packet) throws IOException,
-			JAXBException {
+	public static void createPackageArtifact(CSAR_handler ch, String packet) throws IOException, JAXBException {
 		System.out.println("creating Package Template for " + packet);
 
 		File temp = new File(ch.getFolder() + CSAR_handler.Definitions + getFileName(packet));
@@ -138,8 +136,14 @@ public class RR_PackageArtifactTemplate {
 		Definitions template = new Definitions();
 		template.id = getWineryID(packet);
 		template.artifactTemplate.id = getID(packet);
-		template.artifactTemplate.artifactReferences.artifactReference.reference = Resolver.folder + packet
-				+ File.separator + packet + Package_Handler.Extension;
+
+		if (ch.getResolving() == CSAR_handler.Resolving.Archive) {
+			template.artifactTemplate.artifactReferences.artifactReference.reference = Resolver.folder + packet
+					+ "_DA.tar";
+		} else {
+			template.artifactTemplate.artifactReferences.artifactReference.reference = Resolver.folder + packet
+					+ File.separator + packet + Package_Handler.Extension;
+		}
 
 		Marshaller marshaller = jc.createMarshaller();
 		marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
@@ -150,7 +154,7 @@ public class RR_PackageArtifactTemplate {
 	}
 
 	// Parameters created dynamically on packet name
-	
+
 	public static String getWineryID(String packet) {
 		return "winery-defs-for_" + packet + "_DA";
 	}

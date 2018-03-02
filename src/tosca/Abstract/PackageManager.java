@@ -40,7 +40,7 @@ public abstract class PackageManager {
 	static public String Name;
 
 	protected Language language;
-	
+
 	protected CSAR_handler ch;
 
 	/**
@@ -54,6 +54,6 @@ public abstract class PackageManager {
 	 * @throws IOException
 	 * @throws JAXBException
 	 */
-	public abstract List<String> proceed(String filename, String source) throws FileNotFoundException, IOException,
-			JAXBException;
+	public abstract List<String> proceed(String filename, String source)
+			throws FileNotFoundException, IOException, JAXBException;
 }

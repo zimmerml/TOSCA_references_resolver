@@ -73,6 +73,10 @@ public class Topology_Handler {
 	// Reference from Script position to Node Type
 	HashMap<String, List<String>> RefToNodeType;
 
+	public HashMap<String, List<String>> getRefToNodeType() {
+		return RefToNodeType;
+	}
+
 	CSAR_handler ch;
 
 	/**
@@ -128,8 +132,7 @@ public class Topology_Handler {
 		}
 		System.out.println("NodeTypeToServiceTemplate");
 		for (String key : NodeTypeToServiceTemplate.keySet()) {
-			System.out
-					.println(key + " : " + NodeTypeToServiceTemplate.get(key));
+			System.out.println(key + " : " + NodeTypeToServiceTemplate.get(key));
 		}
 	}
 
@@ -143,30 +146,23 @@ public class Topology_Handler {
 	 * @param dependencyType
 	 * @throws UnsupportedEncodingException
 	 */
-	public void addDependencyToPacket(String source_packet,
-			String target_packet, String dependencyType)
+	public void addDependencyToPacket(String source_packet, String target_packet, String dependencyType)
 			throws UnsupportedEncodingException {
 		source_packet = encode(source_packet);
 		target_packet = encode(target_packet);
 		for (String filename : NodeTypeToServiceTemplate.get(source_packet)) {
 			try {
-				DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory
-						.newInstance();
+				DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
 				DocumentBuilder documentBuilder;
 				documentBuilder = documentBuilderFactory.newDocumentBuilder();
-				Document document = documentBuilder.parse(ch.getFolder()
-						+ CSAR_handler.Definitions + filename);
+				Document document = documentBuilder.parse(ch.getFolder() + CSAR_handler.Definitions + filename);
 				NodeList nodes = document.getElementsByTagName("*");
 				for (int i = 0; i < nodes.getLength(); i++)
 					if (nodes.item(i).getNodeName().endsWith(":NodeTemplate")
-							|| nodes.item(i).getNodeName()
-									.equals("NodeTemplate")) {
-						String type = ((Element) nodes.item(i))
-								.getAttribute("type");
-						String sourceID = ((Element) nodes.item(i))
-								.getAttribute("id");
-						if ((type.equals("RRnt:"
-								+ RR_NodeType.getTypeName(source_packet)))
+							|| nodes.item(i).getNodeName().equals("NodeTemplate")) {
+						String type = ((Element) nodes.item(i)).getAttribute("type");
+						String sourceID = ((Element) nodes.item(i)).getAttribute("id");
+						if ((type.equals("RRnt:" + RR_NodeType.getTypeName(source_packet)))
 								&& sourceID.startsWith(getID(source_packet) + Type_glue)) {
 							// right NodeTemplate found
 							// need to create new Node Template
@@ -176,18 +172,14 @@ public class Topology_Handler {
 						}
 					}
 				addRRImport_NT(document, target_packet);
-				Transformer transformer = TransformerFactory.newInstance()
-						.newTransformer();
+				Transformer transformer = TransformerFactory.newInstance().newTransformer();
 				transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-				transformer.setOutputProperty(
-						"{http://xml.apache.org/xslt}indent-amount", "4");
-				Result output = new StreamResult(new File(ch.getFolder()
-						+ CSAR_handler.Definitions + filename));
+				transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
+				Result output = new StreamResult(new File(ch.getFolder() + CSAR_handler.Definitions + filename));
 				Source input = new DOMSource(document);
 				transformer.transform(input, output);
 
-			} catch (ParserConfigurationException | SAXException | IOException
-					| TransformerFactoryConfigurationError
+			} catch (ParserConfigurationException | SAXException | IOException | TransformerFactoryConfigurationError
 					| TransformerException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -195,23 +187,16 @@ public class Topology_Handler {
 		}
 
 	}
-	
-	
-	private void updateTopology(Document document, Node topology, String filename, String sourceID, String target_packet, String dependencyType) throws UnsupportedEncodingException{
-		createPacketTemplate(document, topology,
-				target_packet, sourceID);
-		createPacketDependency(document, topology,
-				sourceID, getID(target_packet),
-				dependencyType);
 
-		if (!NodeTypeToServiceTemplate
-				.containsKey(target_packet))
-			NodeTypeToServiceTemplate.put(target_packet,
-					new LinkedList<String>());
-		if (!NodeTypeToServiceTemplate.get(target_packet)
-				.contains(filename))
-			NodeTypeToServiceTemplate.get(target_packet)
-					.add(filename);
+	private void updateTopology(Document document, Node topology, String filename, String sourceID,
+			String target_packet, String dependencyType) throws UnsupportedEncodingException {
+		createPacketTemplate(document, topology, target_packet, sourceID);
+		createPacketDependency(document, topology, sourceID, getID(target_packet), dependencyType);
+
+		if (!NodeTypeToServiceTemplate.containsKey(target_packet))
+			NodeTypeToServiceTemplate.put(target_packet, new LinkedList<String>());
+		if (!NodeTypeToServiceTemplate.get(target_packet).contains(filename))
+			NodeTypeToServiceTemplate.get(target_packet).add(filename);
 	}
 
 	/**
@@ -219,15 +204,14 @@ public class Topology_Handler {
 	 * 
 	 * @param reference
 	 *            script position
-	 * @return list with each files containing service templates for given
-	 *         script position
+	 * @return list with each files containing service templates for given script
+	 *         position
 	 */
 	private List<String> getServiceTemplatesFromRef(String reference) {
 		List<String> serviceTemplates = new LinkedList<String>();
 
 		for (String nodeType : RefToNodeType.get(reference)) {
-			for (String serviceTemplate : NodeTypeToServiceTemplate
-					.get(nodeType))
+			for (String serviceTemplate : NodeTypeToServiceTemplate.get(nodeType))
 				if (!serviceTemplates.contains(serviceTemplate))
 					serviceTemplates.add(serviceTemplate);
 		}
@@ -235,8 +219,8 @@ public class Topology_Handler {
 	}
 
 	/**
-	 * Add new NodeTemplate and dependency to existing NodeTemplate by given
-	 * script position
+	 * Add new NodeTemplate and dependency to existing NodeTemplate by given script
+	 * position
 	 * 
 	 * @param script_filename
 	 *            script position
@@ -244,51 +228,41 @@ public class Topology_Handler {
 	 *            packet to be added
 	 * @throws UnsupportedEncodingException
 	 */
-	public void addDependencyToScript(String script_filename,
-			String target_packet) throws UnsupportedEncodingException {
+	public void addDependencyToScript(String script_filename, String target_packet)
+			throws UnsupportedEncodingException {
 		List<String> files = getServiceTemplatesFromRef(script_filename);
 		target_packet = encode(target_packet);
 		for (String filename : files) {
 			try {
-				DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory
-						.newInstance();
+				DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
 				DocumentBuilder documentBuilder;
 				documentBuilder = documentBuilderFactory.newDocumentBuilder();
-				Document document = documentBuilder.parse(ch.getFolder()
-						+ CSAR_handler.Definitions + filename);
+				Document document = documentBuilder.parse(ch.getFolder() + CSAR_handler.Definitions + filename);
 				NodeList nodes = document.getElementsByTagName("*");
 				for (int i = 0; i < nodes.getLength(); i++)
 					if (nodes.item(i).getNodeName().endsWith(":NodeTemplate")
-							|| nodes.item(i).getNodeName()
-									.equals("NodeTemplate")) {
-						String type = ((Element) nodes.item(i))
-								.getAttribute("type");
-						for (String nodeType : RefToNodeType
-								.get(script_filename))
-							if (type.endsWith(":" + nodeType)
-									|| type.equals(nodeType)) {
-								String sourceID = ((Element) nodes.item(i))
-										.getAttribute("id");
+							|| nodes.item(i).getNodeName().equals("NodeTemplate")) {
+						String type = ((Element) nodes.item(i)).getAttribute("type");
+						for (String nodeType : RefToNodeType.get(script_filename))
+							if (type.endsWith(":" + nodeType) || type.equals(nodeType)) {
+								String sourceID = ((Element) nodes.item(i)).getAttribute("id");
 								// right NodeTemplate found
 								// need to create new Node Template
 								// and reference
 								Node topology = nodes.item(i).getParentNode();
-								updateTopology(document, topology, filename, sourceID, target_packet, RR_PreDependsOn.Name);
+								updateTopology(document, topology, filename, sourceID, target_packet,
+										RR_PreDependsOn.Name);
 							}
 					}
 				addRRImport_NT(document, target_packet);
-				Transformer transformer = TransformerFactory.newInstance()
-						.newTransformer();
+				Transformer transformer = TransformerFactory.newInstance().newTransformer();
 				transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-				transformer.setOutputProperty(
-						"{http://xml.apache.org/xslt}indent-amount", "4");
-				Result output = new StreamResult(new File(ch.getFolder()
-						+ CSAR_handler.Definitions + filename));
+				transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
+				Result output = new StreamResult(new File(ch.getFolder() + CSAR_handler.Definitions + filename));
 				Source input = new DOMSource(document);
 				transformer.transform(input, output);
 
-			} catch (ParserConfigurationException | SAXException | IOException
-					| TransformerFactoryConfigurationError
+			} catch (ParserConfigurationException | SAXException | IOException | TransformerFactoryConfigurationError
 					| TransformerException e) {
 				e.printStackTrace();
 			}
@@ -308,8 +282,7 @@ public class Topology_Handler {
 		// "_template";
 	}
 
-	public static String encode(String packet)
-			throws UnsupportedEncodingException {
+	public static String encode(String packet) throws UnsupportedEncodingException {
 		return java.net.URLEncoder.encode(packet, "UTF-8");// +
 		// "_template";
 	}
@@ -325,20 +298,18 @@ public class Topology_Handler {
 	 *            packet name
 	 * @throws UnsupportedEncodingException
 	 */
-	private void createPacketTemplate(Document document, Node topology,
-			String packet, String source) throws UnsupportedEncodingException {
+	private void createPacketTemplate(Document document, Node topology, String packet, String source)
+			throws UnsupportedEncodingException {
 		NodeList nodes = document.getElementsByTagName("*");
 		for (int i = 0; i < nodes.getLength(); i++)
 			if (nodes.item(i).getNodeName().endsWith(":NodeTemplate")
 					|| nodes.item(i).getNodeName().equals("NodeTemplate")) {
-				if (((Element) nodes.item(i)).getAttribute("id").equals(
-						getID(packet)))
+				if (((Element) nodes.item(i)).getAttribute("id").equals(getID(packet)))
 					return;
 			}
 		System.out.println("Add template for " + packet);
 		Element template = document.createElement(myPrefix + "NodeTemplate");
-		template.setAttribute("xmlns:RRnt",
-				RR_NodeType.Definitions.NodeType.targetNamespace);
+		template.setAttribute("xmlns:RRnt", RR_NodeType.Definitions.NodeType.targetNamespace);
 		template.setAttribute("id", getID(packet + Type_glue + source));
 		template.setAttribute("name", packet);
 		template.setAttribute("type", "RRnt:" + RR_NodeType.getTypeName(packet));
@@ -356,43 +327,33 @@ public class Topology_Handler {
 	 * @param targetID
 	 *            is needed by sourceID
 	 */
-	private void createPacketDependency(Document document, Node topology,
-			String sourceID, String targetID, String type) {
+	private void createPacketDependency(Document document, Node topology, String sourceID, String targetID,
+			String type) {
 		if (type == null)
 			throw new NullPointerException();
 		System.out.println("Add relation from " + sourceID + " to " + targetID);
 		NodeList nodes = document.getElementsByTagName("*");
 		for (int i = 0; i < nodes.getLength(); i++)
 			if (nodes.item(i).getNodeName().endsWith(":RelationshipTemplate")
-					|| nodes.item(i).getNodeName()
-							.equals("RelationshipTemplate")) {
-				if (((Element) nodes.item(i)).getAttribute("id").equals(
-						sourceID + "_" + targetID))
+					|| nodes.item(i).getNodeName().equals("RelationshipTemplate")) {
+				if (((Element) nodes.item(i)).getAttribute("id").equals(sourceID + "_" + targetID))
 					return;
 			}
-		Element relation = document.createElement(myPrefix
-				+ "RelationshipTemplate");
+		Element relation = document.createElement(myPrefix + "RelationshipTemplate");
 		relation.setAttribute("id", sourceID + "_" + targetID);
 		relation.setAttribute("name", sourceID + "_needs_" + targetID);
 		if (type.equals(RR_DependsOn.Name)) {
-			relation.setAttribute("xmlns:RRrt",
-					RR_DependsOn.Definitions.RelationshipType.targetNamespace);
-			relation.setAttribute("type", "RRrt:"
-					+ RR_DependsOn.Definitions.RelationshipType.name);
+			relation.setAttribute("xmlns:RRrt", RR_DependsOn.Definitions.RelationshipType.targetNamespace);
+			relation.setAttribute("type", "RRrt:" + RR_DependsOn.Definitions.RelationshipType.name);
 		} else if (type.equals(RR_PreDependsOn.Name)) {
-			relation.setAttribute(
-					"xmlns:RRrt",
-					RR_PreDependsOn.Definitions.RelationshipType.targetNamespace);
-			relation.setAttribute("type", "RRrt:"
-					+ RR_PreDependsOn.Definitions.RelationshipType.name);
+			relation.setAttribute("xmlns:RRrt", RR_PreDependsOn.Definitions.RelationshipType.targetNamespace);
+			relation.setAttribute("type", "RRrt:" + RR_PreDependsOn.Definitions.RelationshipType.name);
 		}
 		topology.appendChild(relation);
-		Element sourceElement = document.createElement(myPrefix
-				+ "SourceElement");
+		Element sourceElement = document.createElement(myPrefix + "SourceElement");
 		sourceElement.setAttribute("ref", sourceID);
 		relation.appendChild(sourceElement);
-		Element targetElement = document.createElement(myPrefix
-				+ "TargetElement");
+		Element targetElement = document.createElement(myPrefix + "TargetElement");
 		targetElement.setAttribute("ref", targetID + Type_glue + sourceID);
 		relation.appendChild(targetElement);
 	}
@@ -406,33 +367,24 @@ public class Topology_Handler {
 		Element tImport;
 		Node definitions = document.getFirstChild();
 		if (definitions.getAttributes().getNamedItem(ToscaNS) == null) {
-			((Element) definitions).setAttribute(ToscaNS,
-					"http://docs.oasis-open.org/tosca/ns/2011/12");
+			((Element) definitions).setAttribute(ToscaNS, "http://docs.oasis-open.org/tosca/ns/2011/12");
 
 			tImport = document.createElement("RR_tosca_ns:Import");
-			tImport.setAttribute("importType",
-					"http://docs.oasis-open.org/tosca/ns/2011/12");
+			tImport.setAttribute("importType", "http://docs.oasis-open.org/tosca/ns/2011/12");
 			tImport.setAttribute("location", RR_DependsOn.filename);
-			tImport.setAttribute("namespace",
-					RR_DependsOn.Definitions.RelationshipType.targetNamespace);
+			tImport.setAttribute("namespace", RR_DependsOn.Definitions.RelationshipType.targetNamespace);
 			definitions.insertBefore(tImport, definitions.getFirstChild());
 
 			tImport = document.createElement("RR_tosca_ns:Import");
-			tImport.setAttribute("importType",
-					"http://docs.oasis-open.org/tosca/ns/2011/12");
+			tImport.setAttribute("importType", "http://docs.oasis-open.org/tosca/ns/2011/12");
 			tImport.setAttribute("location", RR_PreDependsOn.filename);
-			tImport.setAttribute(
-					"namespace",
-					RR_PreDependsOn.Definitions.RelationshipType.targetNamespace);
+			tImport.setAttribute("namespace", RR_PreDependsOn.Definitions.RelationshipType.targetNamespace);
 			definitions.insertBefore(tImport, definitions.getFirstChild());
 
 			tImport = document.createElement("RR_tosca_ns:Import");
-			tImport.setAttribute("importType",
-					"http://docs.oasis-open.org/tosca/ns/2011/12");
+			tImport.setAttribute("importType", "http://docs.oasis-open.org/tosca/ns/2011/12");
 			tImport.setAttribute("location", RR_PackageArtifactType.filename);
-			tImport.setAttribute(
-					"namespace",
-					RR_PackageArtifactType.Definitions.ArtifactType.targetNamespace);
+			tImport.setAttribute("namespace", RR_PackageArtifactType.Definitions.ArtifactType.targetNamespace);
 			definitions.insertBefore(tImport, definitions.getFirstChild());
 		}
 	}
@@ -443,38 +395,33 @@ public class Topology_Handler {
 		addRRImport_Base(document, packet);
 		NodeList nodes = document.getElementsByTagName("RR_tosca_ns:Import");
 		for (int i = 0; i < nodes.getLength(); i++)
-			if (((Element) (nodes.item(i))).getAttribute("location").equals(
-					RR_NodeType.getFileName(packet)))
+			if (((Element) (nodes.item(i))).getAttribute("location").equals(RR_NodeType.getFileName(packet)))
 				return;
 		tImport = document.createElement("RR_tosca_ns:Import");
-		tImport.setAttribute("importType",
-				"http://docs.oasis-open.org/tosca/ns/2011/12");
+		tImport.setAttribute("importType", "http://docs.oasis-open.org/tosca/ns/2011/12");
 		tImport.setAttribute("location", RR_NodeType.getFileName(packet));
-		tImport.setAttribute("namespace",
-				RR_NodeType.Definitions.NodeType.targetNamespace);
+		tImport.setAttribute("namespace", RR_NodeType.Definitions.NodeType.targetNamespace);
 		definitions.insertBefore(tImport, definitions.getFirstChild());
 	}
+
 	private void addRRImport_DA(Document document, String packet) { // TODO
 		Element tImport;
 		Node definitions = document.getFirstChild();
 		addRRImport_Base(document, packet);
 		NodeList nodes = document.getElementsByTagName("RR_tosca_ns:Import");
 		for (int i = 0; i < nodes.getLength(); i++)
-			if (((Element) (nodes.item(i))).getAttribute("location").equals(
-					RR_PackageArtifactTemplate.getFileName(packet)))
+			if (((Element) (nodes.item(i))).getAttribute("location")
+					.equals(RR_PackageArtifactTemplate.getFileName(packet)))
 				return;
 		tImport = document.createElement("RR_tosca_ns:Import");
-		tImport.setAttribute("importType",
-				"http://docs.oasis-open.org/tosca/ns/2011/12");
+		tImport.setAttribute("importType", "http://docs.oasis-open.org/tosca/ns/2011/12");
 		tImport.setAttribute("location", RR_PackageArtifactTemplate.getFileName(packet));
-		tImport.setAttribute("namespace",
-				RR_PackageArtifactTemplate.Definitions.targetNamespace);
+		tImport.setAttribute("namespace", RR_PackageArtifactTemplate.Definitions.targetNamespace);
 		definitions.insertBefore(tImport, definitions.getFirstChild());
 	}
 
 	/**
-	 * Parse Artifact Templates for creating script position -> ArtifactID
-	 * reference
+	 * Parse Artifact Templates for creating script position -> ArtifactID reference
 	 * 
 	 * @param file
 	 */
@@ -483,44 +430,31 @@ public class Topology_Handler {
 		if (!file.getName().toLowerCase().endsWith(Tosca))
 			return;
 		try {
-			DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory
-					.newInstance();
+			DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
 			DocumentBuilder documentBuilder;
 			documentBuilder = documentBuilderFactory.newDocumentBuilder();
 			Document document = documentBuilder.parse(file);
 			NodeList nodes = document.getElementsByTagName("*");
 			for (int i = 0; i < nodes.getLength(); i++) {
 				if (nodes.item(i).getNodeName().endsWith(":ArtifactTemplate")
-						|| nodes.item(i).getNodeName()
-								.equals("ArtifactTemplate")) {
+						|| nodes.item(i).getNodeName().equals("ArtifactTemplate")) {
 					Element e = (Element) nodes.item(i);
 					String ID = e.getAttribute("id");
 					NodeList ArtifactReferences = e.getChildNodes();
 					for (int k = 0; k < ArtifactReferences.getLength(); k++) {
-						if (ArtifactReferences.item(k).getNodeName()
-								.endsWith(":ArtifactReferences")
-								|| ArtifactReferences.item(k).getNodeName()
-										.equals("ArtifactReferences")) {
+						if (ArtifactReferences.item(k).getNodeName().endsWith(":ArtifactReferences")
+								|| ArtifactReferences.item(k).getNodeName().equals("ArtifactReferences")) {
 							if (ArtifactReferences.item(k).getNodeType() == Node.ELEMENT_NODE) {
-								Element elem = (Element) ArtifactReferences
-										.item(k);
-								NodeList ArtifactReferenceList = elem
-										.getChildNodes();
-								for (int j = 0; j < ArtifactReferenceList
-										.getLength(); j++) {
-									if (ArtifactReferenceList.item(j)
-											.getNodeType() == Node.ELEMENT_NODE) {
-										Element ref = (Element) ArtifactReferenceList
-												.item(j);
-										String REF = Utils
-												.correctName(java.net.URLDecoder.decode(
-														ref.getAttribute("reference"),
-														"UTF-8"));
+								Element elem = (Element) ArtifactReferences.item(k);
+								NodeList ArtifactReferenceList = elem.getChildNodes();
+								for (int j = 0; j < ArtifactReferenceList.getLength(); j++) {
+									if (ArtifactReferenceList.item(j).getNodeType() == Node.ELEMENT_NODE) {
+										Element ref = (Element) ArtifactReferenceList.item(j);
+										String REF = Utils.correctName(
+												java.net.URLDecoder.decode(ref.getAttribute("reference"), "UTF-8"));
 										if (!RefToArtID.containsKey(REF))
-											RefToArtID.put(REF,
-													new LinkedList<String>());
-										RefToArtID.get(REF).add(
-												Utils.correctName(ID));
+											RefToArtID.put(REF, new LinkedList<String>());
+										RefToArtID.get(REF).add(Utils.correctName(ID));
 									}
 								}
 							}
@@ -537,8 +471,8 @@ public class Topology_Handler {
 	}
 
 	/**
-	 * Parse node Containing Implementation Artifact, to create script position
-	 * -> NodeType reference
+	 * Parse node Containing Implementation Artifact, to create script position ->
+	 * NodeType reference
 	 * 
 	 * @param artifact
 	 *            node
@@ -554,92 +488,69 @@ public class Topology_Handler {
 				NodeList artifacts = elem.getChildNodes();
 				for (int j = 0; j < artifacts.getLength(); j++) {
 					if (artifacts.item(j).getNodeType() == Node.ELEMENT_NODE) {
-						Element artifactImplementation = (Element) artifacts
-								.item(j);
-						String artifactRef = artifactImplementation
-								.getAttribute("artifactRef");
+						Element artifactImplementation = (Element) artifacts.item(j);
+						String artifactRef = artifactImplementation.getAttribute("artifactRef");
 						if (artifactRef.contains(":"))
-							artifactRef = artifactRef.substring(
-									artifactRef.indexOf(':') + 1,
-									artifactRef.length());
+							artifactRef = artifactRef.substring(artifactRef.indexOf(':') + 1, artifactRef.length());
 						addNodeTypeRef(nodeType, Utils.correctName(artifactRef));
 					}
 				}
 			}
 		}
 	}
-	public void expandTOSCA_Nodes(List<String> packages, String source) throws IOException, JAXBException
-	{
+
+	public void expandTOSCA_Nodes(List<String> packages, String source) throws IOException, JAXBException {
 		source = encode(source);
-		if(RefToNodeType.get(source) == null)
-		{
+		if (RefToNodeType.get(source) == null) {
 			System.out.println("not found");
 			return;
 		}
-			
-		for(String nodeType:RefToNodeType.get(source))
-		{
+
+		for (String nodeType : RefToNodeType.get(source)) {
 			System.out.println("Found Node Type: " + nodeType);
-			for(String serviceTemplate:NodeTypeToServiceTemplate.get(nodeType))
-			{
+			for (String serviceTemplate : NodeTypeToServiceTemplate.get(nodeType)) {
 				System.out.println("Found Service Template: " + serviceTemplate);
 				expandTOSCA_Node(packages, nodeType, serviceTemplate);
 			}
 		}
-		
+
 	}
-	public void expandTOSCA_Node(List<String> packages, String nodeType, String serviceTemplate) throws IOException, JAXBException
-	{
+
+	public void expandTOSCA_Node(List<String> packages, String nodeType, String serviceTemplate)
+			throws IOException, JAXBException {
 		Element deploymentArtifacts = null;
 		try {
-			DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory
-					.newInstance();
+			DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
 			DocumentBuilder documentBuilder;
 			documentBuilder = documentBuilderFactory.newDocumentBuilder();
-			Document document = documentBuilder.parse(ch.getFolder()
-					+ CSAR_handler.Definitions + serviceTemplate);
+			Document document = documentBuilder.parse(ch.getFolder() + CSAR_handler.Definitions + serviceTemplate);
 			NodeList nodes = document.getElementsByTagName("*");
 			for (int i = 0; i < nodes.getLength(); i++)
 				if (nodes.item(i).getNodeName().endsWith(":NodeTemplate")
-						|| nodes.item(i).getNodeName()
-								.equals("NodeTemplate")) {
-					String type = ((Element) nodes.item(i))
-							.getAttribute("type");
-					if (type.endsWith(":" + nodeType)
-							|| type.equals(nodeType)) {
+						|| nodes.item(i).getNodeName().equals("NodeTemplate")) {
+					String type = ((Element) nodes.item(i)).getAttribute("type");
+					if (type.endsWith(":" + nodeType) || type.equals(nodeType)) {
 						// right NodeTemplate found
 						// need to add deployment artifacts
 						Element e = (Element) nodes.item(i);
-						NodeList nodeTypeChildren = e
-								.getChildNodes();
-						for (int j = 0; j < nodeTypeChildren
-								.getLength(); j++) 
-						{
-							if (nodeTypeChildren.item(j)
-									.getNodeType() == Node.ELEMENT_NODE) {
-								if(nodeTypeChildren.item(j).getNodeName().endsWith(":DeploymentArtifacts")
-										||nodeTypeChildren.item(j).getNodeName()
-										.equals("DeploymentArtifacts"))
-								{
+						NodeList nodeTypeChildren = e.getChildNodes();
+						for (int j = 0; j < nodeTypeChildren.getLength(); j++) {
+							if (nodeTypeChildren.item(j).getNodeType() == Node.ELEMENT_NODE) {
+								if (nodeTypeChildren.item(j).getNodeName().endsWith(":DeploymentArtifacts")
+										|| nodeTypeChildren.item(j).getNodeName().equals("DeploymentArtifacts")) {
 
 									deploymentArtifacts = (Element) nodeTypeChildren.item(j);
-									NodeList deploymentArtifactsList = deploymentArtifacts
-											.getChildNodes();
-									for (int d = 0; d < deploymentArtifactsList
-											.getLength(); d++) 
-									{
+									NodeList deploymentArtifactsList = deploymentArtifacts.getChildNodes();
+									for (int d = 0; d < deploymentArtifactsList.getLength(); d++) {
 
-										if (deploymentArtifactsList.item(d)
-												.getNodeType() == Node.ELEMENT_NODE) 
-										{
-											if(deploymentArtifactsList.item(d).getNodeName().endsWith(":DeploymentArtifact")
-													||deploymentArtifactsList.item(d).getNodeName()
-													.equals("DeploymentArtifact"))
-											{
+										if (deploymentArtifactsList.item(d).getNodeType() == Node.ELEMENT_NODE) {
+											if (deploymentArtifactsList.item(d).getNodeName()
+													.endsWith(":DeploymentArtifact")
+													|| deploymentArtifactsList.item(d).getNodeName()
+															.equals("DeploymentArtifact")) {
 												String depArtID = ((Element) deploymentArtifactsList.item(d))
 														.getAttribute("artifactRef");
-												if(packages.contains(depArtID))
-												{
+												if (packages.contains(depArtID)) {
 													System.out.println("artifact exists: " + depArtID);
 													packages.remove(depArtID);
 												}
@@ -649,48 +560,43 @@ public class Topology_Handler {
 								}
 							}
 						}
-						if(deploymentArtifacts == null)
-						{
-							deploymentArtifacts = document.createElement(myPrefix
-									+ "DeploymentArtifacts");
+						if (deploymentArtifacts == null) {
+							deploymentArtifacts = document.createElement(myPrefix + "DeploymentArtifacts");
 							e.appendChild(deploymentArtifacts);
 						}
-						for(String packet:packages)
-						{
-							Element deploymentArtifact = document.createElement(myPrefix
-									+ "DeploymentArtifact");
+						for (String packet : packages) {
+							Element deploymentArtifact = document.createElement(myPrefix + "DeploymentArtifact");
 							deploymentArtifact.setAttribute("xmlns:tbt",
 									RR_PackageArtifactType.Definitions.ArtifactType.targetNamespace);
 							deploymentArtifact.setAttribute("xmlns:art",
 									RR_PackageArtifactTemplate.Definitions.targetNamespace);
-							deploymentArtifact.setAttribute("name",packet);
-							deploymentArtifact.setAttribute("artifactType","tbt:" + RR_PackageArtifactType.Definitions.ArtifactType.name);
-							deploymentArtifact.setAttribute("artifactRef","art:" + RR_PackageArtifactTemplate.getID(packet));
+							deploymentArtifact.setAttribute("name", packet);
+							deploymentArtifact.setAttribute("artifactType",
+									"tbt:" + RR_PackageArtifactType.Definitions.ArtifactType.name);
+							deploymentArtifact.setAttribute("artifactRef",
+									"art:" + RR_PackageArtifactTemplate.getID(packet));
 							deploymentArtifacts.appendChild(deploymentArtifact);
 						}
 					}
 				}
-			for(String packet:packages){
-				addRRImport_DA(document, packet); 
+			for (String packet : packages) {
+				addRRImport_DA(document, packet);
 			}
-			Transformer transformer = TransformerFactory.newInstance()
-					.newTransformer();
+			Transformer transformer = TransformerFactory.newInstance().newTransformer();
 			transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-			transformer.setOutputProperty(
-					"{http://xml.apache.org/xslt}indent-amount", "4");
-			Result output = new StreamResult(new File(ch.getFolder()
-					+ CSAR_handler.Definitions + serviceTemplate));
+			transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
+			Result output = new StreamResult(new File(ch.getFolder() + CSAR_handler.Definitions + serviceTemplate));
 			Source input = new DOMSource(document);
 			transformer.transform(input, output);
 
-		} catch (ParserConfigurationException | SAXException | IOException
-				| TransformerFactoryConfigurationError
+		} catch (ParserConfigurationException | SAXException | IOException | TransformerFactoryConfigurationError
 				| TransformerException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+
 	}
+
 	/**
 	 * Parsing Implementation nodes, looking for NodeType
 	 * 
@@ -702,8 +608,7 @@ public class Topology_Handler {
 			Element e = (Element) node;
 			String nodeType = e.getAttribute("nodeType");
 			if (nodeType.contains(":"))
-				nodeType = nodeType.substring(nodeType.indexOf(':') + 1,
-						nodeType.length());
+				nodeType = nodeType.substring(nodeType.indexOf(':') + 1, nodeType.length());
 			NodeList artifactLists = e.getChildNodes();
 			for (int k = 0; k < artifactLists.getLength(); k++) {
 				parseImplementationsArtifact(artifactLists.item(k), nodeType);
@@ -724,8 +629,7 @@ public class Topology_Handler {
 		if (!file.getName().toLowerCase().endsWith(Tosca))
 			return;
 		try {
-			DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory
-					.newInstance();
+			DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
 			DocumentBuilder documentBuilder;
 			documentBuilder = documentBuilderFactory.newDocumentBuilder();
 			Document document = documentBuilder.parse(file);
@@ -740,8 +644,8 @@ public class Topology_Handler {
 	}
 
 	/**
-	 * creates script position -> Node Type reference, by given Script position
-	 * -> ArtifactID and ArtifactID -> NodeType
+	 * creates script position -> Node Type reference, by given Script position ->
+	 * ArtifactID and ArtifactID -> NodeType
 	 * 
 	 * @param nodeType
 	 * @param artifactID
@@ -768,8 +672,7 @@ public class Topology_Handler {
 		if (!file.getName().toLowerCase().endsWith(Tosca))
 			return;
 		try {
-			DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory
-					.newInstance();
+			DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
 			DocumentBuilder documentBuilder;
 			documentBuilder = documentBuilderFactory.newDocumentBuilder();
 			Document document = documentBuilder.parse(file);
@@ -780,15 +683,11 @@ public class Topology_Handler {
 					Element e = (Element) nodes.item(i);
 					String nodeType = e.getAttribute("type");
 					if (nodeType.contains(":"))
-						nodeType = nodeType.substring(
-								nodeType.indexOf(':') + 1, nodeType.length());
+						nodeType = nodeType.substring(nodeType.indexOf(':') + 1, nodeType.length());
 					if (!NodeTypeToServiceTemplate.containsKey(nodeType))
-						NodeTypeToServiceTemplate.put(nodeType,
-								new LinkedList<String>());
-					if (!NodeTypeToServiceTemplate.get(nodeType).contains(
-							file.getName()))
-						NodeTypeToServiceTemplate.get(nodeType).add(
-								file.getName());
+						NodeTypeToServiceTemplate.put(nodeType, new LinkedList<String>());
+					if (!NodeTypeToServiceTemplate.get(nodeType).contains(file.getName()))
+						NodeTypeToServiceTemplate.get(nodeType).add(file.getName());
 				}
 
 			}

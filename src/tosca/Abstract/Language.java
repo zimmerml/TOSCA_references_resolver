@@ -45,8 +45,8 @@ public abstract class Language {
 	protected CSAR_handler ch;
 
 	// List with already created packages
-	protected List <String> created_packages;
-	
+	protected List<String> created_packages;
+
 	/**
 	 * get Language name
 	 * 
@@ -74,20 +74,18 @@ public abstract class Language {
 	 * @throws IOException
 	 * @throws JAXBException
 	 */
-	public void proceed() throws FileNotFoundException,
-			IOException, JAXBException {
+	public void proceed() throws FileNotFoundException, IOException, JAXBException {
 		if (ch == null)
 			throw new NullPointerException();
 		for (String f : ch.getFiles())
 			for (String suf : extensions)
-				if (f.toLowerCase().endsWith(suf.toLowerCase()))
-				{
+				if (f.toLowerCase().endsWith(suf.toLowerCase())) {
 					List<String> packages = new LinkedList<String>();
 					for (PackageManager pm : packetManagers)
 						packages.addAll(pm.proceed(ch.getFolder() + f, f));
-					if(packages.size() > 0 && ch.getResolving() == CSAR_handler.Resolving.Single){
+					if (packages.size() > 0 && ch.getResolving() == CSAR_handler.Resolving.Single) {
 						List<String> templist = new LinkedList<String>();
-						for(String temp:packages)
+						for (String temp : packages)
 							templist.add(Utils.correctName(temp));
 						createTOSCA_Node(templist, f);
 						ch.AddDependenciesScript(Utils.correctName(f), getNodeName(f));
@@ -95,28 +93,31 @@ public abstract class Language {
 				}
 	}
 
-	/**	Generate node name for specific packages
+	/**
+	 * Generate node name for specific packages
+	 * 
 	 * @param packet
 	 * @param source
 	 * @return
 	 */
-	public  String getNodeName(String packet, String source)
-	{
-		return Utils.correctName(Name + "_" + packet + "_"
-				+ source.replace("/", "_"));
+	public String getNodeName(String packet, String source) {
+		return Utils.correctName(Name + "_" + packet + "_" + source.replace("/", "_"));
 	}
 
-	/**	Generate node name for specific packages
+	/**
+	 * Generate node name for specific packages
+	 * 
 	 * @param source
 	 * @return
 	 */
-	public String getNodeName(String source){	
+	public String getNodeName(String source) {
 		return Utils.correctName(Name + "_for_" + source.replace("/", "_"));
-		
+
 	}
-	
-	
-	/**	Generate Node for TOSCA Topology
+
+	/**
+	 * Generate Node for TOSCA Topology
+	 * 
 	 * @param packet
 	 * @param source
 	 * @return
@@ -124,9 +125,10 @@ public abstract class Language {
 	 * @throws JAXBException
 	 */
 	public abstract String createTOSCA_Node(String packet, String source) throws IOException, JAXBException;
+
 	public abstract String createTOSCA_Node(List<String> packages, String source) throws IOException, JAXBException;
-	public void expandTOSCA_Node(List<String> packages, String source) throws IOException, JAXBException
-	{
+
+	public void expandTOSCA_Node(List<String> packages, String source) throws IOException, JAXBException {
 		ch.expandTOSCA_Node(packages, Utils.correctName(source.replace("/", "_")));
 	}
 }

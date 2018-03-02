@@ -66,16 +66,22 @@ public class Package_Handler {
 
 	/**
 	 * Downloads packet, public functions. Calls private recursive function
+	 * 
 	 * @param language
-	 * @param packet to be download
+	 * @param packet
+	 *            to be download
 	 * @param source
 	 * @throws JAXBException
 	 * @throws IOException
 	 */
-	public List<String> getPacket(Language language, String packet, String source)
-			throws JAXBException, IOException {
+	public List<String> getPacket(Language language, String packet, String source) throws JAXBException, IOException {
 		List<String> listed = new LinkedList<String>();
-		getPacket(language, packet, listed, source, source);
+
+		if (ch.getResolving() == CSAR_handler.Resolving.Archive) {
+			downloadAllDependencies(packet);
+		} else {
+			getPacket(language, packet, listed, source, source);
+		}
 		return listed;
 	}
 
@@ -88,14 +94,13 @@ public class Package_Handler {
 	 * @throws JAXBException
 	 * @throws IOException
 	 */
-	public void getPacket(Language language, String packet,
-			List<String> listed, String source, String sourcefile)
-					throws JAXBException, IOException {
+	public void getPacket(Language language, String packet, List<String> listed, String source, String sourcefile)
+			throws JAXBException, IOException {
 		if (rename.containsKey(packet))
 			packet = rename.get(packet);
 		System.out.println("Get packet: " + packet);
-		//if(packet.equals("initscripts:i386"))
-		//	System.out.println("alilua");
+		// if(packet.equals("initscripts:i386"))
+		// System.out.println("alilua");
 		// if package is already listed: nothing to do
 		if (listed.contains(packet) || ignore.contains(packet))
 			return;
@@ -124,16 +129,15 @@ public class Package_Handler {
 			if (packet.equals(""))
 				return;
 		}
+		listed.add(packet);
 		newName = Utils.correctName(packet);
-		if(ch.getResolving() == CSAR_handler.Resolving.Mirror)
-		{
+		if (ch.getResolving() == CSAR_handler.Resolving.Mirror) {
 			String nodename = language.createTOSCA_Node(newName, sourcefile);
 			if (source.equals(sourcefile))
 				ch.AddDependenciesScript(Utils.correctName(source), nodename);
 			else
-				ch.AddDependenciesPacket(
-						language.getNodeName(source, sourcefile),
-						nodename, getDependencyType(source, packet));
+				ch.AddDependenciesPacket(language.getNodeName(source, sourcefile), nodename,
+						getDependencyType(source, packet));
 		}
 		for (String dPacket : dependensis) {
 
@@ -141,6 +145,55 @@ public class Package_Handler {
 		}
 
 		return;
+	}
+
+	public void downloadAllDependencies(String packet) {
+		String dir_name = "";
+		String newName;
+		Process proc;
+
+		Runtime rt = Runtime.getRuntime();
+
+		String cmd = ("apt-get download $(apt-cache depends --recurse --no-recommends --no-suggests --no-conflicts --no-breaks --no-replaces --no-enhances --no-pre-depends "
+				+ packet + " | grep \"^\\w\")");
+
+		System.out.println("Command: " + cmd);
+		try {
+			proc = rt.exec(new String[] { "bash", "-c", cmd });
+			BufferedReader stdInput = new BufferedReader(new InputStreamReader(proc.getInputStream()));
+
+			BufferedReader stdError = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
+
+			String s = null;
+			while ((s = stdInput.readLine()) != null) {
+				System.out.print(s);
+			}
+
+			// read any errors from the attempted command
+			System.out.println("Errors:\n");
+			while ((s = stdError.readLine()) != null) {
+				System.out.println(s);
+			}
+			proc.waitFor();
+			System.out.println("done");
+
+			// need to move package to right folder
+			for (File entry : new File("./").listFiles()) {
+				System.out.println("downloaded and found: " + entry.getName());
+				newName = Utils.correctName(entry.getName().replace(",deb", ""));
+				dir_name = Resolver.folder + newName + File.separator;
+				new File(ch.getFolder() + dir_name).mkdirs();
+				entry.renameTo(new File(ch.getFolder() + dir_name + newName + Extension));
+			}
+
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
 	}
 
 	private String downloadPackage(String packet) {
@@ -151,9 +204,10 @@ public class Package_Handler {
 		Process proc;
 		while (!downloaded) {
 			try {
-				if(ch.debug){
+				if (ch.debug) {
 					System.out.println("debug imitation: " + packet);
-					Utils.createFile(ch.getFolder()+ Resolver.folder + Utils.correctName(packet) + File.separator +Utils.correctName(packet) + Extension, "");
+					Utils.createFile(ch.getFolder() + Resolver.folder + Utils.correctName(packet) + File.separator
+							+ Utils.correctName(packet) + Extension, "");
 					break;
 				}
 				// "apt-get download" downloads only to current folder
@@ -161,11 +215,9 @@ public class Package_Handler {
 				Runtime rt = Runtime.getRuntime();
 				proc = rt.exec("apt-get download " + packet);
 
-				BufferedReader stdInput = new BufferedReader(
-						new InputStreamReader(proc.getInputStream()));
+				BufferedReader stdInput = new BufferedReader(new InputStreamReader(proc.getInputStream()));
 
-				BufferedReader stdError = new BufferedReader(
-						new InputStreamReader(proc.getErrorStream()));
+				BufferedReader stdError = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
 
 				String s = null;
 				while ((s = stdInput.readLine()) != null) {
@@ -180,25 +232,26 @@ public class Package_Handler {
 				proc.waitFor();
 				System.out.println("done");
 				// need to move package to right folder
-				for (File entry : new File("./").listFiles())
+				for (File entry : new File("./").listFiles()) {
 					if (file_downloaded(packet, entry)) {
-						System.out.println("downloaded and found: "
-								+ entry.getName());
+						System.out.println("downloaded and found: " + entry.getName());
 						newName = Utils.correctName(packet);
 						dir_name = Resolver.folder + newName + File.separator;
 						new File(ch.getFolder() + dir_name).mkdirs();
-						entry.renameTo(new File(ch.getFolder() + dir_name
-								+ newName + Extension));
+						entry.renameTo(new File(ch.getFolder() + dir_name + newName + Extension));
 						downloaded = true;
 						if (sourceName != packet)
 							rename.put(sourceName, packet);
-						ch.metaFile.addFileToMeta(dir_name + newName
-								+ Extension, "application/deb");
+						if (ch.getResolving() != CSAR_handler.Resolving.Archive) {
+							ch.metaFile.addFileToMeta(dir_name + newName + Extension, "application/deb");
+						}
 						break;
 					}
-				if (downloaded == false) {
-					System.out.println("downloaded packet " + packet
-							+ " not found");
+				}
+				if (downloaded == false && !packet.contains(ch.getArchitecture())) {
+					packet = packet + ch.getArchitecture();
+				} else if (downloaded == false) {
+					System.out.println("downloaded packet " + packet + " not found");
 
 					packet = getSolution(packet);
 					if (packet.equals(""))
@@ -217,11 +270,9 @@ public class Package_Handler {
 	}
 
 	private Boolean file_downloaded(String packet, File file) {
-		return (file.getName().endsWith(
-				ch.getArchitecture().replaceAll(":", "") + Extension)
-				||file.getName().endsWith("all" + Extension))
-				&& (((packet.contains(":") && file.getName().startsWith(
-						packet.substring(0, packet.indexOf(':')))))
+		return (file.getName().endsWith(ch.getArchitecture().replaceAll(":", "") + Extension)
+				|| file.getName().endsWith("all" + Extension))
+				&& (((packet.contains(":") && file.getName().startsWith(packet.substring(0, packet.indexOf(':')))))
 						|| (!packet.contains(":") && file.getName().startsWith(packet)));
 	}
 
@@ -240,115 +291,92 @@ public class Package_Handler {
 		Runtime rt = Runtime.getRuntime();
 		Process proc = rt.exec("apt-cache depends " + packet);
 
-		BufferedReader stdInput = new BufferedReader(new InputStreamReader(
-				proc.getInputStream()));
+		BufferedReader stdInput = new BufferedReader(new InputStreamReader(proc.getInputStream()));
 
 		System.out.print("temp dependensis : ");
 		String s = null;
 		// TODO Predepends
 		while ((s = stdInput.readLine()) != null) {
-			addDependensyString(s, stdInput,depend);
+			addDependensyString(s, stdInput, depend);
 		}
 		System.out.println("");
-		if(ch.debug){
-			while(depend.size() > 1)
+		if (ch.debug) {
+			while (depend.size() > 1)
 				depend.remove(0);
 		}
 		System.out.print("final dependensis : ");
-		for(String dependency:depend)
+		for (String dependency : depend)
 			System.out.print(dependency + ",");
+		System.out.print("\n");
 		return depend;
 	}
 
-	private void addDependensyString(String s, BufferedReader stdInput, List<String> depend) throws IOException
-	{
-		if(s == null)
+	private void addDependensyString(String s, BufferedReader stdInput, List<String> depend) throws IOException {
+		if (s == null)
 			return;
 		String[] words = s.replaceAll("[;&]", "").split("\\s+");
-		if (words.length == 3
-				&& (words[1].equals("Depends:") || words[1]
-						.equals("PreDepends:"))) 
-		{
+		if (words.length == 3 && (words[1].equals("Depends:") || words[1].equals("PreDepends:"))) {
 			List<String> currentDepend = new LinkedList<String>();
-			if (words[2].startsWith("<") && words[2].endsWith(">"))
-			{
-			}
-			else
-			{
+			if (words[2].startsWith("<") && words[2].endsWith(">")) {
+			} else {
 				currentDepend.add(words[2]);
 				System.out.print(words[2] + ",");
 			}
 			addDependensySubString(stdInput.readLine(), stdInput, depend, currentDepend);
 		}
 	}
-	private void addDependensySubString(String s, BufferedReader stdInput, List<String> depend, List<String> currentDepend) throws IOException
-	{
-		if(s == null)
-		{
+
+	private void addDependensySubString(String s, BufferedReader stdInput, List<String> depend,
+			List<String> currentDepend) throws IOException {
+		if (s == null) {
 			processCurrentDepend(depend, currentDepend);
 			return;
 		}
 		String[] words = s.replaceAll("[;&]", "").split("\\s+");
-		if (words.length == 3
-				&& (words[1].equals("Depends:") || words[1]
-						.equals("PreDepends:"))) 
-		{
+		if (words.length == 3 && (words[1].equals("Depends:") || words[1].equals("PreDepends:"))) {
 			processCurrentDepend(depend, currentDepend);
-			if (words[2].startsWith("<") && words[2].endsWith(">"))
-			{
-			}
-			else
-			{
+			if (words[2].startsWith("<") && words[2].endsWith(">")) {
+			} else {
 				currentDepend.add(words[2]);
 				System.out.print(words[2] + ",");
 			}
 			addDependensySubString(stdInput.readLine(), stdInput, depend, currentDepend);
-		}
-		else 
-		if (words.length == 2) 
-		{
-			if (words[1].startsWith("<") && words[1].endsWith(">"))
-			{
-			}
-			else
-			{
+		} else if (words.length == 2) {
+			if (words[1].startsWith("<") && words[1].endsWith(">")) {
+			} else {
 				currentDepend.add(words[1]);
 				System.out.print(words[1] + ",");
 			}
 			addDependensySubString(stdInput.readLine(), stdInput, depend, currentDepend);
 		}
 	}
-	
-	private void processCurrentDepend(List<String> depend, List<String> currentDepend )
-	{
-		if(currentDepend == null || currentDepend.size() == 0)
-		{
+
+	private void processCurrentDepend(List<String> depend, List<String> currentDepend) {
+		if (currentDepend == null || currentDepend.size() == 0) {
 			return;
 		}
-		
-		if(currentDepend.size() == 1)
-		{
+
+		if (currentDepend.size() == 1) {
 			depend.addAll(currentDepend);
 			currentDepend.clear();
 			return;
 		}
-		
-		for(String dependency:currentDepend)
-			if(dependency.endsWith(ch.getArchitecture()))
-			{
+
+		for (String dependency : currentDepend)
+			if (dependency.endsWith(ch.getArchitecture())) {
 				depend.add(dependency);
 				currentDepend.clear();
 				return;
 			}
-		
-		for(String dependency:currentDepend)
-			if(!dependency.contains(":"))
-			{
+
+		for (String dependency : currentDepend)
+			if (!dependency.contains(":")) {
 				depend.add(dependency);
 				currentDepend.clear();
 				return;
 			}
 	}
+
 	/**
 	 * Checks if packet can be download
 	 * 
@@ -363,8 +391,7 @@ public class Package_Handler {
 			packet = rename.get(packet);
 		Runtime rt = Runtime.getRuntime();
 		Process proc = rt.exec("apt-cache depends " + packet);
-		BufferedReader stdError = new BufferedReader(new InputStreamReader(
-				proc.getErrorStream()));
+		BufferedReader stdError = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
 
 		if ((stdError.readLine()) != null)
 			return false;
@@ -401,8 +428,7 @@ public class Package_Handler {
 					break;
 				case 3:
 					ignore.add(packet);
-					System.out.println("packet " + packet
-							+ " added to ignore list");
+					System.out.println("packet " + packet + " added to ignore list");
 					return "";
 				case 4:
 					return packet.substring(0, packet.indexOf(':'));
@@ -415,25 +441,21 @@ public class Package_Handler {
 		}
 	}
 
-	public String getDependencyType(String source, String target)
-			throws IOException {
+	public String getDependencyType(String source, String target) throws IOException {
 		Runtime rt = Runtime.getRuntime();
 		Process proc = rt.exec("apt-cache depends " + source);
 
-		BufferedReader stdInput = new BufferedReader(new InputStreamReader(
-				proc.getInputStream()));
+		BufferedReader stdInput = new BufferedReader(new InputStreamReader(proc.getInputStream()));
 
 		String s = null;
 		String last = null;
 		while ((s = stdInput.readLine()) != null) {
 			String[] words = s.replaceAll("[;&<>]", "").split("\\s+");
-			if (words.length == 3 && words[1].equals("Depends:")
-					&& words[2].equals(target)) {
+			if (words.length == 3 && words[1].equals("Depends:") && words[2].equals(target)) {
 				return RR_DependsOn.Name;
 			}
 
-			if (words.length == 3 && words[1].equals("PreDepends:")
-					&& words[2].equals(target)) {
+			if (words.length == 3 && words[1].equals("PreDepends:") && words[2].equals(target)) {
 				return RR_PreDependsOn.Name;
 			}
 			if (words.length == 2 && words[1].equals(target)) {
@@ -452,19 +474,18 @@ public class Package_Handler {
 			return getDependencyType(source, rename.get(target));
 		return null;
 	}
-	
-	private boolean isVirtual(String packet) throws IOException{
+
+	private boolean isVirtual(String packet) throws IOException {
 		if (rename.containsKey(packet))
 			packet = rename.get(packet);
 		Runtime rt = Runtime.getRuntime();
 		Process proc = rt.exec("apt-cache show " + packet);
 
-		BufferedReader stdInput = new BufferedReader(new InputStreamReader(
-				proc.getInputStream()));
+		BufferedReader stdInput = new BufferedReader(new InputStreamReader(proc.getInputStream()));
 
 		System.out.print("dependensis : ");
 		String s = stdInput.readLine();
-		if(s == null || s.startsWith("N:"))
+		if (s == null || s.startsWith("N:"))
 			return true;
 		return false;
 	}

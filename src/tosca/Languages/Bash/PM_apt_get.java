@@ -21,20 +21,23 @@ package tosca.Languages.Bash;
  */
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.zip.ZipInputStream;
 
 import javax.xml.bind.JAXBException;
 
 import tosca.CSAR_handler;
 import tosca.Package_Handler;
+import tosca.Resolver;
 import tosca.Utils;
+import tosca.zip;
 import tosca.Abstract.Language;
 import tosca.Abstract.PackageManager;
 import tosca.xml_definitions.RR_PackageArtifactTemplate;
-import tosca.xml_definitions.RR_ScriptArtifactTemplate;
 
 public final class PM_apt_get extends PackageManager {
 
@@ -52,11 +55,9 @@ public final class PM_apt_get extends PackageManager {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see TOSCA.PacketManager#proceed(java.lang.String,
-	 * TOSCA.Control_references)
+	 * @see TOSCA.PacketManager#proceed(java.lang.String, TOSCA.Control_references)
 	 */
-	public List<String> proceed(String filename, String source)
-			throws IOException, JAXBException {
+	public List<String> proceed(String filename, String source) throws IOException, JAXBException {
 		if (ch == null)
 			throw new NullPointerException();
 		List<String> output = new LinkedList<String>();
@@ -79,42 +80,97 @@ public final class PM_apt_get extends PackageManager {
 					System.out.println("apt-get found:" + line);
 					isChanged = true;
 					for (int packet = 2 + i; packet < words.length; packet++) {
-						if(words[packet].startsWith("-"))
+						if (words[packet].startsWith("-"))
 							continue;
 						System.out.println("packet: " + words[packet]);
 						output = ch.getPacket(language, words[packet], source);
 					}
 				}
-				switch(ch.getResolving()){
-				case Expand:
+				if (ch.getResolving() == CSAR_handler.Resolving.Expand) {
+
 					newFile += "#//References resolver//" + line + '\n';
-					if(output.size() > 0){
-						
+					if (output.size() > 0) {
+
 						List<String> templist = new LinkedList<String>();
-						for(String temp:output)
+						for (String temp : output)
 							templist.add(Utils.correctName(temp));
-						
-						newFile +=  "dpkg -i ";
-						for(String temp:templist)
-							newFile +=" "+ temp + Package_Handler.Extension;
+
+						newFile += "dpkg -i ";
+						for (String temp : templist)
+							newFile += " " + temp + Package_Handler.Extension;
 						newFile += "\n";
-						
-						for(String packet:templist){
+
+						for (String packet : templist) {
 							RR_PackageArtifactTemplate.createPackageArtifact(ch, packet);
 						}
 						language.expandTOSCA_Node(templist, source);
 					}
-					break;
-				default:
+				} else if (ch.getResolving() == CSAR_handler.Resolving.Archive) {
+
 					newFile += "#//References resolver//" + line + '\n';
-					break;
+
+					// TODO read a resource file to create the script
+
+					newFile += "csarRoot=$(find ~ -maxdepth 1 -path \"*.csar\");";
+					newFile += "\n";
+					newFile += "IFS=';' read -ra NAMES <<< \"$DAs\";";
+					newFile += "\n";
+					newFile += "for i in \"${NAMES[@]}\"; do";
+					newFile += "\n";
+					newFile += "	IFS=',' read -ra PATH <<< \"$i\"; ";
+					newFile += "\n";
+					newFile += "		dirName=$(/usr/bin/sudo /usr/bin/dirname $csarRoot${PATH[1]})";
+					newFile += "\n";
+					newFile += "		baseName=$(/usr/bin/sudo /usr/bin/basename $csarRoot${PATH[1]})";
+					newFile += "\n";
+					newFile += "		filename=\"${baseName%.*}\"";
+					newFile += "\n";
+					newFile += "	if [[ \"${PATH[1]}\" == *.tar ]];";
+					newFile += "\n";
+					newFile += "	then";
+					newFile += "\n";
+					newFile += "	cd $dirName";
+					newFile += "\n";
+					newFile += "	/usr/bin/sudo mkdir -p $filename";
+					newFile += "\n";
+					newFile += "	/bin/tar  -xvzf $baseName -C $filename";
+					newFile += "\n";
+					newFile += "	fi";
+					newFile += "\n";
+					newFile += "done";
+					newFile += "\n";
+					newFile += "export DEBIAN_FRONTEND=noninteractive";
+					newFile += "\n";
+					newFile += "/usr/bin/sudo -E /usr/bin/dpkg -i -R -E -B $filename";
+					newFile += "\n";
+
+					String newFileName = ch.service_template.getRefToNodeType().get(Utils.correctName(source)).get(0);
+					String newFileNameWithExtension = newFileName + "_DA.tar";
+
+					String newFilePath1 = Resolver.folder + newFileNameWithExtension;
+
+					// Creating tar file, since tar is already available on Ubuntu
+					zip.createTarFile(newFileNameWithExtension, ch.getFolder() + Resolver.folder, "tar");
+
+					zip.deleteFilesInFolder(new File(ch.getFolder() + Resolver.folder), "tar");
+
+					ch.metaFile.addFileToMeta(newFilePath1, "application/tar");
+
+					RR_PackageArtifactTemplate.createPackageArtifact(ch, newFileName);
+
+					List<String> newDA = new LinkedList<String>();
+					newDA.add(newFileName);
+					language.expandTOSCA_Node(newDA, source);
+
+				} else {
+					newFile += "#//References resolver//" + line + '\n';
 				}
 			} else
 				newFile += line + '\n';
 		}
 		br.close();
 		if (isChanged)
-			Utils.createFile(filename,newFile);
+			Utils.createFile(filename, newFile);
 		return output;
 	}
 }

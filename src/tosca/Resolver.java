@@ -23,6 +23,7 @@ package tosca;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.URL;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Scanner;
@@ -58,6 +59,7 @@ public class Resolver {
 	 * @throws IOException
 	 */
 	public static void main(String[] args) throws IOException {
+
 		String source, target;
 		Resolver resolver = new Resolver();
 		if (args.length >= 1)
@@ -106,13 +108,13 @@ public class Resolver {
 		try {
 			// create CSAR manager and unpack archive
 			ch = new CSAR_handler(filename);
-			
-			//init Languages
+
+			// init Languages
 			languages.add(new Ansible(ch));
 			languages.add(new Bash(ch));
 			/*
-			 * TODO Node type. done Artifact Type for package. done Relationship
-			 * Type for dependencies change service template
+			 * TODO Node type. done Artifact Type for package. done Relationship Type for
+			 * dependencies change service template
 			 */
 			new File(ch.getFolder() + CSAR_handler.Definitions).mkdirs();
 			RR_PackageArtifactType.init(ch);
@@ -121,12 +123,10 @@ public class Resolver {
 			RR_PreDependsOn.init(ch);
 			RR_DependsOn.init(ch);
 		} catch (FileNotFoundException e) {
-			System.out.println("Error by unpacking " + filename
-					+ ", file not found");
+			System.out.println("Error by unpacking " + filename + ", file not found");
 			return;
 		} catch (JAXBException e) {
-			System.out
-					.println("Unable to create a XML packagetype description");
+			System.out.println("Unable to create a XML packagetype description");
 			e.printStackTrace();
 			return;
 		}

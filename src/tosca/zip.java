@@ -1,5 +1,8 @@
 package tosca;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+
 /*-
  * #%L
  * TOSCA_RR
@@ -27,9 +30,14 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
+
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
+import org.apache.commons.compress.utils.IOUtils;
 
 public class zip {
 
@@ -43,8 +51,7 @@ public class zip {
 	 * @throws FileNotFoundException
 	 *             , IOException
 	 */
-	static public List<String> unZipIt(String zipFile, String outputFolder)
-			throws FileNotFoundException, IOException {
+	static public List<String> unZipIt(String zipFile, String outputFolder) throws FileNotFoundException, IOException {
 		if (!(new File(zipFile).exists()))
 			throw new FileNotFoundException(zipFile + "not found!");
 		// unpacked files
@@ -108,8 +115,7 @@ public class zip {
 	 *            original folder
 	 * @return
 	 */
-	public static List<String> generateFileList(File node,
-			List<String> fileList, String folder) {
+	public static List<String> generateFileList(File node, List<String> fileList, String folder) {
 
 		// add file only
 		if (node.isFile()) {
@@ -122,8 +128,7 @@ public class zip {
 		if (node.isDirectory()) {
 			String[] subNote = node.list();
 			for (String filename : subNote) {
-				fileList = generateFileList(new File(node, filename), fileList,
-						folder);
+				fileList = generateFileList(new File(node, filename), fileList, folder);
 			}
 		}
 		return fileList;
@@ -139,8 +144,7 @@ public class zip {
 	 * @throws FileNotFoundException
 	 *             , IOException
 	 */
-	static public void zipIt(String zipFile, String folder)
-			throws FileNotFoundException, IOException {
+	static public void zipIt(String zipFile, String folder) throws FileNotFoundException, IOException {
 
 		List<String> fileList = new LinkedList<String>();
 		fileList = generateFileList(new File(folder), fileList, folder);
@@ -164,6 +168,7 @@ public class zip {
 
 		zos.closeEntry();
 		zos.close();
+
 	}
 
 	/**
@@ -182,4 +187,97 @@ public class zip {
 		if (!f.delete())
 			throw new FileNotFoundException("Failed to delete file: " + f);
 	}
+
+	/**
+	 * recursively delete files, folders and all subfolders with exception of files
+	 * with the specified file ending in the specified folder
+	 * 
+	 * @param f
+	 * @throws IOException
+	 */
+	static public void deleteFilesInFolder(File f, String ending) throws IOException {
+		if (!f.exists())
+			return;
+		if (f.isDirectory()) {
+			for (File c : f.listFiles()) {
+				if (!getFileExtension(c).equals(ending))
+					delete(c);
+			}
+		}
+	}
+
+	private static String getFileExtension(File file) {
+		String fileName = file.getName();
+		if (fileName.lastIndexOf(".") != -1 && fileName.lastIndexOf(".") != 0)
+			return fileName.substring(fileName.lastIndexOf(".") + 1);
+		else
+			return "";
+	}
+
+	/**
+	 * 
+	 * @param source
+	 */
+	static public void createTarFile(String tarName, String source, String ending) {
+
+		String tarFile = source + File.separator + tarName;
+		TarArchiveOutputStream tarOs = null;
+		try {
+			FileOutputStream fos = new FileOutputStream(tarFile);
+			GZIPOutputStream gos = new GZIPOutputStream(new BufferedOutputStream(fos));
+			tarOs = new TarArchiveOutputStream(gos);
+			File folder = new File(source);
+			File[] fileNames = folder.listFiles();
+			for (File file : fileNames) {
+				System.out.println("PATH " + file.getAbsolutePath());
+				System.out.println("File name " + file.getName());
+				System.out.println("tarFile " + tarFile);
+
+				if (!getFileExtension(file).equals(ending)) {
+					addFilesToTarGZ(file, tarOs);
+				}
+			}
+
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			try {
+				tarOs.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	}
+
+	/**
+	 * 
+	 * @param source
+	 * @param file
+	 * @param tos
+	 * @throws IOException
+	 */
+	static private void addFilesToTarGZ(File file, TarArchiveOutputStream tos) throws IOException {
+		// New TarArchiveEntry
+		tos.putArchiveEntry(new TarArchiveEntry(file, file.getName()));
+		if (file.isFile()) {
+			FileInputStream fis = new FileInputStream(file);
+			BufferedInputStream bis = new BufferedInputStream(fis);
+			// Write content of the file
+			IOUtils.copy(bis, tos);
+			tos.closeArchiveEntry();
+			fis.close();
+		} else if (file.isDirectory()) {
+			// no need to copy any content since it is
+			// a directory, just close the outputstream
+			tos.closeArchiveEntry();
+			for (File cFile : file.listFiles()) {
+				// recursively call the method for all the subfolders
+				addFilesToTarGZ(cFile, tos);
+
+			}
+		}
+	}
+
 }

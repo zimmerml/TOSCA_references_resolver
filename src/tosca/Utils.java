@@ -23,6 +23,8 @@ package tosca;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 public class Utils {
 
@@ -52,8 +54,7 @@ public class Utils {
 	 * @param content
 	 * @throws IOException
 	 */
-	static public void createFile(String filename, String content)
-			throws IOException {
+	static public void createFile(String filename, String content) throws IOException {
 		if (new File(filename).getParent() != null)
 			new File(new File(filename).getParent()).mkdirs();
 		new File(filename).delete();
@@ -61,9 +62,19 @@ public class Utils {
 		bw.write(content);
 		bw.close();
 	}
-	
-	public static String correctName(String name){
-//		return name;
+
+	public static String correctName(String name) {
+		// return name;
 		return name.replace('%', 'P').replace(':', '_').replace('+', 'p').replace('/', '_').replace('.', '_');
+	}
+
+	public static String readAllBytesJava7(String filePath) {
+		String content = "";
+		try {
+			content = new String(Files.readAllBytes(Paths.get(filePath)));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return content;
 	}
 }

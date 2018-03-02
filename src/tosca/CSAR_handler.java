@@ -66,23 +66,23 @@ public class CSAR_handler {
 	private Package_Handler packet_handler;
 
 	// Updates service templates
-	private Topology_Handler service_template;
+	public Topology_Handler service_template;
 
 	public static final String ArchitectureFileName = "arch";
 	public static final String Definitions = "Definitions/";
 
 	public Boolean debug = false;
-	
-	public static enum Resolving{
-		Mirror, 
-		Single,
-		Expand
+
+	public static enum Resolving {
+		Mirror, Single, Expand, Archive
 	}
+
 	private Resolving resolving;
-	
-	public Resolving getResolving(){
+
+	public Resolving getResolving() {
 		return resolving;
 	}
+
 	/**
 	 * Download and add packet to csar
 	 * 
@@ -92,8 +92,7 @@ public class CSAR_handler {
 	 * @throws JAXBException
 	 * @throws IOException
 	 */
-	public List<String> getPacket(Language language, String packet, String source)
-			throws JAXBException, IOException {
+	public List<String> getPacket(Language language, String packet, String source) throws JAXBException, IOException {
 		return packet_handler.getPacket(language, packet, source);
 	}
 
@@ -107,8 +106,7 @@ public class CSAR_handler {
 	 * @throws JAXBException
 	 * @throws IOException
 	 */
-	public void AddDependenciesScript(String reference, String packet)
-			throws JAXBException, IOException {
+	public void AddDependenciesScript(String reference, String packet) throws JAXBException, IOException {
 		service_template.addDependencyToScript(reference, packet);
 	}
 
@@ -122,15 +120,15 @@ public class CSAR_handler {
 	 * @throws JAXBException
 	 * @throws IOException
 	 */
-	public void AddDependenciesPacket(String source, String target,
-			String dependencyType) throws JAXBException, IOException {
+	public void AddDependenciesPacket(String source, String target, String dependencyType)
+			throws JAXBException, IOException {
 		service_template.addDependencyToPacket(source, target, dependencyType);
 	}
-	
-	public void expandTOSCA_Node(List<String> packages, String source) throws IOException, JAXBException
-	{
+
+	public void expandTOSCA_Node(List<String> packages, String source) throws IOException, JAXBException {
 		service_template.expandTOSCA_Nodes(packages, source);
 	}
+
 	/**
 	 * init system
 	 * 
@@ -138,8 +136,7 @@ public class CSAR_handler {
 	 *            CSAR archive
 	 * @throws IOException
 	 */
-	public CSAR_handler(String filename) throws FileNotFoundException,
-			IOException {
+	public CSAR_handler(String filename) throws FileNotFoundException, IOException {
 		metaFile = new MetaFile();
 		init(filename);
 		packet_handler = new Package_Handler(this);
@@ -249,8 +246,7 @@ public class CSAR_handler {
 			if (line != null && !line.equals(""))
 				architecture = line;
 			else {
-				new File(folder + Resolver.folder + ArchitectureFileName)
-						.delete();
+				new File(folder + Resolver.folder + ArchitectureFileName).delete();
 				throw new FileNotFoundException();
 			}
 
@@ -269,8 +265,7 @@ public class CSAR_handler {
 			bw.write(architecture);
 			bw.close();
 		}
-		metaFile.addFileToMeta(Resolver.folder + ArchitectureFileName,
-				"text/txt");
+		metaFile.addFileToMeta(Resolver.folder + ArchitectureFileName, "text/txt");
 	}
 
 	/**
@@ -295,22 +290,23 @@ public class CSAR_handler {
 		bw.close();
 	}
 
-	public void chooseResolving(){
+	public void chooseResolving() {
 		System.out.println("Please the type of resolving");
-		System.out.println("Example: single, mirror, expand");
+		System.out.println("Supported modes: single, mirror, expand, archive");
 		System.out.print("resolving: ");
 		String temp = new Scanner(System.in).nextLine();
-		if (temp.equals("single")){
+		if (temp.equals("single")) {
 			resolving = Resolving.Single;
 			System.out.println("Resolving accepted: single");
-		}
-		else if(temp.equals("mirror")){
+		} else if (temp.equals("mirror")) {
 			resolving = Resolving.Mirror;
 			System.out.println("Resolving accepted: mirror");
-		}
-		else{
+		} else if (temp.equals("expand")) {
 			resolving = Resolving.Expand;
 			System.out.println("Resolving accepted: expand");
+		} else {
+			resolving = Resolving.Archive;
+			System.out.println("Resolving accepted: Archive");
 		}
 	}
 }
