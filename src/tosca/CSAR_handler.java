@@ -32,6 +32,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.Scanner;
 
@@ -158,6 +159,9 @@ public class CSAR_handler {
 		unpack();
 		readArchitecture();
 		chooseResolving();
+
+		Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+		System.out.println("START: " + timestamp);
 	}
 
 	/**

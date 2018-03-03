@@ -206,7 +206,7 @@ public class zip {
 		}
 	}
 
-	private static String getFileExtension(File file) {
+	public static String getFileExtension(File file) {
 		String fileName = file.getName();
 		if (fileName.lastIndexOf(".") != -1 && fileName.lastIndexOf(".") != 0)
 			return fileName.substring(fileName.lastIndexOf(".") + 1);
@@ -229,10 +229,6 @@ public class zip {
 			File folder = new File(source);
 			File[] fileNames = folder.listFiles();
 			for (File file : fileNames) {
-				System.out.println("PATH " + file.getAbsolutePath());
-				System.out.println("File name " + file.getName());
-				System.out.println("tarFile " + tarFile);
-
 				if (!getFileExtension(file).equals(ending)) {
 					addFilesToTarGZ(file, tarOs);
 				}

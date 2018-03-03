@@ -67,17 +67,23 @@ public final class PM_apt_get extends PackageManager {
 		String line = null;
 		String newFile = "";
 		while ((line = br.readLine()) != null) {
+			System.out.println("Checking for apt-get install... : " + line);
 			// split string to words
 			String[] words = line.replaceAll("[;&]", "").split("\\s+");
 			// skip space at the beginning of string
 			int i = 0;
 			if (words[i].equals(""))
-				i = 1;
+				i = i + 1;
+			if (words[i].equals("sudo"))
+				i = i + 1;
+			if (words[i].equals("-E"))
+				i = i + 1;
 			// look for apt-get
 			if (words.length >= 1 + i && words[i].equals("apt-get")) {
+				System.out.println("apt-get found!");
 				// apt-get found
 				if (words.length >= 3 + i && words[1 + i].equals("install")) {
-					System.out.println("apt-get found:" + line);
+					System.out.println("apt-get install found!");
 					isChanged = true;
 					for (int packet = 2 + i; packet < words.length; packet++) {
 						if (words[packet].startsWith("-"))
@@ -107,60 +113,64 @@ public final class PM_apt_get extends PackageManager {
 					}
 				} else if (ch.getResolving() == CSAR_handler.Resolving.Archive) {
 
-					newFile += "#//References resolver//" + line + '\n';
+					if (line.contains("install")) {
 
-					// TODO read a resource file to create the script
+						newFile += "#//References resolver//" + line + '\n';
 
-					newFile += "csarRoot=$(find ~ -maxdepth 1 -path \"*.csar\");";
-					newFile += "\n";
-					newFile += "IFS=';' read -ra NAMES <<< \"$DAs\";";
-					newFile += "\n";
-					newFile += "for i in \"${NAMES[@]}\"; do";
-					newFile += "\n";
-					newFile += "	IFS=',' read -ra PATH <<< \"$i\"; ";
-					newFile += "\n";
-					newFile += "		dirName=$(/usr/bin/sudo /usr/bin/dirname $csarRoot${PATH[1]})";
-					newFile += "\n";
-					newFile += "		baseName=$(/usr/bin/sudo /usr/bin/basename $csarRoot${PATH[1]})";
-					newFile += "\n";
-					newFile += "		filename=\"${baseName%.*}\"";
-					newFile += "\n";
-					newFile += "	if [[ \"${PATH[1]}\" == *.tar ]];";
-					newFile += "\n";
-					newFile += "	then";
-					newFile += "\n";
-					newFile += "	cd $dirName";
-					newFile += "\n";
-					newFile += "	/usr/bin/sudo mkdir -p $filename";
-					newFile += "\n";
-					newFile += "	/bin/tar  -xvzf $baseName -C $filename";
-					newFile += "\n";
-					newFile += "	fi";
-					newFile += "\n";
-					newFile += "done";
-					newFile += "\n";
-					newFile += "export DEBIAN_FRONTEND=noninteractive";
-					newFile += "\n";
-					newFile += "/usr/bin/sudo -E /usr/bin/dpkg -i -R -E -B $filename";
-					newFile += "\n";
+						// TODO read a resource file to create the script
 
-					String newFileName = ch.service_template.getRefToNodeType().get(Utils.correctName(source)).get(0);
-					String newFileNameWithExtension = newFileName + "_DA.tar";
+						newFile += "csarRoot=$(find ~ -maxdepth 1 -path \"*.csar\");";
+						newFile += "\n";
+						newFile += "IFS=';' read -ra NAMES <<< \"$DAs\";";
+						newFile += "\n";
+						newFile += "for i in \"${NAMES[@]}\"; do";
+						newFile += "\n";
+						newFile += "	IFS=',' read -ra PATH <<< \"$i\"; ";
+						newFile += "\n";
+						newFile += "		dirName=$(/usr/bin/sudo /usr/bin/dirname $csarRoot${PATH[1]})";
+						newFile += "\n";
+						newFile += "		baseName=$(/usr/bin/sudo /usr/bin/basename $csarRoot${PATH[1]})";
+						newFile += "\n";
+						newFile += "		filename=\"${baseName%.*}\"";
+						newFile += "\n";
+						newFile += "	if [[ \"${PATH[1]}\" == *.tar ]];";
+						newFile += "\n";
+						newFile += "	then";
+						newFile += "\n";
+						newFile += "	cd $dirName";
+						newFile += "\n";
+						newFile += "	/usr/bin/sudo mkdir -p $filename";
+						newFile += "\n";
+						newFile += "	/bin/tar  -xvzf $baseName -C $filename";
+						newFile += "\n";
+						newFile += "	fi";
+						newFile += "\n";
+						newFile += "done";
+						newFile += "\n";
+						newFile += "export DEBIAN_FRONTEND=noninteractive";
+						newFile += "\n";
+						newFile += "/usr/bin/sudo -E /usr/bin/dpkg -i -R -E -B $filename";
+						newFile += "\n";
 
-					String newFilePath1 = Resolver.folder + newFileNameWithExtension;
+						String newFileName = ch.service_template.getRefToNodeType().get(Utils.correctName(source))
+								.get(0);
+						String newFileNameWithExtension = newFileName + "_DA.tar";
 
-					// Creating tar file, since tar is already available on Ubuntu
-					zip.createTarFile(newFileNameWithExtension, ch.getFolder() + Resolver.folder, "tar");
+						String newFilePath1 = Resolver.folder + newFileNameWithExtension;
 
-					zip.deleteFilesInFolder(new File(ch.getFolder() + Resolver.folder), "tar");
+						// Creating tar file, since tar is already available on Ubuntu
+						zip.createTarFile(newFileNameWithExtension, ch.getFolder() + Resolver.folder, "tar");
 
-					ch.metaFile.addFileToMeta(newFilePath1, "application/tar");
+						zip.deleteFilesInFolder(new File(ch.getFolder() + Resolver.folder), "tar");
 
-					RR_PackageArtifactTemplate.createPackageArtifact(ch, newFileName);
+						ch.metaFile.addFileToMeta(newFilePath1, "application/tar");
 
-					List<String> newDA = new LinkedList<String>();
-					newDA.add(newFileName);
-					language.expandTOSCA_Node(newDA, source);
+						RR_PackageArtifactTemplate.createPackageArtifact(ch, newFileName);
+
+						List<String> newDA = new LinkedList<String>();
+						newDA.add(newFileName);
+						language.expandTOSCA_Node(newDA, source);
+					}
 
 				} else {
 					newFile += "#//References resolver//" + line + '\n';

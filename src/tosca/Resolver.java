@@ -24,6 +24,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
+import java.sql.Timestamp;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Scanner;
@@ -81,6 +82,9 @@ public class Resolver {
 		System.out.println("source: " + source);
 		System.out.println("target: " + target);
 		resolver.proceedCSAR(source, target);
+		
+		Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+		System.out.println("END: " + timestamp);
 	}
 
 	/**

@@ -179,11 +179,16 @@ public class Package_Handler {
 
 			// need to move package to right folder
 			for (File entry : new File("./").listFiles()) {
-				System.out.println("downloaded and found: " + entry.getName());
-				newName = Utils.correctName(entry.getName().replace(",deb", ""));
-				dir_name = Resolver.folder + newName + File.separator;
-				new File(ch.getFolder() + dir_name).mkdirs();
-				entry.renameTo(new File(ch.getFolder() + dir_name + newName + Extension));
+
+				if (!zip.getFileExtension(entry).equals("CSAR") && !zip.getFileExtension(entry).equals("csar")
+						&& !zip.getFileExtension(entry).equals("jar")) {
+
+					// System.out.println("downloaded and found: " + entry.getName());
+					newName = Utils.correctName(entry.getName().replace(",deb", ""));
+					dir_name = Resolver.folder + newName + File.separator;
+					new File(ch.getFolder() + dir_name).mkdirs();
+					entry.renameTo(new File(ch.getFolder() + dir_name + newName + Extension));
+				}
 			}
 
 		} catch (IOException e) {
@@ -234,7 +239,7 @@ public class Package_Handler {
 				// need to move package to right folder
 				for (File entry : new File("./").listFiles()) {
 					if (file_downloaded(packet, entry)) {
-						System.out.println("downloaded and found: " + entry.getName());
+						// System.out.println("downloaded and found: " + entry.getName());
 						newName = Utils.correctName(packet);
 						dir_name = Resolver.folder + newName + File.separator;
 						new File(ch.getFolder() + dir_name).mkdirs();
@@ -242,9 +247,6 @@ public class Package_Handler {
 						downloaded = true;
 						if (sourceName != packet)
 							rename.put(sourceName, packet);
-						if (ch.getResolving() != CSAR_handler.Resolving.Archive) {
-							ch.metaFile.addFileToMeta(dir_name + newName + Extension, "application/deb");
-						}
 						break;
 					}
 				}
