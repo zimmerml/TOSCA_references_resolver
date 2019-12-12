@@ -9,9 +9,9 @@ package tosca;
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -28,53 +28,56 @@ import java.nio.file.Paths;
 
 public class Utils {
 
-	/**
-	 * returns length of path, i.o. number of directories
-	 * 
-	 * @param file
-	 * @return length
-	 */
-	static public int getPathLength(String file) {
+    /**
+     * returns length of path, i.o. number of directories
+     *
+     * @param file
+     * @return length
+     */
+    static public int getPathLength(final String file) {
 
-		if (file == null)
-			throw new NullPointerException();
-		int count = 0;
-		String path = new File(file).getParent();
-		while (path != null) {
-			path = new File(path).getParent();
-			count++;
-		}
-		return count;
-	}
+        if (file == null) {
+            throw new NullPointerException();
+        }
+        int count = 0;
+        String path = new File(file).getParent();
+        while (path != null) {
+            path = new File(path).getParent();
+            count++;
+        }
+        return count;
+    }
 
-	/**
-	 * Create file and all parent folders with given content
-	 * 
-	 * @param filename
-	 * @param content
-	 * @throws IOException
-	 */
-	static public void createFile(String filename, String content) throws IOException {
-		if (new File(filename).getParent() != null)
-			new File(new File(filename).getParent()).mkdirs();
-		new File(filename).delete();
-		FileWriter bw = new FileWriter(filename);
-		bw.write(content);
-		bw.close();
-	}
+    /**
+     * Create file and all parent folders with given content
+     *
+     * @param filename
+     * @param content
+     * @throws IOException
+     */
+    static public void createFile(final String filename, final String content) throws IOException {
+        if (new File(filename).getParent() != null) {
+            new File(new File(filename).getParent()).mkdirs();
+        }
+        new File(filename).delete();
+        final FileWriter bw = new FileWriter(filename);
+        bw.write(content);
+        bw.close();
+    }
 
-	public static String correctName(String name) {
-		// return name;
-		return name.replace('%', 'P').replace(':', '_').replace('+', 'p').replace('/', '_').replace('.', '_');
-	}
+    public static String correctName(final String name) {
+        // return name;
+        return name.replace('%', 'P').replace(':', '_').replace('+', 'p').replace('/', '_').replace('.', '_');
+    }
 
-	public static String readAllBytesJava7(String filePath) {
-		String content = "";
-		try {
-			content = new String(Files.readAllBytes(Paths.get(filePath)));
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		return content;
-	}
+    public static String readAllBytesJava7(final String filePath) {
+        String content = "";
+        try {
+            content = new String(Files.readAllBytes(Paths.get(filePath)));
+        }
+        catch (final IOException e) {
+            e.printStackTrace();
+        }
+        return content;
+    }
 }
